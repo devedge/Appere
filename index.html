@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Appere</title> <!-- probably change the title according to the filename -->
+
+        <!-- Stylesheets -->
+        <link href="stylesheets/main.css" rel="stylesheet" type="text/css">
+        <!-- <link href="stylesheets/font-awesome-4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    </head>
+    <body>
+        <div class="main-app">
+            <div class="image-display">
+                <img class="image-container" id="image-container" src=""/>
+                <!-- <div class="spinner" hidden> -->
+                    <!-- <i class="fa fa-2x fa-spin fa-circle-o-notch"></i> -->
+                <!-- </div> -->
+            </div>
+            <div class="controls">
+                <div class="left-controls"></div>
+                <div class="right-controls"></div>
+            </div>
+        </div>
+        <!-- Load scripts once the page has loaded -->
+        <!-- Global event emitter -->
+
+        <!-- Delayed loader -->
+        <script type="text/javascript">
+            // Loader function
+            function delayLoad(type, location) {
+                var jsElement = document.createElement(type);
+                jsElement.src = location;
+                document.body.appendChild(jsElement);
+            }
+
+            // Wait for the app to load, then call external classes
+            window.addEventListener('load', delayLoad('script', 'test.js'), false);
+        </script>
+    </body>
+</html>
+
+<!--
+Notes:
+
+CSS:
+class for the general image. worries about centering, scaling, etc..
+class for the bottom row of control elements
+    class for the left controls
+    class for the right controls
+class to blur the entire screen for 'deletion confirmation'
+class for displaying the 'more info' popup
+class for the spinner?
+class to fade elements in/out nicely. options to change defaults?
+
+JS:
+file to handle major app functions
+file to handle filesystem stuff
+file to handle user keyboard input
+
+
+
+Design a custom CSS spinner instead of importing an entire glyphicon
+library
+
+
+Add code to check if the image exists at that location.
+if not, check if the next/previous image can be displayed
+otherwise, display a generic 'no image found'. needs to look good.
+
+add code to check how quickly the last 'next' button was pressed
+if it was really quick, don't load the image at all to keep from taxing
+the CPU
+
+
+Other stuff:
+Maximize load time performance
+    write a specific loader module to optimize loading everything else
+    on startup, automatically load the html + css + loader
+    after that, prepare everything else
+    (consider dynamically loading other things (like the spinner) later)
+
+installed collections.js
+    use to improve things (check if it does anything to speed?)
+
+
+
+
+ -->
