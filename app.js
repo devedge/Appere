@@ -26,16 +26,6 @@ var wraparound = false;
 
 
 
-
-
-
-
-
-
-
-
-
-
 // Keylistener logic
 document.addEventListener('keydown', function(event) {
     // console.log(event.keyCode);

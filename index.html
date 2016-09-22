@@ -22,19 +22,19 @@
             </div>
         </div>
         <!-- Load scripts once the page has loaded -->
-        <!-- Global event emitter -->
+        <!-- Global event emitter? -->
 
-        <!-- Delayed loader -->
+        <!-- Delayed loader to speed startup times -->
         <script type="text/javascript">
             // Delayed loader function
-            function delayLoad(type, location) {
-                var jsElement = document.createElement(type);
-                jsElement.src = location;
-                document.body.appendChild(jsElement);
+            function load(element_type, filename) {
+                var new_element = document.createElement(element_type);
+                new_element.src = filename;
+                document.body.appendChild(new_element);
             }
 
             // Wait for the app to load, then call external classes
-            window.addEventListener('load', delayLoad('script', 'app.js'), false);
+            window.addEventListener('load', load('script', 'app.js'), false);
         </script>
     </body>
 </html>
