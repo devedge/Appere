@@ -1,36 +1,71 @@
-
 const fs = require('fs');
 const path = require('path');
+// var SortedArray = require("collections/sorted-array");
 
 
 
-function gen_img_list(folder_path, current_file) {
-    var extension;
-    var img_list = [];
-    var current_index;
 
-    fs.readdir(folder_path, (err, items) => {
-        // if (err) {
-        //
-        // }
+// Constructor function
+function FSmanager() {
+    this.extension;
+    this.img_list = [];
+    this.current_index;
+}
 
-        for (i=0; i<items.length; i++) {
-            extension = path.extname(items[i]);
 
-            // If we find the filename,
-            if (items[i] === current_file) {
-                current_index = i;
+// Generate the array list from the current image's filepath
+FSmanager.prototype.genList = function (filepath, current_filename) {
+
+    fs.readdir(filepath, (err, items) => {
+
+        // Sort the items, ignoring case
+        items.sort(function (a, b) {
+            return a.toLowerCase().localeCompare(b.toLowerCase());
+        });
+
+        // Extract all the supported file extensions
+        items.forEach((filename, index) => {
+            // If the extensions match, push them on the array
+            if (path.extname(filename).match(/^(\.jpg|\.jpeg|\.jpe|\.jfif|\.jif|\.gif|\.png|\.bmp|\.svg|\.ico)$/)) {
+                // If the filename matches the current filename, the array length
+                // is the index of the current file
+                if (filename === current_filename) {
+                    this.current_index = this.img_list.length;
+                }
+
+                this.img_list.push(filename);
             }
+        });
 
-            if (extension.match(/^(\.jpg|\.jpeg|\.jpe|\.jfif|\.jif|\.gif|\.png|\.bmp|\.svg|\.ico)$/)) {
-                img_list.push(items[i]);
-            }
-        }
+        console.log('Size: ' + this.img_list.length);
+        console.log('Index: ' + this.current_index);
+        console.log('File given: Cpgq3qhWgAEcFRa.jpg');
+        console.log('Actual    : ' + this.img_list[this.current_index]);
     });
 }
 
 
+// Get the filepath of the previous image
+FSmanager.prototype.getPrev = function () {
 
+}
+
+
+// Get the filepath of the next image
+FSmanager.prototype.getNext = function () {
+
+}
+
+
+
+
+var mngr = new FSmanager();
+
+mngr.genList('/home/usr/Desktop', 'Cpgq3qhWgAEcFRa.jpg');
+
+
+
+// module.exports = FSmanager;
 
 
 // fs.readdir('/home/usr/Desktop/local/', (err, items) => {

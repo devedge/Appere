@@ -16,12 +16,14 @@ var img_dir_list = [{}, {}, {}];
 //     'filename_array': []
 // }
 
-var img_list = [];
+var img_list = fs_manager.gen_img_list();
+
+var mngr = new 
 
 // HTML element that contains the image
 var img = document.getElementById('image-container');
 
-var wraparound = false;
+// var wraparound = false;
 
 
 
