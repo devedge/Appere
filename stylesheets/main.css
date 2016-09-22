@@ -1,0 +1,95 @@
+/*.gradient {
+    background-image: radial-gradient(to bottom, #fafafa, #000000);
+}*/
+
+.main-app {
+    animation: fi1 0.5s;
+    /*margin: 0;*1
+    /*padding: 0;*/
+
+}
+
+/* General display effects applied to the entire image area */
+.image-display {
+    /* Centering */
+}
+
+/* Position settings to center the spinner */
+.spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Keep the image always centered, but within the bounds of the window */
+.image-container {
+    margin: auto;
+    position: absolute;
+
+    /* Align against the edges of the window */
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+
+    /* keep the the max width 100% of the view width &
+    the max height 100% of the view height */
+    max-width: 100vw;
+    max-height: 100vh;
+}
+
+    /* 90% of viewport vidth */
+    /*width: 90vw;*/
+    /*width: 100vw;*/
+    /* ratio = 9/16 * 90 = 50.625 */
+    /*height: 50.625vw; */
+    /*height: 100vw;*/
+    /*height: auto;*/
+
+    /*background: pink;*/
+    /*background: url('example.jpg');*/
+    /*max-height: 90vh;*/
+
+    /*max-width: 100vw;*/
+    /* 16/9 * 90 = 160 */
+    /*max-width: 160vh;*/
+    /*max-height: 100vh;*/
+    /*max-height: 100vw;*/
+/*}*/
+
+
+/* Alignment effects (and transitions?) for the controls */
+.controls {
+
+}
+
+.left-controls {
+
+}
+
+.right-controls {
+
+}
+
+
+
+/* Animation effects */
+
+/* 2 second fade-in effect */
+.fadein {
+    animation: fi1 2s;
+}
+@keyframes fi1 {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* 2 second fade-out effect */
+.fadeout {
+    animation: fo1 2s;
+}
+@keyframes fo1 {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}

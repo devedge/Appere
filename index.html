@@ -26,7 +26,7 @@
 
         <!-- Delayed loader -->
         <script type="text/javascript">
-            // Loader function
+            // Delayed loader function
             function delayLoad(type, location) {
                 var jsElement = document.createElement(type);
                 jsElement.src = location;
@@ -34,7 +34,7 @@
             }
 
             // Wait for the app to load, then call external classes
-            window.addEventListener('load', delayLoad('script', 'test.js'), false);
+            window.addEventListener('load', delayLoad('script', 'app.js'), false);
         </script>
     </body>
 </html>
