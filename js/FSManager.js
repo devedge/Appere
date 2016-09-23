@@ -14,8 +14,8 @@ class FSmanager {
     }
 
 
-    // Generate an array list of filenames that can be
-    // called to set the next image
+    // Generate an array list of filenames that can be called
+    // to set the next image
     genList(filepath, current_filename, cb) {
         this.folder = filepath;
 
@@ -25,8 +25,8 @@ class FSmanager {
                 return a.toLowerCase().localeCompare(b.toLowerCase());
             });
 
-            // Extract all the supported file extensions
-            // If the extensions match, push them on the array
+            // Extract all the supported file extensions and push them
+            // on the 'img_list' array
             items.forEach((filename, index) => {
                 if (path.extname(filename).match(supported_types)) {
                     // If the filename matches the current filename, the array length
@@ -39,24 +39,64 @@ class FSmanager {
             });
 
             // Callback.
-            cb();
+            cb(err);
         });
     }
 
 
-    // Get the next image filename in the list. If wraparound is true,
-    // then
-    getNext() {
-        if (this.current_index + 1 > this.img_list.length + 1) {
-
-        }
-        return this.img_list[this.current_index + 1];
+    // Return the full path of the current file
+    getCurrent() {
+        return path.join(this.folder, this.img_list[this.current_index]);
     }
 
 
-    // 
-    getPrev() {
-        return path.join(this.folder, this.img_list[this.current_index - 1]);
+    // Get the next image filename in the list. If wraparound is true,
+    // then at the end of the array return the first image
+    getNext(wraparound = false) {
+        if (this.current_index >= this.img_list.length - 1) {
+            if (wraparound) {
+                // Reset the current index to the start of the directory
+                this.current_index = 0;
+            }
+
+            // Return the updated index if 'wraparound' is true, or the same
+            // filname if it is false
+            return path.join(this.folder, this.img_list[this.current_index]);
+        }
+
+        // Increment the current file index
+        this.current_index += 1;
+
+        // Return the new file
+        return path.join(this.folder, this.img_list[this.current_index]);
+    }
+
+
+    // Get the previous image filename in the list. If wraparound is true, then
+    // if this has reached the beginning of the array, return the last image
+    getPrev(wraparound = false) {
+        if (this.current_index <= 0) {
+            if (wraparound) {
+                // Reset the current file to the last item in the directory
+                this.current_index = this.img_list.length - 1;
+            }
+
+            // Return the updated index if 'wraparound' is true, or the same
+            // filname if it is false
+            return path.join(this.folder, this.img_list[this.current_index]);
+        }
+
+        // Decrement the current file index
+        this.current_index -= 1;
+
+        // Return the new file
+        return path.join(this.folder, this.img_list[this.current_index]);
+    }
+
+
+    // Return the current folder path
+    getCurrentDir() {
+        return this.folder;
     }
 }
 
@@ -64,6 +104,18 @@ class FSmanager {
 
 
 
+
+var mngr = new FSmanager();
+
+mngr.genList('/home/usr/Desktop', '2.jpg', (err) => {
+    if (err) {
+        console.log(err);
+    }
+
+    console.log('Current: ' + mngr.getCurrent());
+    console.log('Next: ' + mngr.getNext(true));
+    console.log('Prev: ' + mngr.getPrev(true));
+});
 
 
 
@@ -134,10 +186,6 @@ class FSmanager {
 // export default FSmanager;
 
 
-
-var mngr = new FSmanager();
-
-mngr.genList('/home/usr/Desktop', 'Cpgq3qhWgAEcFRa.jpg');
 
 
 

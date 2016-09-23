@@ -7,10 +7,10 @@
     "start": "./node_modules/.bin/electron .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "devedge",
   "license": "MIT",
   "dependencies": {
-    "collections": "^5.0.4",
+    "chokidar": "^1.6.0",
     "electron": "^1.3.6"
   }
 }

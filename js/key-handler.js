@@ -1,25 +1,3 @@
-
-const FSManager = require('./js/FSManager');
-
-// List of keys to watch
-const key_left = 37;
-const key_right = 39;
-const key_esc = 27;
-const key_del = 46;
-
-// Image directory info and lists
-var img_dir_list = [{}, {}, {}];
-
-// Template for an image directory
-// var img_dir = {
-//     'abs_path': '',
-//     'filename_array': []
-// }
-
-// var img_list = fs_manager.gen_img_list();
-
-var mngr = new FSmanager();
-
 // HTML element that contains the image
 var img = document.getElementById('image-container');
 
