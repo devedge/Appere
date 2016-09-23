@@ -2,60 +2,136 @@ const fs = require('fs');
 const path = require('path');
 // var SortedArray = require("collections/sorted-array");
 
+const supported_types = /^(\.jpg|\.jpeg|\.jpe|\.jfif|\.jif|\.gif|\.png|\.bmp|\.svg|\.ico)$/;
 
 
+class FSmanager {
+    constructor() {
+        this.folder = '';
+        this.img_list = [];
+        this.current_index = 0;
+        this.extension = '';
+    }
 
-// Constructor function
-function FSmanager() {
-    this.extension;
-    this.img_list = [];
-    this.current_index;
-}
 
+    // Generate an array list of filenames that can be
+    // called to set the next image
+    genList(filepath, current_filename, cb) {
+        this.folder = filepath;
 
-// Generate the array list from the current image's filepath
-FSmanager.prototype.genList = function (filepath, current_filename) {
+        fs.readdir(filepath, (err, items) => {
+            // Sort the items, ignoring case
+            items.sort(function (a, b) {
+                return a.toLowerCase().localeCompare(b.toLowerCase());
+            });
 
-    fs.readdir(filepath, (err, items) => {
-
-        // Sort the items, ignoring case
-        items.sort(function (a, b) {
-            return a.toLowerCase().localeCompare(b.toLowerCase());
-        });
-
-        // Extract all the supported file extensions
-        items.forEach((filename, index) => {
+            // Extract all the supported file extensions
             // If the extensions match, push them on the array
-            if (path.extname(filename).match(/^(\.jpg|\.jpeg|\.jpe|\.jfif|\.jif|\.gif|\.png|\.bmp|\.svg|\.ico)$/)) {
-                // If the filename matches the current filename, the array length
-                // is the index of the current file
-                if (filename === current_filename) {
-                    this.current_index = this.img_list.length;
+            items.forEach((filename, index) => {
+                if (path.extname(filename).match(supported_types)) {
+                    // If the filename matches the current filename, the array length
+                    // is the index of the current file
+                    if (filename === current_filename) {
+                        this.current_index = this.img_list.length;
+                    }
+                    this.img_list.push(filename);
                 }
+            });
 
-                this.img_list.push(filename);
-            }
+            // Callback.
+            cb();
         });
+    }
 
-        console.log('Size: ' + this.img_list.length);
-        console.log('Index: ' + this.current_index);
-        console.log('File given: Cpgq3qhWgAEcFRa.jpg');
-        console.log('Actual    : ' + this.img_list[this.current_index]);
-    });
+
+    // Get the next image filename in the list. If wraparound is true,
+    // then
+    getNext() {
+        if (this.current_index + 1 > this.img_list.length + 1) {
+
+        }
+        return this.img_list[this.current_index + 1];
+    }
+
+
+    // 
+    getPrev() {
+        return path.join(this.folder, this.img_list[this.current_index - 1]);
+    }
 }
 
 
-// Get the filepath of the previous image
-FSmanager.prototype.getPrev = function () {
-
-}
 
 
-// Get the filepath of the next image
-FSmanager.prototype.getNext = function () {
 
-}
 
+
+
+
+
+
+
+
+
+            // console.log('Size: ' + this.img_list.length);
+            // console.log('Index: ' + this.current_index);
+            // console.log('File given: Cpgq3qhWgAEcFRa.jpg');
+            // console.log('Actual    : ' + this.img_list[this.current_index]);
+
+
+// // Constructor function
+// function FSmanager() {
+//     this.extension;
+//     this.img_list = [];
+//     this.current_index;
+// }
+//
+//
+// // Generate the array list from the current image's filepath
+// FSmanager.prototype.genList = function (filepath, current_filename) {
+//
+//     fs.readdir(filepath, (err, items) => {
+//
+//         // Sort the items, ignoring case
+//         items.sort(function (a, b) {
+//             return a.toLowerCase().localeCompare(b.toLowerCase());
+//         });
+//
+//         // Extract all the supported file extensions
+//         items.forEach((filename, index) => {
+//             // If the extensions match, push them on the array
+//             if (path.extname(filename).match(/^(\.jpg|\.jpeg|\.jpe|\.jfif|\.jif|\.gif|\.png|\.bmp|\.svg|\.ico)$/)) {
+//                 // If the filename matches the current filename, the array length
+//                 // is the index of the current file
+//                 if (filename === current_filename) {
+//                     this.current_index = this.img_list.length;
+//                 }
+//
+//                 this.img_list.push(filename);
+//             }
+//         });
+//
+//         console.log('Size: ' + this.img_list.length);
+//         console.log('Index: ' + this.current_index);
+//         console.log('File given: Cpgq3qhWgAEcFRa.jpg');
+//         console.log('Actual    : ' + this.img_list[this.current_index]);
+//     });
+// }
+//
+//
+// // Get the filepath of the previous image
+// FSmanager.prototype.getPrev = function () {
+//
+// }
+//
+//
+// // Get the filepath of the next image
+// FSmanager.prototype.getNext = function () {
+//
+// }
+
+
+// export default FSmanager;
 
 
 

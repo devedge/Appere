@@ -18,7 +18,7 @@ var img_dir_list = [{}, {}, {}];
 
 var img_list = fs_manager.gen_img_list();
 
-var mngr = new 
+var mngr = new
 
 // HTML element that contains the image
 var img = document.getElementById('image-container');
@@ -34,7 +34,7 @@ document.addEventListener('keydown', function(event) {
 
     // Read the keycode property of the key pressed
     switch (event.keyCode) {
-        case key_left:
+        case key_left: {
             event.preventDefault();
 
             // call the code to get the filename of the next image
@@ -42,8 +42,8 @@ document.addEventListener('keydown', function(event) {
             img.src = 'images/1462845901532.gif';
 
             break;
-
-        case key_right:
+        }
+        case key_right: {
             event.preventDefault();
 
             // call the code to get the filename of the previous image
@@ -51,24 +51,24 @@ document.addEventListener('keydown', function(event) {
             img.src = 'images/example.jpg';
 
             break;
-
-        case key_esc:
+        }
+        case key_esc: {
             event.preventDefault();
 
             // minimize the window
             console.log('Called esc');
 
             break;
-
-        case key_del:
+        }
+        case key_del: {
             event.preventDefault();
 
             // call code to display confirmation popup to delete image
             console.log('Called del');
 
             break;
-
-        default:
+        }
+        default: {}
             // do nothing, ignore the key
     }
 });
