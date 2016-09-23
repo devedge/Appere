@@ -1,5 +1,5 @@
 
-const FSManager = require('./js/FSManager');
+const FSmanager = require('./js/FSManager');
 
 // List of keys to watch
 const key_left = 37;
@@ -7,8 +7,13 @@ const key_right = 39;
 const key_esc = 27;
 const key_del = 46;
 
+var mngr = new FSmanager();
+mngr.genList('./images', 'example.jpg');
+
+
+
 // Image directory info and lists
-var img_dir_list = [{}, {}, {}];
+// var img_dir_list = [{}, {}, {}];
 
 // Template for an image directory
 // var img_dir = {
@@ -18,7 +23,6 @@ var img_dir_list = [{}, {}, {}];
 
 // var img_list = fs_manager.gen_img_list();
 
-var mngr = new FSmanager();
 
 // HTML element that contains the image
 var img = document.getElementById('image-container');
@@ -39,7 +43,9 @@ document.addEventListener('keydown', function(event) {
 
             // call the code to get the filename of the next image
             // console.log('Called left');
-            img.src = 'images/1462845901532.gif';
+            img.src = mngr.getPrev(true);
+
+            // 'images/1462845901532.gif';
 
             break;
         }
@@ -48,7 +54,9 @@ document.addEventListener('keydown', function(event) {
 
             // call the code to get the filename of the previous image
             // console.log('Called right');
-            img.src = 'images/example.jpg';
+            img.src = mngr.getNext(true);
+
+            // 'images/example.jpg';
 
             break;
         }
