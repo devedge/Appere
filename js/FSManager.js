@@ -111,7 +111,8 @@ FSmanager.prototype.getCurrentDir = function() {
 
 // Return the full path of the current file
 FSmanager.prototype.getCurrent = function() {
-    return path.join(this.folder, frep.strWithArr(this.img_list[this.current_index], replacements));
+    // return path.join(this.folder, frep.strWithArr(this.img_list[this.current_index], replacements));
+    return frep.strWithArr(this.img_list[this.current_index], replacements);
 }
 
 
@@ -126,14 +127,14 @@ FSmanager.prototype.getNext = function(wraparound = false) {
 
         // Return the updated index if 'wraparound' is true, or the same
         // filname if it is false
-        return path.join(this.folder, frep.strWithArr(this.img_list[this.current_index], replacements));
+        return frep.strWithArr(this.img_list[this.current_index], replacements);
     }
 
     // Increment the current file index
     this.current_index += 1;
 
     // Return the new file
-    return path.join(this.folder, frep.strWithArr(this.img_list[this.current_index], replacements));
+    return frep.strWithArr(this.img_list[this.current_index], replacements);
 }
 
 
@@ -148,14 +149,14 @@ FSmanager.prototype.getPrev = function(wraparound = false) {
 
         // Return the updated index if 'wraparound' is true, or the same
         // filname if it is false
-        return path.join(this.folder, frep.strWithArr(this.img_list[this.current_index], replacements));
+        return frep.strWithArr(this.img_list[this.current_index], replacements);
     }
 
     // Decrement the current file index
     this.current_index -= 1;
 
     // Return the new file
-    return path.join(this.folder, frep.strWithArr(this.img_list[this.current_index], replacements));
+    return frep.strWithArr(this.img_list[this.current_index], replacements);
 }
 
 

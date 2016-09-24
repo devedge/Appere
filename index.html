@@ -42,6 +42,25 @@
 <!--
 Notes:
 
+Application workflow:
+1. On start, load a filler image. Take action from #2
+
+2. (a) When an image is clicked, immediately display it, then go to #3
+   (b) If an image is drag-and-dropped onto the window, immediately display it,
+        then go to #3
+
+3. Load the file list for the image's current directory in the background. When
+    done, allow the next & previous images to be displayed. If the 'next' or
+    'previous' images are requested while loading, defer to a loading icon until
+    done.
+
+4. For any errors, catch them and display and error image
+
+
+
+
+
+
 CSS:
 class for the general image. worries about centering, scaling, etc..
 class for the bottom row of control elements

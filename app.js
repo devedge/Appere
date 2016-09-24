@@ -1,8 +1,9 @@
-
 const FSmanager = require('./js/FSManager');
+const pEncode = require('./js/PercentEncode');
+const path = require('path');
 
-
-// const path = require('path');
+// Instantiate a new filesystem manager
+var mngr = new FSmanager();
 
 // List of keys to watch
 const key_left = 37;
@@ -10,9 +11,11 @@ const key_right = 39;
 const key_esc = 27;
 const key_del = 46;
 
-var mngr = new FSmanager();
 mngr.genList('', '', (err) => {
-
+    if (err) {
+        console.log(err);
+    }
+    setCurrentImage();
 });
 
 
@@ -28,29 +31,36 @@ mngr.genList('', '', (err) => {
 
 // var img_list = fs_manager.gen_img_list();
 
+// var wraparound = false;
 
 // HTML element that contains the image
 var img_element = document.getElementById('image-container');
 
-// var wraparound = false;
 
+
+// todo: check that a file exists using fs.existsSync
+// Set the current image from a filepath
 function setCurrentImage(filepath) {
-    img_element.src = filepath;
+    try {
+        img_element.src = path.join(path.dirname(filepath), pEncode(path.basename(filepath)));
+    } catch (e) {
+        // log error, but need to call an error function instead
+        console.log('ERROR: ' + e);
+    }
 }
 
 function setPreviousImage() {
-    img_element.src = mngr.getPrev(true);
+    img_element.src = path.join(mngr.getCurrentDir() + mngr.getPrev(true));
 }
 
 function setNextImage() {
-    img_element.src = mngr.getNext(true);
+    img_element.src = path.join(mngr.getCurrentDir() + mngr.getNext(true));
 }
 
 
 
 // Keylistener logic
 document.addEventListener('keydown', function(event) {
-    // console.log(event.keyCode);
 
     // Read the keycode property of the key pressed
     switch (event.keyCode) {
@@ -80,18 +90,23 @@ document.addEventListener('keydown', function(event) {
 
             break;
         }
-        default: {}
+        // default: {}
             // do nothing, ignore the key
     }
 });
 
 
-
+// Handle any images drag-and-dropped onto the display window
+// disable default 'onDrop' event
 document.ondragover = document.ondrop = (event) => {
     event.preventDefault();
 }
 
+// display the image into the viewer
 document.body.ondrop = (event) => {
-    console.log(event.dataTransfer.files[0].path);
     event.preventDefault();
+    setCurrentImage(event.dataTransfer.files[0].path);
+
+    // (temporary) log the image path
+    console.log(event.dataTransfer.files[0].path);
 }

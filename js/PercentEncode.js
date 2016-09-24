@@ -1,0 +1,58 @@
+const frep = require('frep');
+
+var replacements = [{
+        pattern: '!',
+        replacement: '%21'
+    }, {
+        pattern: '*',
+        replacement: '%2A'
+    }, {
+        pattern: '\'',
+        replacement: '%27'
+    }, {
+        pattern: '(',
+        replacement: '%28'
+    }, {
+        pattern: ')',
+        replacement: '%29'
+    }, {
+        pattern: ';',
+        replacement: '%3B'
+    }, {
+        pattern: ':',
+        replacement: '%3A'
+    }, {
+        pattern: '@',
+        replacement: '%40'
+    }, {
+        pattern: '&',
+        replacement: '%26'
+    }, {
+        pattern: '=',
+        replacement: '%3D'
+    }, {
+        pattern: '+',
+        replacement: '%2B'
+    }, {
+        pattern: '$',
+        replacement: '%24'
+    }, {
+        pattern: ',',
+        replacement: '%2C'
+    }, {
+        pattern: '/',
+        replacement: '%2F'
+    }, {
+        pattern: '?',
+        replacement: '%3F'
+    }, {
+        pattern: '#',
+        replacement: '%23'
+    }, {
+        pattern: '[',
+        replacement: '%5B'
+    }, {
+        pattern: ']',
+        replacement: '%5D'
+    }
+];
