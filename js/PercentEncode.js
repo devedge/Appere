@@ -56,3 +56,13 @@ var replacements = [{
         replacement: '%5D'
     }
 ];
+
+
+// Return a percent encoded version of the string
+function pEncode(string) {
+    return frep.strWithArr(string, replacements);
+}
+
+
+// Export the pEncode function
+module.exports = pEncode;

@@ -10,8 +10,8 @@ function createWindow() {
 
     // Create the browser window
     win = new BrowserWindow({
-        width: 600,
-        height: 600,
+        width: 900,
+        height: 650,
         backgroundColor: '#EFF0F1'
         // backgroundColor: '-webkit-linear-gradient(to bottom, #74e3ec, #c7ffe2)'
     });

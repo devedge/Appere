@@ -1,7 +1,7 @@
 {
   "name": "appere",
   "version": "1.0.0",
-  "description": "Lightweight, simple image viewer",
+  "description": "A lightweight, minimalistic image viewer",
   "main": "main.js",
   "scripts": {
     "start": "./node_modules/.bin/electron .",

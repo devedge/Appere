@@ -5,63 +5,6 @@ const frep = require('frep');
 // The supported image filetypes
 const supported_types = /^(\.jpg|\.jpeg|\.jpe|\.jfif|\.jif|\.gif|\.png|\.bmp|\.svg|\.ico)$/;
 
-var replacements = [{
-        pattern: '!',
-        replacement: '%21'
-    }, {
-        pattern: '*',
-        replacement: '%2A'
-    }, {
-        pattern: '\'',
-        replacement: '%27'
-    }, {
-        pattern: '(',
-        replacement: '%28'
-    }, {
-        pattern: ')',
-        replacement: '%29'
-    }, {
-        pattern: ';',
-        replacement: '%3B'
-    }, {
-        pattern: ':',
-        replacement: '%3A'
-    }, {
-        pattern: '@',
-        replacement: '%40'
-    }, {
-        pattern: '&',
-        replacement: '%26'
-    }, {
-        pattern: '=',
-        replacement: '%3D'
-    }, {
-        pattern: '+',
-        replacement: '%2B'
-    }, {
-        pattern: '$',
-        replacement: '%24'
-    }, {
-        pattern: ',',
-        replacement: '%2C'
-    }, {
-        pattern: '/',
-        replacement: '%2F'
-    }, {
-        pattern: '?',
-        replacement: '%3F'
-    }, {
-        pattern: '#',
-        replacement: '%23'
-    }, {
-        pattern: '[',
-        replacement: '%5B'
-    }, {
-        pattern: ']',
-        replacement: '%5D'
-    }
-];
-
 
 // FileSystem manager constructor. Handles generating an array of every supported
 // filetype in a folder, and functions to retrieve them.
@@ -76,30 +19,37 @@ function FSmanager() {
 // Generate an array list of filenames that can be called
 // to set the next image
 FSmanager.prototype.genList = function(filepath, current_filename, cb) {
-    this.folder = filepath;
 
-    fs.readdir(filepath, (err, items) => {
-        // Sort the items, ignoring case
-        items.sort(function (a, b) {
-            return a.toLowerCase().localeCompare(b.toLowerCase());
-        });
+    // prevent regenerating the image list for the same filepath
+    if (filepath !== this.folder) {
 
-        // Extract all the supported file extensions and push them
-        // on the 'img_list' array
-        items.forEach((filename, index) => {
-            if (path.extname(filename).match(supported_types)) {
-                // If the filename matches the current filename, the array length
-                // is the index of the current file
-                if (filename === current_filename) {
-                    this.current_index = this.img_list.length;
+        console.log('genList run');
+
+        this.folder = filepath;
+
+        fs.readdir(filepath, (err, items) => {
+            // Sort the items, ignoring case
+            items.sort(function (a, b) {
+                return a.toLowerCase().localeCompare(b.toLowerCase());
+            });
+
+            // Extract all the supported file extensions and push them
+            // on the 'img_list' array
+            items.forEach((filename, index) => {
+                if (path.extname(filename).match(supported_types)) {
+                    // If the filename matches the current filename, the array length
+                    // is the index of the current file
+                    if (filename === current_filename) {
+                        this.current_index = this.img_list.length;
+                    }
+                    this.img_list.push(filename);
                 }
-                this.img_list.push(filename);
-            }
-        });
+            });
 
-        // Callback.
-        cb(err);
-    });
+            // Callback.
+            cb(err);
+        });
+    }
 }
 
 
@@ -112,7 +62,7 @@ FSmanager.prototype.getCurrentDir = function() {
 // Return the full path of the current file
 FSmanager.prototype.getCurrent = function() {
     // return path.join(this.folder, frep.strWithArr(this.img_list[this.current_index], replacements));
-    return frep.strWithArr(this.img_list[this.current_index], replacements);
+    return this.img_list[this.current_index];
 }
 
 
@@ -127,14 +77,14 @@ FSmanager.prototype.getNext = function(wraparound = false) {
 
         // Return the updated index if 'wraparound' is true, or the same
         // filname if it is false
-        return frep.strWithArr(this.img_list[this.current_index], replacements);
+        return this.img_list[this.current_index];
     }
 
     // Increment the current file index
     this.current_index += 1;
 
     // Return the new file
-    return frep.strWithArr(this.img_list[this.current_index], replacements);
+    return this.img_list[this.current_index];
 }
 
 
@@ -149,14 +99,14 @@ FSmanager.prototype.getPrev = function(wraparound = false) {
 
         // Return the updated index if 'wraparound' is true, or the same
         // filname if it is false
-        return frep.strWithArr(this.img_list[this.current_index], replacements);
+        return this.img_list[this.current_index];
     }
 
     // Decrement the current file index
     this.current_index -= 1;
 
     // Return the new file
-    return frep.strWithArr(this.img_list[this.current_index], replacements);
+    return this.img_list[this.current_index];
 }
 
 
