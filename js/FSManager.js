@@ -1,11 +1,69 @@
 const fs = require('fs');
 const path = require('path');
+const frep = require('frep');
 
 // The supported image filetypes
 const supported_types = /^(\.jpg|\.jpeg|\.jpe|\.jfif|\.jif|\.gif|\.png|\.bmp|\.svg|\.ico)$/;
 
+var replacements = [{
+        pattern: '!',
+        replacement: '%21'
+    }, {
+        pattern: '*',
+        replacement: '%2A'
+    }, {
+        pattern: '\'',
+        replacement: '%27'
+    }, {
+        pattern: '(',
+        replacement: '%28'
+    }, {
+        pattern: ')',
+        replacement: '%29'
+    }, {
+        pattern: ';',
+        replacement: '%3B'
+    }, {
+        pattern: ':',
+        replacement: '%3A'
+    }, {
+        pattern: '@',
+        replacement: '%40'
+    }, {
+        pattern: '&',
+        replacement: '%26'
+    }, {
+        pattern: '=',
+        replacement: '%3D'
+    }, {
+        pattern: '+',
+        replacement: '%2B'
+    }, {
+        pattern: '$',
+        replacement: '%24'
+    }, {
+        pattern: ',',
+        replacement: '%2C'
+    }, {
+        pattern: '/',
+        replacement: '%2F'
+    }, {
+        pattern: '?',
+        replacement: '%3F'
+    }, {
+        pattern: '#',
+        replacement: '%23'
+    }, {
+        pattern: '[',
+        replacement: '%5B'
+    }, {
+        pattern: ']',
+        replacement: '%5D'
+    }
+];
 
-// FileSystem manager class. Handles generating an array of every supported
+
+// FileSystem manager constructor. Handles generating an array of every supported
 // filetype in a folder, and functions to retrieve them.
 function FSmanager() {
     this.folder = '';
@@ -53,7 +111,7 @@ FSmanager.prototype.getCurrentDir = function() {
 
 // Return the full path of the current file
 FSmanager.prototype.getCurrent = function() {
-    return path.join(this.folder, this.img_list[this.current_index]);
+    return path.join(this.folder, frep.strWithArr(this.img_list[this.current_index], replacements));
 }
 
 
@@ -68,14 +126,14 @@ FSmanager.prototype.getNext = function(wraparound = false) {
 
         // Return the updated index if 'wraparound' is true, or the same
         // filname if it is false
-        return path.join(this.folder, this.img_list[this.current_index]);
+        return path.join(this.folder, frep.strWithArr(this.img_list[this.current_index], replacements));
     }
 
     // Increment the current file index
     this.current_index += 1;
 
     // Return the new file
-    return path.join(this.folder, this.img_list[this.current_index]);
+    return path.join(this.folder, frep.strWithArr(this.img_list[this.current_index], replacements));
 }
 
 
@@ -90,15 +148,16 @@ FSmanager.prototype.getPrev = function(wraparound = false) {
 
         // Return the updated index if 'wraparound' is true, or the same
         // filname if it is false
-        return path.join(this.folder, this.img_list[this.current_index]);
+        return path.join(this.folder, frep.strWithArr(this.img_list[this.current_index], replacements));
     }
 
     // Decrement the current file index
     this.current_index -= 1;
 
     // Return the new file
-    return path.join(this.folder, this.img_list[this.current_index]);
+    return path.join(this.folder, frep.strWithArr(this.img_list[this.current_index], replacements));
 }
+
 
 // Export the class
 module.exports = FSmanager;

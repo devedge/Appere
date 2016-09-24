@@ -1,6 +1,9 @@
 
 const FSmanager = require('./js/FSManager');
 
+
+// const path = require('path');
+
 // List of keys to watch
 const key_left = 37;
 const key_right = 39;
@@ -8,7 +11,9 @@ const key_esc = 27;
 const key_del = 46;
 
 var mngr = new FSmanager();
-mngr.genList('./images', 'example.jpg');
+mngr.genList('', '', (err) => {
+
+});
 
 
 
@@ -25,10 +30,21 @@ mngr.genList('./images', 'example.jpg');
 
 
 // HTML element that contains the image
-var img = document.getElementById('image-container');
+var img_element = document.getElementById('image-container');
 
 // var wraparound = false;
 
+function setCurrentImage(filepath) {
+    img_element.src = filepath;
+}
+
+function setPreviousImage() {
+    img_element.src = mngr.getPrev(true);
+}
+
+function setNextImage() {
+    img_element.src = mngr.getNext(true);
+}
 
 
 
@@ -40,24 +56,12 @@ document.addEventListener('keydown', function(event) {
     switch (event.keyCode) {
         case key_left: {
             event.preventDefault();
-
-            // call the code to get the filename of the next image
-            // console.log('Called left');
-            img.src = mngr.getPrev(true);
-
-            // 'images/1462845901532.gif';
-
+            setPreviousImage();
             break;
         }
         case key_right: {
             event.preventDefault();
-
-            // call the code to get the filename of the previous image
-            // console.log('Called right');
-            img.src = mngr.getNext(true);
-
-            // 'images/example.jpg';
-
+            setNextImage();
             break;
         }
         case key_esc: {
