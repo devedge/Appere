@@ -61,18 +61,6 @@ FSmanager.prototype.genList = function(filepath, current_filename, cb) {
                         // Return a unicode diff
                         return a.toLowerCase().localeCompare(b.toLowerCase());
                     }
-
-                        // return a.match(/^[0-9]+/)[0] - b.match(/^[0-9]+/)[0];
-
-                    // return a.toLowerCase().localeCompare(b.toLowerCase());
-
-                    // else if (a.match(/^[0-9]+/) && !b.match(/^[0-9]+/)) {
-                    //     return -1;
-                    //
-                    // } else if (!a.match(/^[0-9]+/) && b.match(/^[0-9]+/)) {
-                    //     return 1;
-                    //
-                    // }
                 });
 
                 // Extract all the supported file extensions and push them
