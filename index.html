@@ -5,13 +5,13 @@
         <title>Appere</title> <!-- probably change the title according to the filename -->
 
         <!-- Stylesheets -->
-        <link href="stylesheets/main.css" rel="stylesheet" type="text/css">
-        <!-- <link href="stylesheets/font-awesome-4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+        <link href="stylesheets/main.css" rel="stylesheet">
+        <!-- <link href="stylesheets/font-awesome-4.6.3/css/font-awesome.min.css" rel="stylesheet"> -->
     </head>
     <body>
         <div class="main-app">
             <div class="image-display">
-                <img class="image-container" id="image-container" src=""/>
+                <img class="image-container scale-fit" id="image-container" src=""/>
                 <!-- <div class="spinner" hidden> -->
                     <!-- <i class="fa fa-2x fa-spin fa-circle-o-notch"></i> -->
                 <!-- </div> -->
@@ -25,7 +25,7 @@
         <!-- Global event emitter? -->
 
         <!-- Delayed loader to speed startup times -->
-        <script type="text/javascript">
+        <script>
             // Delayed loader function
             function load(element_type, filename) {
                 var new_element = document.createElement(element_type);
@@ -101,14 +101,16 @@ Maximize load time performance
 installed collections.js
     use to improve things (check if it does anything to speed?)
 
-
+Write an image search bar into the viewer? Would search just the current directory?
+    If so, would need option to set a different shorcut
 
 
 Options to save:
     Save previous window size
     Resize window to image
     Stretch images to window (disabled if previous is enabled)
-
+    (Windows and Linux) display menubar option
+    Image wraparound enabled
 
 
 
