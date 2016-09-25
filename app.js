@@ -10,9 +10,11 @@ const key_left = 37;
 const key_right = 39;
 const key_esc = 27;
 const key_del = 46;
+const key_space = 32;
 
 // HTML element that contains the image
 var img_element = document.getElementById('image-container');
+var zoomed = false;
 
 // Disallows the next image to be requested before the directory scanner is done
 // var ready = false;
@@ -26,7 +28,13 @@ function setCurrentImage(filepath) {
     var bn = path.basename(filepath);
 
     try {
+        zoomed = false;
+        img_element.classList.add('scale-fit');
+        img_element.classList.remove('scale-full');
+
         if (mngr.checkFile(bn)) {
+
+            // updateImage(true, )
             img_element.src = path.join(dn, pEncode(bn));
             document.title = 'Appere — ' + bn;
 
@@ -42,43 +50,54 @@ function setCurrentImage(filepath) {
 }
 
 
-// Set the previous image in the image list
-function setPreviousImage() {
-    mngr.getPrev(true, (prev_ready, fp) => {
-
-        // If the image list has been generated, then this function call is ready
-        if (prev_ready) {
-            document.title = 'Appere — ' + fp;
-            img_element.src = path.join(mngr.getCurrentDir(), pEncode(fp));
-            // if (img_element.classList.contains('scale-full')) {
-                img_element.classList.add('scale-fit');
-                img_element.classList.remove('scale-full');
-            // }
-        }
-    });
-}
-
-
-// Set the next image in the image list
-function setNextImage() {
-    mngr.getNext(true, (next_ready, fp) => {
-
-        // If the image list has been generated, then this function call is ready
-        if (next_ready) {
-            document.title = 'Appere — ' + fp;
-            img_element.src = path.join(mngr.getCurrentDir(), pEncode(fp));
-            // if (img_element.classList.contains('scale-full')) {
-                img_element.classList.add('scale-fit');
-                img_element.classList.remove('scale-full');
-            // }
-        }
-    });
-}
+// // Set the previous image in the image list
+// function setPreviousImage() {
+//     mngr.getPrev(true, (prev_ready, fp) => {
+//
+//         // If the image list has been generated, then this function call is ready
+//         if (prev_ready) {
+//             document.title = 'Appere — ' + fp;
+//             img_element.src = path.join(mngr.getCurrentDir(), pEncode(fp));
+//             // if (img_element.classList.contains('scale-full')) {
+//                 img_element.classList.add('scale-fit');
+//                 img_element.classList.remove('scale-full');
+//             // }
+//         }
+//     });
+// }
+//
+//
+// // Set the next image in the image list
+// function setNextImage() {
+//     mngr.getNext(true, (next_ready, fp) => {
+//
+//         // If the image list has been generated, then this function call is ready
+//         if (next_ready) {
+//             document.title = 'Appere — ' + fp;
+//             img_element.src = path.join(mngr.getCurrentDir(), pEncode(fp));
+//             // if (img_element.classList.contains('scale-full')) {
+//                 img_element.classList.add('scale-fit');
+//                 img_element.classList.remove('scale-full');
+//             // }
+//         }
+//     });
+// }
 
 // function displayError() {
 //
 // }
 
+function updateImage(ready, fp) {
+    // If the image list has been generated, then this function call is ready
+    if (ready) {
+        document.title = 'Appere — ' + fp;
+        img_element.src = path.join(mngr.getCurrentDir(), pEncode(fp));
+
+        // Reset scaling to fit
+        img_element.classList.add('scale-fit');
+        img_element.classList.remove('scale-full');
+    }
+}
 
 // Keylistener logic
 document.addEventListener('keydown', function(event) {
@@ -87,26 +106,34 @@ document.addEventListener('keydown', function(event) {
     // Read the keycode property of the key pressed
     switch (event.keyCode) {
         case key_left: {
-            event.preventDefault();
+            if (!zoomed) {
+                event.preventDefault();
 
-            console.log('Left');
-            setPreviousImage();
-
+                mngr.getPrev(true, (prev_ready, fp) => {
+                    updateImage(prev_ready, fp);
+                });
+            }
             break;
+            // console.log('Left');
+            // setPreviousImage();
         }
         case key_right: {
-            event.preventDefault();
+            if (!zoomed) {
+                event.preventDefault();
 
-            console.log('Right');
-            setNextImage();
-
+                mngr.getNext(true, (next_ready, fp) => {
+                    updateImage(next_ready, fp);
+                });
+            }
             break;
+            // console.log('Right');
+            // setNextImage();
         }
         case key_esc: {
             event.preventDefault();
 
             // minimize the window
-            console.log('Called esc');
+            // console.log('Called esc');
 
             break;
         }
@@ -114,12 +141,19 @@ document.addEventListener('keydown', function(event) {
             event.preventDefault();
 
             // call code to display confirmation popup to delete image
-            console.log('Called del');
+            // console.log('Called del');
 
             break;
         }
-        case 32: {
+        case key_space: {
             event.preventDefault();
+
+            if (!zoomed) {
+                zoomed = true;
+                // img_element.scrollTo(0, 50);
+            } else {
+                zoomed = false;
+            }
 
             img_element.classList.toggle('scale-fit');
             img_element.classList.toggle('scale-full');
@@ -161,7 +195,7 @@ document.ondrop = (event) => {
     setCurrentImage(event.dataTransfer.files[0].path);
 
     // (temporary) log the image path
-    console.log('2: ' + event.dataTransfer.files[0].path);
+    // console.log('2: ' + event.dataTransfer.files[0].path);
 }
 
 // Handle body.onDrop event
@@ -170,5 +204,5 @@ document.body.ondrop = (event) => {
     setCurrentImage(event.dataTransfer.files[0].path);
 
     // (temporary) log the image path
-    console.log('1: ' + event.dataTransfer.files[0].path);
+    // console.log('1: ' + event.dataTransfer.files[0].path);
 }
