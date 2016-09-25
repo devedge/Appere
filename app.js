@@ -1,3 +1,4 @@
+const {ipcRenderer} = require('electron');
 const FSmanager = require('./js/FSManager');
 const pEncode = require('./js/PercentEncode');
 const path = require('path');
@@ -50,6 +51,21 @@ function setCurrentImage(filepath) {
 }
 
 
+function updateImage(ready, fp) {
+    // If the image list has been generated, then this function call is ready
+    if (ready) {
+        document.title = 'Appere — ' + fp;
+        img_element.src = path.join(mngr.getCurrentDir(), pEncode(fp));
+
+        ipcRenderer.send('resize-window', 'some value whatever');
+
+        // Reset scaling to fit
+        img_element.classList.add('scale-fit');
+        img_element.classList.remove('scale-full');
+    }
+}
+
+
 // // Set the previous image in the image list
 // function setPreviousImage() {
 //     mngr.getPrev(true, (prev_ready, fp) => {
@@ -87,17 +103,6 @@ function setCurrentImage(filepath) {
 //
 // }
 
-function updateImage(ready, fp) {
-    // If the image list has been generated, then this function call is ready
-    if (ready) {
-        document.title = 'Appere — ' + fp;
-        img_element.src = path.join(mngr.getCurrentDir(), pEncode(fp));
-
-        // Reset scaling to fit
-        img_element.classList.add('scale-fit');
-        img_element.classList.remove('scale-full');
-    }
-}
 
 // Keylistener logic
 document.addEventListener('keydown', function(event) {

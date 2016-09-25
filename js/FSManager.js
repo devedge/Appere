@@ -80,7 +80,7 @@ FSmanager.prototype.genList = function(filepath, current_filename, cb) {
                 // The image list is finished, so set the 'list_loaded' flag to true
                 list_loaded = true;
 
-                console.log(this.img_list);
+                // console.log(this.img_list);
             } else {
                 // If there is an error, callback with it
                 cb(err);
@@ -107,7 +107,7 @@ FSmanager.prototype.genList = function(filepath, current_filename, cb) {
             '" no longer exists in "' + filepath + '"');
         }
 
-        console.log(this.img_list);
+        // console.log(this.img_list);
     }
 }
 

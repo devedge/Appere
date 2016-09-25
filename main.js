@@ -1,13 +1,11 @@
-const {app, BrowserWindow} = require('electron')
-
+const {app, ipcMain, BrowserWindow} = require('electron')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win;
 
-
+// Handle creating and
 function createWindow() {
-
     // Create the browser window
     win = new BrowserWindow({
         width: 900,
@@ -17,11 +15,11 @@ function createWindow() {
     });
 
     // hide the default menubar
-    // win.setMenu(null)
+    win.setAutoHideMenuBar(true);
+    win.setMenuBarVisibility(false);
 
     // and load the index.html of the app
     win.loadURL('file://' + __dirname + '/index.html');
-    // win.loadURL('http://www.faultinweb.com/2015/01/frosted-glass-blur-effect-using-css.html')
 
     // Open the DevTools
     // win.webContents.openDevTools()
@@ -73,3 +71,15 @@ app.on('activate', () => {
 // return the array and the index of the current image
 // refresh the array (maybe store the old one? find out if there's any new images?) once
 //      a new folder path is picked
+
+ipcMain.on('resize-window', (event, arg) => {
+    // console.log(arg)  // prints "ping"
+    // event.sender.send('asynchronous-reply', 'pong')
+});
+
+// win.setBounds({
+//     x: 1920/2
+//     y: 1080/2,
+//     width: ,
+//     height: ,
+// }, true);
