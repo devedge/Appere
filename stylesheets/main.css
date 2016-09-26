@@ -31,8 +31,6 @@
 }
 
 .scale-fit {
-    /*animation: fadepart 0.3s;*/
-
     /* Align against the edges of the window */
     top:0;
     bottom:0;
@@ -46,7 +44,7 @@
 }
 
 .scale-full {
-    animation: fadein 0.3s;
+    /*animation: fadein 0.3s;*/
 
     top:0;
     /*bottom:0;*/
@@ -67,6 +65,9 @@
     width: auto;
     height: auto;
 }
+
+
+
 
     /* 90% of viewport vidth */
     /*width: 90vw;*/

@@ -57,7 +57,19 @@ FSmanager.prototype.genList = function(filepath, current_filename, cb) {
                         } else {
                             return num_diff;
                         }
-                    }  else {
+                    } else if (a.match(/[0-9]+\..*$/) && b.match(/[0-9]+\..*$/)) {
+                        num_diff = a.match(/[0-9]+\..*$/)[0].match(/[0-9]*/)[0] - b.match(/[0-9]+\..*$/)[0].match(/[0-9]*/)[0];
+                        // Sort numerically by the numbers at the end of the filename
+
+                        // If the difference is 0 (numerical part is identical),
+                        // return a unicode diff
+                        if (num_diff === 0) {
+                            return a.toLowerCase().localeCompare(b.toLowerCase());
+                        } else {
+                            return num_diff;
+                        }
+
+                    } else {
                         // Return a unicode diff
                         return a.toLowerCase().localeCompare(b.toLowerCase());
                     }

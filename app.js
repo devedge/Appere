@@ -19,23 +19,25 @@ const key_space = 32;
 var img_element = document.getElementById('image-container');
 var zoomed = false;
 
-var img_path_final;
-
-
-
-// todo: check that a file exists using fs.existsSync
+// todo: check that a file exists using fs.existsSync?
+// todo: use filesystem watcher
+// todo: check a filetype with its magic number if the extension is not supported
 // todo: on every call, update the image list array
+// todo: cut off the filename after 'x' amount of charaters so it can be
+//      displayed cleanly in the title
+
 // Set the current image from a filepath
 function setCurrentImage(filepath) {
     var dn = path.dirname(filepath);
     var bn = path.basename(filepath);
 
     try {
-        // Rest the 'zoomed' flag
+        // Reset the 'zoomed' flag
         zoomed = false;
 
+        // If the file is a valid filetype
         if (mngr.checkFile(bn)) {
-            updateImage(true, dn, bn)
+            updateImage(true, dn, bn);
 
             mngr.genList(dn, bn, (err) => {
                 if (err) { console.log(err); }
@@ -55,18 +57,18 @@ function updateImage(ready, current_dir, fp) {
         // Change the filename in the title
         document.title = 'Appere — ' + fp;
 
-        // Generate the final filepath
-        img_path_final= path.join(current_dir, pEncode(fp));
-
-        // Set the image src, so the renderer can display it
-        img_element.src = img_path_final;
+        // Set the image src, so the renderer can display it.
+        // Use percent encoding, since the 'img' tag can't handle certain
+        // special characters.
+        img_element.src = path.join(current_dir, pEncode(fp));
 
         // Send an ipc message to scale the window to image size
-        ipcRenderer.send('resize-window', sizeOf(img_path_final));
+        ipcRenderer.send('resize-window', sizeOf(path.join(current_dir, fp)));
 
         // Reset css class to fit the image within the window
         img_element.classList.add('scale-fit');
         img_element.classList.remove('scale-full');
+
     }
 }
 
@@ -152,6 +154,7 @@ document.ondragover = (event) => {
 document.ondrop = (event) => {
     event.preventDefault();
     setCurrentImage(event.dataTransfer.files[0].path);
+    ipcRenderer.send('focus-window');
 
     // (temporary) log the image path
     // console.log('2: ' + event.dataTransfer.files[0].path);
@@ -161,6 +164,7 @@ document.ondrop = (event) => {
 document.body.ondrop = (event) => {
     event.preventDefault();
     setCurrentImage(event.dataTransfer.files[0].path);
+    ipcRenderer.send('focus-window');
 
     // (temporary) log the image path
     // console.log('1: ' + event.dataTransfer.files[0].path);

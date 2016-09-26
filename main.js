@@ -89,6 +89,11 @@ app.on('activate', () => {
 });
 
 
+// On a drag-and-drop event, focus on the window
+ipcMain.on('focus-window', (event) => {
+    win.focus();
+});
+
 
 // Window resizing Inter-Process Communication channel
 // This handles scaling the window to the image
@@ -108,8 +113,10 @@ ipcMain.on('resize-window', (event, dimensions) => {
 
 
 // todo: clean up console.log() outputs
+// todo: move this massive function to a module
+
 // Generate the required dimensions for the new window size
-// Uses the image size, screen dimensions, and set bounds
+// Uses the image size, screen dimensions, and bounds
 // Resizes the longest side, if needed, and scales the other
 function genD(image_d, screen_d, bnds) {
     var new_width;
@@ -152,7 +159,7 @@ function genD(image_d, screen_d, bnds) {
                 new_height = bnds[1];
 
             } else {
-                // Neither are larger than their bounds, pick the width as the
+                // Neither are larger than their bounds, so pick the width as the
                 // side to maximize
                 new_width = bnds[0];
                 new_height = scale_height;

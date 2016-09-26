@@ -1,0 +1,96 @@
+
+array = []
+max_index = array.length - 1
+current_index = 0
+
+index range from 0 to max_index
+
+
+
+on next
+    if current_index + 1 > max_index
+        if wraparound
+            callback(array[0])
+        else
+            do nothing, or signify at end of range
+
+    else
+        current_index = current_index + 1
+
+        callback(array[current_index])
+
+
+on prev
+    if current_index - 1 < 0
+        if wraparound
+            callback(array[max_index])
+        else
+            do nothing, or signify at  start of range
+
+    else
+        current_index = current_index - 1
+
+        callback(array[current_index])
+
+
+
+
+
+
+
+
+
+all possible options
+
+
+
+x && y less than min
+
+x && y are greater than max
+
+x is greater than max, but not y
+
+y is greater than max, but not x
+
+
+
+x > max || y > max
+
+    if x > max && y > max
+        both greater than max
+
+        pick largest and scale
+
+    else if x > max
+        x is greater than max
+
+        x is largest, scale y
+
+    else
+        y is greater than max
+
+        y is largest, scale x
+
+
+
+
+
+x > max
+
+    y > max
+        both greater than max
+        pick largest and scale
+
+    else
+        just x is greater than max
+        x is largest, scale y
+
+y > max
+
+    // x is not max, since we reached here
+    just y is greater than max
+    y is largest, scale x
+
+else
+    // neither are larger than max
+    // check that neither are smaller than min
