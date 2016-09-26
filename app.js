@@ -3,6 +3,8 @@ const FSmanager = require('./js/FSManager');
 const pEncode = require('./js/PercentEncode');
 const path = require('path');
 
+const sizeOf = require('image-size');
+
 // Instantiate a new filesystem manager
 var mngr = new FSmanager();
 
@@ -15,7 +17,9 @@ const key_space = 32;
 
 // HTML element that contains the image
 var img_element = document.getElementById('image-container');
+
 var zoomed = false;
+var prepared_filepath;
 
 // Disallows the next image to be requested before the directory scanner is done
 // var ready = false;
@@ -36,8 +40,9 @@ function setCurrentImage(filepath) {
         if (mngr.checkFile(bn)) {
 
             // updateImage(true, )
-            img_element.src = path.join(dn, pEncode(bn));
             document.title = 'Appere — ' + bn;
+            img_element.src = path.join(dn, pEncode(bn));
+            // ipcRenderer.send('resize-window', sizeOf(path.join(dn, pEncode(bn)));
 
             mngr.genList(dn, bn, (err) => {
                 if (err) { console.log(err); }
@@ -55,9 +60,10 @@ function updateImage(ready, fp) {
     // If the image list has been generated, then this function call is ready
     if (ready) {
         document.title = 'Appere — ' + fp;
-        img_element.src = path.join(mngr.getCurrentDir(), pEncode(fp));
+        prepared_filepath = path.join(mngr.getCurrentDir(), pEncode(fp))
+        img_element.src = prepared_filepath;
 
-        ipcRenderer.send('resize-window', 'some value whatever');
+        ipcRenderer.send('resize-window', sizeOf(prepared_filepath));
 
         // Reset scaling to fit
         img_element.classList.add('scale-fit');
@@ -106,7 +112,7 @@ function updateImage(ready, fp) {
 
 // Keylistener logic
 document.addEventListener('keydown', function(event) {
-    console.log(event.keyCode);
+    // console.log(event.keyCode);
 
     // Read the keycode property of the key pressed
     switch (event.keyCode) {

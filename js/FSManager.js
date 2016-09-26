@@ -71,7 +71,7 @@ FSmanager.prototype.genList = function(filepath, current_filename, cb) {
                         // is the index of the current file
                         if (filename === current_filename) {
                             this.current_index = this.img_list.length;
-                            console.log('Index of current file: ' + this.current_index);
+                            // console.log('Index of current file: ' + this.current_index);
                         }
                         this.img_list.push(filename);
                     }
