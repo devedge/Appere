@@ -8,23 +8,25 @@ const {app, ipcMain, BrowserWindow} = electron;
 let win;
 
 // Screen size used to scale window
-var screen_width;
-var screen_height;
-var screen_h_center;
-var screen_w_center;
+// var screen_width;
+// var screen_height;
+// var screen_h_center;
+// var screen_w_center;
+//
+// var max_width;
+// var max_height;
+// var min_width = 400;
+// var min_height = 400;
 
-var max_width;
-var max_height;
-var min_width = 400;
-var min_height = 400;
-
-// screen size
+// Screen dimensions
 var screen_dim = [];
 
-// update first two
-var bounds = [0, 0, 400, 400];
+// Set the window bounds variables
+var bounds = [0, 0, 500, 500];
 
+// Instantiate the genValues variable
 var genValues;
+
 
 // Handle creating and
 // function createWindow() {
@@ -42,11 +44,6 @@ app.on('ready', () => {
     screen_dim[0] = width;
     screen_dim[1] = height;
     // for optimization, generate all the other values after window generation?
-    screen_dim[2] = Math.floor(screen_dim[0] / 2); // screen 'x' center
-    screen_dim[3] = Math.floor(screen_dim[1] / 2); // screen 'y' center
-
-    bounds[0] = Math.floor();
-    bounds[1] = Math.floor();
 
 
     // screen_width = width;
@@ -75,6 +72,13 @@ app.on('ready', () => {
 
     // Open the DevTools
     // win.webContents.openDevTools()
+
+    screen_dim[2] = Math.floor(screen_dim[0] / 2); // screen 'x' center
+    screen_dim[3] = Math.floor(screen_dim[1] / 2); // screen 'y' center
+
+    // Set maximum screen dimensions to 3/4 of the screen size
+    bounds[0] = Math.floor((screen_dim[0] / 4) * 3);
+    bounds[1] = Math.floor((screen_dim[1] / 4) * 3);
 
 
     // Emit when the window is closed
@@ -133,10 +137,10 @@ ipcMain.on('resize-window', (event, dimensions) => {
 
     // win.setSize(resized[0], resized[1], true);
     win.setBounds({
-        x: genValues[2], // Math.floor(screen_w_center - (resized[0] / 2)),
-        y: genValues[3], // Math.floor(screen_h_center - (resized[1] / 2)),
-        width: genValues[0], // resized[0],
-        height: genValues[1] // resized[1]
+        x: genValues[2],
+        y: genValues[3],
+        width: genValues[0],
+        height: genValues[1]
     }, true);
 });
 
@@ -153,10 +157,14 @@ ipcMain.on('resize-window', (event, dimensions) => {
 // find out how much it was scaled down, and apply that to the other side
 //
 // if either of the sides is smaller than 600? px, then
-
+// var scale_factor;
+// var scaled_dim;
 
 // Generate the required dimensions for the new window size
 function genD(image_d, screen_d, bnds) {
+    var new_width;
+    var new_height;
+
     // image_d[0] = image width
     // image_d[1] = image height
 
@@ -170,32 +178,83 @@ function genD(image_d, screen_d, bnds) {
     // bnds[2] = min_width
     // bnds[3] = min_height
 
+    // If the width is greater than the max
+    if (image_d[0] > bnds[0]) {
 
-    // first, check min values, and return if valid
+        // If the height is also greater than the max
+        if (image_d[1] > bnds[1]) {
 
-    // then check if the values fit between the bnds
+            // Find the largest side
+            if ((bnds[0] / image_d[0]) > (bnds[1] / image_d[1])) {
+                // Width is larger than height
+                new_width = bnds[0];
+                new_height= Math.floor(image_d[1] / (image_d[0] / bnds[0]));
+            } else {
+                // Height is larger than width
+                new_height = bnds[1];
+                new_width = Math.floor(image_d[0] / (image_d[1] / bnds[1]));
 
-    // then, generate new dimensions
+                // [new_width, new_height] = scaleVars();
+            }
+        } else {
+            // Just the width is larger than the max
+            new_width = bnds[0];
+            new_height= Math.floor(image_d[1] / (image_d[0] / bnds[0]));
+        }
 
-    // If both dimensions are smaller than the min
-    if (image_d[0] < bnds[2] && image_d[1] < bnds[3]) {
-        // Return the minimum bnds, and the screen center
-        return [bnds[2],
-                bnds[3],
-                Math.floor(screen_d[2] - (bnds[2] / 2)),
-                Math.floor(screen_d[3] - (bnds[3] / 2))];
+    } else if (image_d[1] > bnds[1]) {
+        // Since the first check failed, just the height is larger than the max
+        new_height = bnds[1];
+        new_width = Math.floor(image_d[0] / (image_d[1] / bnds[1]));
     } else {
-
+        // Neither are larger than the max, so set them back to
+        // their default values
+        new_width = image_d[0];
+        new_height = image_d[1];
     }
 
+    // If any of the widths are smaller than the min, resize
+    if (new_width < bnds[2]) {
+        new_width = bnds[2];
+    }
 
+    // If any of the heights are smaller than the min, resize
+    if (new_height < bnds[3]) {
+        new_height = bnds[3];
+    }
 
-    // returns
-    // new image width
-    // new image height
-    // screen x center (width)
-    // screen y center (height)
+    // console.log('Bounds: ' + bnds[0] + ' <--> ' + bnds[2] + '; ' + bnds[1] + ' <--> ' +  bnds[3]);
+    // console.log(image_d[0] + ' x ' + image_d[1] + ' --> ' + new_width + ' x ' + new_height);
+    // console.log('');
+
+    // Return the calculated values
+    return [
+        new_width,
+        new_height,
+        Math.floor(screen_d[2] - (new_width / 2)),
+        Math.floor(screen_d[3] - (new_height / 2))
+    ];
 }
+
+
+// Scales two variables to fit within certain bounds
+// a is larger than b
+// function scaleVars(a, b, ) {
+//
+// }
+
+
+// returns
+// new image width
+// new image height
+// screen x center (width)
+// screen y center (height)
+
+// first, check min values, and return if valid
+
+// then check if the values fit between the bounds
+
+// then, generate new dimensions
 
 
 
