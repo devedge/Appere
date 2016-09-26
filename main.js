@@ -178,24 +178,61 @@ function genD(image_d, screen_d, bnds) {
     // bnds[2] = min_width
     // bnds[3] = min_height
 
+    var scale_width;
+    var scale_height;
+
     // If the width is greater than the max
     if (image_d[0] > bnds[0]) {
+
+        // console.log(image_d[0] + ' > ' + bnds[0]);
 
         // If the height is also greater than the max
         if (image_d[1] > bnds[1]) {
 
-            // Find the largest side
-            if ((bnds[0] / image_d[0]) > (bnds[1] / image_d[1])) {
-                // Width is larger than height
-                new_width = bnds[0];
-                new_height= Math.floor(image_d[1] / (image_d[0] / bnds[0]));
-            } else {
-                // Height is larger than width
-                new_height = bnds[1];
-                new_width = Math.floor(image_d[0] / (image_d[1] / bnds[1]));
+            // console.log(image_d[1] + ' > ' + bnds[1]);
 
-                // [new_width, new_height] = scaleVars();
+            scale_width = Math.floor(image_d[0] / (image_d[1] / bnds[1]));
+            scale_height = Math.floor(image_d[1] / (image_d[0] / bnds[0]));
+
+            // ensure that the scaled side is still less than the bounds
+
+            if (scale_width > bnds[0]) {
+                new_width = bnds[0];
+                new_height = scale_height;
+
+            } else if (scale_height > bnds[1]) {
+
+                new_width = scale_width;
+                new_height = bnds[1];
+
+            } else {
+                console.log('whoa');
+                new_width = bnds[0];
+                new_height = scale_height;
             }
+
+            // if ((bnds[0] - image_d[0]) > (bnds[1] - image_d[1]) &&
+            //     scale_width <= bnds[0]) {
+            //
+            //     new_width = bnds[0];
+            //     new_height = scale_height;
+            // } else {
+            //     new_width = scale_width;
+            //     new_height = bnds[1];
+            // }
+
+            // // Find the largest side
+            // if ((bnds[0] / image_d[0]) > (bnds[1] / image_d[1])) {
+            //     // Width is larger than height
+            //     new_width = bnds[0];
+            //     new_height= Math.floor(image_d[1] / (image_d[0] / bnds[0]));
+            // } else {
+            //     // Height is larger than width
+            //     new_height = bnds[1];
+            //     new_width = Math.floor(image_d[0] / (image_d[1] / bnds[1]));
+            //
+            //     // [new_width, new_height] = scaleVars();
+            // }
         } else {
             // Just the width is larger than the max
             new_width = bnds[0];
@@ -204,8 +241,26 @@ function genD(image_d, screen_d, bnds) {
 
     } else if (image_d[1] > bnds[1]) {
         // Since the first check failed, just the height is larger than the max
-        new_height = bnds[1];
-        new_width = Math.floor(image_d[0] / (image_d[1] / bnds[1]));
+
+        // console.log(image_d[1] + ' > ' + bnds[1]);
+
+        console.log('Just y > max');
+
+        scale_width = Math.floor(image_d[0] / (image_d[1] / bnds[1]));
+        // scale_height = Math.floor(image_d[1] / (image_d[0] / bnds[0]));
+
+        if (scale_width > bnds[0]) {
+
+            new_width = bnds[0];
+            new_height = Math.floor(image_d[1] / (image_d[0] / bnds[0]));
+        } else {
+            new_width = scale_width;
+            new_height = bnds[1];
+
+        }
+
+        // new_height = bnds[1];
+        // new_width = Math.floor(image_d[0] / (image_d[1] / bnds[1]));
     } else {
         // Neither are larger than the max, so set them back to
         // their default values
@@ -224,7 +279,8 @@ function genD(image_d, screen_d, bnds) {
     }
 
     // console.log('Bounds: ' + bnds[0] + ' <--> ' + bnds[2] + '; ' + bnds[1] + ' <--> ' +  bnds[3]);
-    // console.log(image_d[0] + ' x ' + image_d[1] + ' --> ' + new_width + ' x ' + new_height);
+    // console.log(image_d[0] + ' x ' + image_d[1]); //+ ' --> ' + new_width + ' x ' + new_height);
+    // console.log('New: ' + new_width + ' x ' + new_height);
     // console.log('');
 
     // Return the calculated values
