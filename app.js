@@ -2,8 +2,8 @@ const {ipcRenderer} = require('electron');
 const FSmanager = require('./js/FSManager');
 const pEncode = require('./js/PercentEncode');
 const path = require('path');
-
 const sizeOf = require('image-size');
+
 
 // Instantiate a new filesystem manager
 var mngr = new FSmanager();
@@ -17,12 +17,10 @@ const key_space = 32;
 
 // HTML element that contains the image
 var img_element = document.getElementById('image-container');
-
 var zoomed = false;
-var prepared_filepath;
 
-// Disallows the next image to be requested before the directory scanner is done
-// var ready = false;
+var img_path_final;
+
 
 
 // todo: check that a file exists using fs.existsSync
@@ -33,22 +31,16 @@ function setCurrentImage(filepath) {
     var bn = path.basename(filepath);
 
     try {
+        // Rest the 'zoomed' flag
         zoomed = false;
-        img_element.classList.add('scale-fit');
-        img_element.classList.remove('scale-full');
 
         if (mngr.checkFile(bn)) {
-
-            // updateImage(true, )
-            document.title = 'Appere — ' + bn;
-            img_element.src = path.join(dn, pEncode(bn));
-            // ipcRenderer.send('resize-window', sizeOf(path.join(dn, pEncode(bn)));
+            updateImage(true, dn, bn)
 
             mngr.genList(dn, bn, (err) => {
                 if (err) { console.log(err); }
             });
         }
-
     } catch (e) {
         // log error, but need to call an error function instead
         console.log('ERROR: ' + e);
@@ -56,54 +48,28 @@ function setCurrentImage(filepath) {
 }
 
 
-function updateImage(ready, fp) {
+// Function to update the image in the app.
+function updateImage(ready, current_dir, fp) {
     // If the image list has been generated, then this function call is ready
     if (ready) {
+        // Change the filename in the title
         document.title = 'Appere — ' + fp;
-        prepared_filepath = path.join(mngr.getCurrentDir(), pEncode(fp))
-        img_element.src = prepared_filepath;
 
-        ipcRenderer.send('resize-window', sizeOf(prepared_filepath));
+        // Generate the final filepath
+        img_path_final= path.join(current_dir, pEncode(fp));
 
-        // Reset scaling to fit
+        // Set the image src, so the renderer can display it
+        img_element.src = img_path_final;
+
+        // Send an ipc message to scale the window to image size
+        ipcRenderer.send('resize-window', sizeOf(img_path_final));
+
+        // Reset css class to fit the image within the window
         img_element.classList.add('scale-fit');
         img_element.classList.remove('scale-full');
     }
 }
 
-
-// // Set the previous image in the image list
-// function setPreviousImage() {
-//     mngr.getPrev(true, (prev_ready, fp) => {
-//
-//         // If the image list has been generated, then this function call is ready
-//         if (prev_ready) {
-//             document.title = 'Appere — ' + fp;
-//             img_element.src = path.join(mngr.getCurrentDir(), pEncode(fp));
-//             // if (img_element.classList.contains('scale-full')) {
-//                 img_element.classList.add('scale-fit');
-//                 img_element.classList.remove('scale-full');
-//             // }
-//         }
-//     });
-// }
-//
-//
-// // Set the next image in the image list
-// function setNextImage() {
-//     mngr.getNext(true, (next_ready, fp) => {
-//
-//         // If the image list has been generated, then this function call is ready
-//         if (next_ready) {
-//             document.title = 'Appere — ' + fp;
-//             img_element.src = path.join(mngr.getCurrentDir(), pEncode(fp));
-//             // if (img_element.classList.contains('scale-full')) {
-//                 img_element.classList.add('scale-fit');
-//                 img_element.classList.remove('scale-full');
-//             // }
-//         }
-//     });
-// }
 
 // function displayError() {
 //
@@ -121,24 +87,20 @@ document.addEventListener('keydown', function(event) {
                 event.preventDefault();
 
                 mngr.getPrev(true, (prev_ready, fp) => {
-                    updateImage(prev_ready, fp);
+                    updateImage(prev_ready, mngr.getCurrentDir(), fp);
                 });
             }
             break;
-            // console.log('Left');
-            // setPreviousImage();
         }
         case key_right: {
             if (!zoomed) {
                 event.preventDefault();
 
                 mngr.getNext(true, (next_ready, fp) => {
-                    updateImage(next_ready, fp);
+                    updateImage(next_ready, mngr.getCurrentDir(), fp);
                 });
             }
             break;
-            // console.log('Right');
-            // setNextImage();
         }
         case key_esc: {
             event.preventDefault();
@@ -161,7 +123,6 @@ document.addEventListener('keydown', function(event) {
 
             if (!zoomed) {
                 zoomed = true;
-                // img_element.scrollTo(0, 50);
             } else {
                 zoomed = false;
             }
@@ -181,19 +142,6 @@ document.addEventListener('keydown', function(event) {
 
 
 // Handle any images drag-and-dropped onto the display window
-// disable default 'onDrop' event
-// document.ondragover = document.ondrop = (event) => {
-//     event.preventDefault();
-//
-//     if (!called) {
-//         setCurrentImage(event.dataTransfer.files[0].path);
-//
-//         console.log('2: ' + event.dataTransfer.files[0].path);
-//
-//         called = true;
-//     }
-// }
-
 // Prevent anything from happening when an item is only dragged over
 document.ondragover = (event) => {
     event.preventDefault();
