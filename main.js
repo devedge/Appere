@@ -172,23 +172,22 @@ function genD(image_d, screen_d, bnds) {
 
     } else if (image_d[1] > bnds[1]) {
         // Since the first check failed, just the height is larger than the max
+        new_height = bnds[1];
+        new_width = Math.floor(image_d[0] / (image_d[1] / bnds[1]));
 
-        scale_width = Math.floor(image_d[0] / (image_d[1] / bnds[1]));
-        // scale_height = Math.floor(image_d[1] / (image_d[0] / bnds[0]));
+        // scale_width = Math.floor(image_d[0] / (image_d[1] / bnds[1]));
+        // // scale_height = Math.floor(image_d[1] / (image_d[0] / bnds[0]));
+        //
+        // if (scale_width > bnds[0]) {
+        //     console.log('Scaled width too large, using height');
+        //     new_width = bnds[0];
+        //     new_height = Math.floor(image_d[1] / (image_d[0] / bnds[0]));
+        // } else {
+        //     console.log('Width is fine, using it');
+        //     new_width = scale_width;
+        //     new_height = bnds[1];
+        // }
 
-        if (scale_width > bnds[0]) {
-            console.log('Scaled width too large, using height');
-            new_width = bnds[0];
-            new_height = Math.floor(image_d[1] / (image_d[0] / bnds[0]));
-        } else {
-            console.log('Width is fine, using it');
-            new_width = scale_width;
-            new_height = bnds[1];
-        }
-
-        // Still valid?
-        // new_height = bnds[1];
-        // new_width = Math.floor(image_d[0] / (image_d[1] / bnds[1]));
     } else {
         // Neither are larger than the max, so set them back to
         // their default values
