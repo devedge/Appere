@@ -44,7 +44,8 @@ app.on('ready', () => {
     win.loadURL('file://' + __dirname + '/index.html');
 
     // Open the DevTools
-    // win.webContents.openDevTools()
+    win.webContents.openDevTools()
+
 
     // Generate the rest of the values after window load to speed loading
     // times
@@ -175,19 +176,6 @@ function genD(image_d, screen_d, bnds) {
         new_height = bnds[1];
         new_width = Math.floor(image_d[0] / (image_d[1] / bnds[1]));
 
-        // scale_width = Math.floor(image_d[0] / (image_d[1] / bnds[1]));
-        // // scale_height = Math.floor(image_d[1] / (image_d[0] / bnds[0]));
-        //
-        // if (scale_width > bnds[0]) {
-        //     console.log('Scaled width too large, using height');
-        //     new_width = bnds[0];
-        //     new_height = Math.floor(image_d[1] / (image_d[0] / bnds[0]));
-        // } else {
-        //     console.log('Width is fine, using it');
-        //     new_width = scale_width;
-        //     new_height = bnds[1];
-        // }
-
     } else {
         // Neither are larger than the max, so set them back to
         // their default values
@@ -204,11 +192,6 @@ function genD(image_d, screen_d, bnds) {
     if (new_height < bnds[3]) {
         new_height = bnds[3];
     }
-
-    // console.log('Bounds: ' + bnds[0] + ' <--> ' + bnds[2] + '; ' + bnds[1] + ' <--> ' +  bnds[3]);
-    // console.log(image_d[0] + ' x ' + image_d[1]); //+ ' --> ' + new_width + ' x ' + new_height);
-    // console.log('New: ' + new_width + ' x ' + new_height);
-    // console.log('');
 
     // Return the calculated values
     // new image width

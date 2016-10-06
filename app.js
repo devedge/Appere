@@ -19,6 +19,177 @@ const key_space = 32;
 var img_element = document.getElementById('image-container');
 var zoomed = false;
 
+var img_elem_1 = document.getElementById('image-cont-1');
+var img_elem_2 = document.getElementById('image-cont-2');
+var img_elem_3 = document.getElementById('image-cont-3');
+
+// var preloader = {
+//     curr: {
+//         element: img_elem_1,
+//         name: '',
+//         dir: ''
+//     },
+//     next: {
+//         element: img_elem_2,
+//         name: '',
+//         dir: ''
+//     },
+//     prev: {
+//         element: img_elem_3,
+//         name: '',
+//         dir: ''
+//     }
+// }
+
+var preloader = {
+    curr: 0,
+    next: 1,
+    prev: 2,
+    dir: '',
+    arr: [
+        {
+            element: img_elem_1,
+            name: '',
+            idx: 0
+        },
+        {
+            element: img_elem_2,
+            name: '',
+            idx: 0
+        },
+        {
+            element: img_elem_3,
+            name: '',
+            idx: 0
+        }
+    ]
+}
+
+/*
+
+Image preloading strategy:
+
+load the first image into img_elem_1
+once done (find out how?), load the next image into img_elem_2
+then load previous image into img_elem_3
+
+img_elem_1 = current    (load)
+img_elem_2 = next       (load)
+img_elem_3 = prev       (load)
+
+on "Next", hide the img_elem_1, unhide img_elem_2, preload next into img_elem_3
+img_elem_1 = prev       (hide)
+img_elem_2 = current    (unhide)
+img_elem_3 = next       (load)
+
+on "Next"
+img_elem_1 = prev       (hide)
+img_elem_2 = next       (load)
+img_elem_3 = current    (unhide)
+
+
+img_elem_1
+img_elem_2
+img_elem_3
+
+
+
+<-- prev -- curr -- next -->
+
+*/
+var temp;
+
+function showNext() {
+    // Hide the current element and show the next one
+    preloader.arr[preloader.curr].element.hidden = true;
+    preloader.arr[preloader.next].element.hidden = false;
+
+    // Update the pointer values
+    temp = preloader.prev;
+    preloader.prev = preloader.curr;
+    preloader.curr = preloader.next;
+    preloader.next = temp;
+
+    console.log('Next');
+    console.log('curr: ' + preloader.curr);
+    console.log('next: ' + preloader.next);
+    console.log('prev: ' + preloader.prev);
+    console.log(' ');
+
+
+    // Change the filename in the title
+    document.title = 'Appere — ' + preloader.arr[preloader.curr].name;
+
+    // Send an ipc message to scale the window to image size
+    ipcRenderer.send('resize-window', sizeOf(path.join(preloader.dir, preloader.arr[preloader.curr].name)));
+
+    // Reset css class to fit the image within the window
+    preloader.arr[preloader.curr].element.classList.add('scale-fit');
+    preloader.arr[preloader.curr].element.classList.remove('scale-full');
+
+    // load the next image
+    mngr.getNextFromIDX(true, preloader.arr[preloader.next].idx, (ready, filename, new_index) => {
+        if (ready) {
+            // set the next object
+            preloader.arr[preloader.next].name = filename;
+            preloader.arr[preloader.next].idx = new_index;
+            // preloader.arr[preloader.next].dir = mngr.getCurrentDir();
+
+            // Set the image src, so the renderer can display it.
+            // Use percent encoding, since the 'img' tag can't handle certain
+            // special characters.
+            preloader.arr[preloader.next].element.src = path.join(preloader.dir, pEncode(filename));
+        }
+    });
+}
+
+
+
+function showPrev() {
+    // Hide the current element and show the previous one
+    preloader.arr[preloader.curr].element.hidden = true;
+    preloader.arr[preloader.prev].element.hidden = false;
+
+    // Update the pointer values
+    temp = preloader.next;
+    preloader.next = preloader.curr;
+    preloader.curr = preloader.prev;
+    preloader.prev = temp;
+
+    console.log('Prev');
+    console.log('curr: ' + preloader.curr);
+    console.log('next: ' + preloader.next);
+    console.log('prev: ' + preloader.prev);
+    console.log(' ');
+
+    // Change the filename in the title
+    document.title = 'Appere — ' + preloader.arr[preloader.curr].name;
+
+    // Send an ipc message to scale the window to image size
+    ipcRenderer.send('resize-window', sizeOf(path.join(preloader.dir, preloader.arr[preloader.curr].name)));
+
+    // Reset css class to fit the image within the window
+    preloader.arr[preloader.curr].element.classList.add('scale-fit');
+    preloader.arr[preloader.curr].element.classList.remove('scale-full');
+
+    // load the previous image
+    mngr.getPrevFromIDX(true, preloader.arr[preloader.prev].idx, (ready, filename, new_index) => {
+        if (ready) {
+            // set the next object
+            preloader.arr[preloader.prev].name = filename;
+            preloader.arr[preloader.prev].idx = new_index;
+            // preloader.arr[preloader.prev].dir = mngr.getCurrentDir();
+
+            // Set the image src, so the renderer can display it.
+            // Use percent encoding, since the 'img' tag can't handle certain
+            // special characters.
+            preloader.arr[preloader.prev].element.src = path.join(preloader.dir, pEncode(filename));
+        }
+    });
+}
+
+
+
 // todo: check that a file exists using fs.existsSync?
 // todo: use filesystem watcher
 // todo: check a filetype with its magic number if the extension is not supported
@@ -28,19 +199,71 @@ var zoomed = false;
 
 // Set the current image from a filepath
 function setCurrentImage(filepath) {
-    var dn = path.dirname(filepath);
-    var bn = path.basename(filepath);
+    var dirname = path.dirname(filepath);
+    var filename = path.basename(filepath);
 
     try {
         // Reset the 'zoomed' flag
         zoomed = false;
 
         // If the file is a valid filetype
-        if (mngr.checkFile(bn)) {
-            updateImage(true, dn, bn);
+        if (mngr.checkFile(filename)) {
+            // updateImage(true, dirname, filename);
+            preloader.arr[preloader.curr].name = filename;
+            preloader.dir = dirname;
+            preloader.arr[preloader.curr].element.src = path.join(dirname, pEncode(filename));
 
-            mngr.genList(dn, bn, (err) => {
-                if (err) { console.log(err); }
+            preloader.arr[preloader.curr].element.hidden = false;
+            preloader.arr[preloader.prev].element.hidden = true;
+            preloader.arr[preloader.next].element.hidden = true;
+
+
+            // Change the filename in the title
+            document.title = 'Appere — ' + preloader.arr[preloader.curr].name;
+
+            // Send an ipc message to scale the window to image size
+            ipcRenderer.send('resize-window', sizeOf(path.join(preloader.dir, preloader.arr[preloader.curr].name)));
+
+            // Reset css class to fit the image within the window
+            preloader.arr[preloader.curr].element.classList.add('scale-fit');
+            preloader.arr[preloader.curr].element.classList.remove('scale-full');
+
+
+            mngr.genList(dirname, filename, (err) => {
+                if (err) {
+                    console.log(err);
+                } else {
+
+                    console.log('started next');
+                    // load the next image
+                    mngr.getNext(true, mngr.current_index, (ready, filename) => {
+                        if (ready) {
+                            // set the next object
+                            preloader.arr[preloader.next].name = filename;
+                            // preloader.arr[preloader.next].dir = mngr.getCurrentDir();
+
+                            // Set the image src, so the renderer can display it.
+                            // Use percent encoding, since the 'img' tag can't handle certain
+                            // special characters.
+                            preloader.arr[preloader.next].element.src = path.join(preloader.dir, pEncode(filename));
+                        }
+                    });
+
+                    console.log('started prev');
+                    // load the previous image
+                    mngr.getPrev(true, mngr.current_index, (ready, filename) => {
+                        if (ready) {
+                            // set the next object
+                            preloader.arr[preloader.prev].name = filename;
+                            // preloader.arr[preloader.prev].dir = mngr.getCurrentDir();
+
+                            // Set the image src, so the renderer can display it.
+                            // Use percent encoding, since the 'img' tag can't handle certain
+                            // special characters.
+                            preloader.arr[preloader.prev].element.src = path.join(preloader.dir, pEncode(filename));
+                        }
+                    });
+                }
             });
         }
     } catch (e) {
@@ -88,9 +311,10 @@ document.addEventListener('keydown', function(event) {
             if (!zoomed) {
                 event.preventDefault();
 
-                mngr.getPrev(true, (prev_ready, fp) => {
-                    updateImage(prev_ready, mngr.getCurrentDir(), fp);
-                });
+                showPrev();
+                // mngr.getPrev(true, (prev_ready, fp) => {
+                //     updateImage(prev_ready, mngr.getCurrentDir(), fp);
+                // });
             }
             break;
         }
@@ -98,9 +322,10 @@ document.addEventListener('keydown', function(event) {
             if (!zoomed) {
                 event.preventDefault();
 
-                mngr.getNext(true, (next_ready, fp) => {
-                    updateImage(next_ready, mngr.getCurrentDir(), fp);
-                });
+                showNext();
+                // mngr.getNext(true, (next_ready, fp) => {
+                //     updateImage(next_ready, mngr.getCurrentDir(), fp);
+                // });
             }
             break;
         }
@@ -144,28 +369,22 @@ document.addEventListener('keydown', function(event) {
 
 
 // Handle any images drag-and-dropped onto the display window
-// Prevent anything from happening when an item is only dragged over
 document.ondragover = (event) => {
+    // Prevent anything from happening when an item is only dragged over
     event.preventDefault();
 }
 
 // Display the image in the viewer
-// Handle onDrop event
 document.ondrop = (event) => {
+    // Handle onDrop event
     event.preventDefault();
     setCurrentImage(event.dataTransfer.files[0].path);
     ipcRenderer.send('focus-window');
-
-    // (temporary) log the image path
-    // console.log('2: ' + event.dataTransfer.files[0].path);
 }
 
-// Handle body.onDrop event
 document.body.ondrop = (event) => {
+    // Handle body.onDrop event
     event.preventDefault();
     setCurrentImage(event.dataTransfer.files[0].path);
     ipcRenderer.send('focus-window');
-
-    // (temporary) log the image path
-    // console.log('1: ' + event.dataTransfer.files[0].path);
 }

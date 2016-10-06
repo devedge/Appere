@@ -93,6 +93,7 @@ FSmanager.prototype.genList = function(filepath, current_filename, cb) {
                 list_loaded = true;
 
                 // console.log(this.img_list);
+                cb();
             } else {
                 // If there is an error, callback with it
                 cb(err);
@@ -139,7 +140,7 @@ FSmanager.prototype.getCurrent = function() {
 
 // Get the next image filename in the list. If wraparound is true,
 // then at the end of the array return the first image
-FSmanager.prototype.getNext = function(wraparound = false, cb) {
+FSmanager.prototype.getNext = function(wraparound, cb) {
     if (list_loaded) {
         // If the current image is the last one
         if (this.current_index + 1 > this.img_list.length - 1) {
@@ -159,7 +160,7 @@ FSmanager.prototype.getNext = function(wraparound = false, cb) {
         } else {
             // Default behavior
             // Increment the current file index
-            this.current_index += 1;
+            this.current_index = this.current_index + 1;
 
             // Callback with the next filename
             cb(true, this.img_list[this.current_index]);
@@ -173,7 +174,7 @@ FSmanager.prototype.getNext = function(wraparound = false, cb) {
 
 // Get the previous image filename in the list. If wraparound is true, then
 // if this has reached the beginning of the array, return the last image
-FSmanager.prototype.getPrev = function(wraparound = false, cb) {
+FSmanager.prototype.getPrev = function(wraparound, cb) {
     if (list_loaded) {
         // The current image is the first one
         if (this.current_index - 1 < 0) {
@@ -193,10 +194,76 @@ FSmanager.prototype.getPrev = function(wraparound = false, cb) {
         } else {
             // Default behavior
             // Decrement the current file index
-            this.current_index -= 1;
+            this.current_index = this.current_index - 1;
 
             // Callback with the previous filename
             cb(true, this.img_list[this.current_index]);
+        }
+    } else {
+        // The image list hasn't been generated yet, so callback with no value
+        cb(false, null);
+    }
+}
+
+
+// Works exactly like getNext(), except a custom 'current index' can be set
+FSmanager.prototype.getNextFromIDX = function(wraparound, custom_idx, cb) {
+    if (list_loaded) {
+        // If the current image is the last one
+        if (custom_idx + 1 > this.img_list.length - 1) {
+            if (wraparound) {
+                // Reset the current file to the last item in the directory
+                custom_idx = 0;
+
+                // Callback with the last image, wrapping around to the end of
+                // the directory
+                cb(true, this.img_list[custom_idx]);
+            } else {
+
+                // Callback, informing that the next image isn't ready
+                // (Maybe inform that at end of list)
+                cb(false, null);
+            }
+        } else {
+            // Default behavior
+            // Increment the current file index
+            custom_idx = custom_idx + 1;
+
+            // Callback with the next filename
+            cb(true, this.img_list[custom_idx]);
+        }
+    } else {
+        // The image list hasn't been generated yet, so callback with no value
+        cb(false, null);
+    }
+}
+
+
+// Works exactly like getPrev(), except a custom 'current index' can be set
+FSmanager.prototype.getPrevFromIDX = function(wraparound, custom_idx, cb) {
+    if (list_loaded) {
+        // The current image is the first one
+        if (custom_idx - 1 < 0) {
+            if (wraparound) {
+                // Reset the current file to the last item in the directory
+                custom_idx = this.img_list.length - 1;
+
+                // Callback with the last image, wrapping around to the end of
+                // the directory
+                cb(true, this.img_list[custom_idx]);
+            } else {
+
+                // Callback, informing that the next image isn't ready
+                // (Maybe inform that at end of list)
+                cb(false, null);
+            }
+        } else {
+            // Default behavior
+            // Decrement the current file index
+            custom_idx = custom_idx - 1;
+
+            // Callback with the previous filename
+            cb(true, this.img_list[custom_idx]);
         }
     } else {
         // The image list hasn't been generated yet, so callback with no value
