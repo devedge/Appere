@@ -44,7 +44,7 @@ app.on('ready', () => {
     win.loadURL('file://' + __dirname + '/index.html');
 
     // Open the DevTools
-    win.webContents.openDevTools()
+    // win.webContents.openDevTools()
 
 
     // Generate the rest of the values after window load to speed loading

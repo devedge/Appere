@@ -30,7 +30,16 @@
     margin: auto;
 }
 
+.quick-transition {
+    /*transition-duration: 0.17s;*/
+    /*transition-timing-function: cubic-bezier(0.44, 0.53, 0.79, 1.0);*/
+
+    /*transition-timing-function: ease-in-out;*/
+}
+
 .scale-fit {
+    animation: fadein 0.17s;
+
     /* Align against the edges of the window */
     top:0;
     bottom:0;
@@ -89,7 +98,7 @@
 
 @keyframes fadein {
   from {
-    opacity: 0;
+    opacity: 0.6;
   }
   to {
     opacity: 1;

@@ -98,11 +98,22 @@ img_elem_3
 
 */
 var temp;
+var dirlength;
 
 function showNext() {
+
+    ipcRenderer.send('resize-window', sizeOf(path.join(preloader.dir, preloader.arr[preloader.next].name)));
+
+    // preloader.arr[preloader.curr].element.classList.remove('scale-full');
+    // preloader.arr[preloader.curr].element.classList.remove('scale-fit');
+    // preloader.arr[preloader.next].element.classList.add('quick-transition');
+    // preloader.arr[preloader.curr].element.classList.add('fade-out');
+
     // Hide the current element and show the next one
     preloader.arr[preloader.curr].element.hidden = true;
     preloader.arr[preloader.next].element.hidden = false;
+
+    // preloader.arr[preloader.curr].element.classList.remove('quick-transition');
 
     // Update the pointer values
     temp = preloader.prev;
@@ -110,26 +121,29 @@ function showNext() {
     preloader.curr = preloader.next;
     preloader.next = temp;
 
-    console.log('Next');
-    console.log('curr: ' + preloader.curr);
-    console.log('next: ' + preloader.next);
-    console.log('prev: ' + preloader.prev);
-    console.log(' ');
+    // console.log('Next');
+    // console.log('curr: ' + preloader.curr);
+    // console.log('next: ' + preloader.next);
+    // console.log('prev: ' + preloader.prev);
+    // console.log(' ');
 
 
     // Change the filename in the title
-    document.title = 'Appere — ' + preloader.arr[preloader.curr].name;
+    // document.title = 'Appere — ' + preloader.arr[preloader.curr].name;
+    document.title = 'Appere — ' + preloader.arr[preloader.curr].name + ' — ' + (preloader.arr[preloader.curr].idx + 1) + '/' + dirlength;
 
     // Send an ipc message to scale the window to image size
-    ipcRenderer.send('resize-window', sizeOf(path.join(preloader.dir, preloader.arr[preloader.curr].name)));
+    // ipcRenderer.send('resize-window', sizeOf(path.join(preloader.dir, preloader.arr[preloader.curr].name)));
 
     // Reset css class to fit the image within the window
-    preloader.arr[preloader.curr].element.classList.add('scale-fit');
-    preloader.arr[preloader.curr].element.classList.remove('scale-full');
+    // preloader.arr[preloader.curr].element.classList.add('scale-fit');
+
+    console.log('Next: ' + preloader.arr[preloader.curr].idx);
 
     // load the next image
-    mngr.getNextFromIDX(true, preloader.arr[preloader.next].idx, (ready, filename, new_index) => {
+    mngr.getNextFromIDX(true, preloader.arr[preloader.curr].idx, (ready, filename, new_index) => {
         if (ready) {
+            console.log(' to: ' + new_index);
             // set the next object
             preloader.arr[preloader.next].name = filename;
             preloader.arr[preloader.next].idx = new_index;
@@ -146,9 +160,19 @@ function showNext() {
 
 
 function showPrev() {
+    // preloader.arr[preloader.curr].element.classList.remove('scale-full');
+    // preloader.arr[preloader.curr].element.classList.remove('scale-fit');
+    // preloader.arr[preloader.prev].element.classList.add('quick-transition');
+    // preloader.arr[preloader.curr].element.classList.add('fade-out');
+
+    ipcRenderer.send('resize-window', sizeOf(path.join(preloader.dir, preloader.arr[preloader.prev].name)));
+
+
     // Hide the current element and show the previous one
     preloader.arr[preloader.curr].element.hidden = true;
     preloader.arr[preloader.prev].element.hidden = false;
+
+    // preloader.arr[preloader.curr].element.classList.remove('quick-transition');
 
     // Update the pointer values
     temp = preloader.next;
@@ -156,25 +180,28 @@ function showPrev() {
     preloader.curr = preloader.prev;
     preloader.prev = temp;
 
-    console.log('Prev');
-    console.log('curr: ' + preloader.curr);
-    console.log('next: ' + preloader.next);
-    console.log('prev: ' + preloader.prev);
-    console.log(' ');
+    // console.log('Prev');
+    // console.log('curr: ' + preloader.curr);
+    // console.log('next: ' + preloader.next);
+    // console.log('prev: ' + preloader.prev);
+    // console.log(' ');
 
     // Change the filename in the title
-    document.title = 'Appere — ' + preloader.arr[preloader.curr].name;
+    document.title = 'Appere — ' + preloader.arr[preloader.curr].name + ' — ' + (preloader.arr[preloader.curr].idx + 1) + '/' + dirlength;
 
     // Send an ipc message to scale the window to image size
-    ipcRenderer.send('resize-window', sizeOf(path.join(preloader.dir, preloader.arr[preloader.curr].name)));
+    // ipcRenderer.send('resize-window', sizeOf(path.join(preloader.dir, preloader.arr[preloader.curr].name)));
 
     // Reset css class to fit the image within the window
-    preloader.arr[preloader.curr].element.classList.add('scale-fit');
-    preloader.arr[preloader.curr].element.classList.remove('scale-full');
+    // preloader.arr[preloader.curr].element.classList.add('scale-fit');
+
+    console.log('Prev: ' + preloader.arr[preloader.curr].idx);
+
 
     // load the previous image
-    mngr.getPrevFromIDX(true, preloader.arr[preloader.prev].idx, (ready, filename, new_index) => {
+    mngr.getPrevFromIDX(true, preloader.arr[preloader.curr].idx, (ready, filename, new_index) => {
         if (ready) {
+            console.log(' to: ' + new_index);
             // set the next object
             preloader.arr[preloader.prev].name = filename;
             preloader.arr[preloader.prev].idx = new_index;
@@ -208,25 +235,33 @@ function setCurrentImage(filepath) {
 
         // If the file is a valid filetype
         if (mngr.checkFile(filename)) {
+            preloader.curr = 0;
+            preloader.prev = 1;
+            preloader.next = 2;
+
             // updateImage(true, dirname, filename);
             preloader.arr[preloader.curr].name = filename;
             preloader.dir = dirname;
-            preloader.arr[preloader.curr].element.src = path.join(dirname, pEncode(filename));
+
+            // Send an ipc message to scale the window to image size
+            ipcRenderer.send('resize-window', sizeOf(path.join(preloader.dir, preloader.arr[preloader.curr].name)));
 
             preloader.arr[preloader.curr].element.hidden = false;
             preloader.arr[preloader.prev].element.hidden = true;
             preloader.arr[preloader.next].element.hidden = true;
 
+            // load later
+            preloader.arr[preloader.curr].element.src = path.join(dirname, pEncode(filename));
 
             // Change the filename in the title
             document.title = 'Appere — ' + preloader.arr[preloader.curr].name;
 
-            // Send an ipc message to scale the window to image size
-            ipcRenderer.send('resize-window', sizeOf(path.join(preloader.dir, preloader.arr[preloader.curr].name)));
+            preloader.arr[preloader.curr].element.classList.add('quick-transition');
+
 
             // Reset css class to fit the image within the window
-            preloader.arr[preloader.curr].element.classList.add('scale-fit');
-            preloader.arr[preloader.curr].element.classList.remove('scale-full');
+            // preloader.arr[preloader.curr].element.classList.add('scale-fit');
+            // preloader.arr[preloader.curr].element.classList.remove('scale-full');
 
 
             mngr.genList(dirname, filename, (err) => {
@@ -234,12 +269,18 @@ function setCurrentImage(filepath) {
                     console.log(err);
                 } else {
 
-                    console.log('started next');
+                    console.log('Current index: ' + mngr.current_index);
+                    dirlength = mngr.img_list.length;
+
+                    document.title = 'Appere — ' + preloader.arr[preloader.curr].name + ' — ' + (mngr.current_index + 1) + '/' + dirlength;
+
                     // load the next image
-                    mngr.getNext(true, mngr.current_index, (ready, filename) => {
+                    mngr.getNextFromIDX(true, mngr.current_index, (ready, filename, new_index) => {
                         if (ready) {
+                            console.log('Next index: ' + new_index);
                             // set the next object
                             preloader.arr[preloader.next].name = filename;
+                            preloader.arr[preloader.next].idx = new_index;
                             // preloader.arr[preloader.next].dir = mngr.getCurrentDir();
 
                             // Set the image src, so the renderer can display it.
@@ -249,12 +290,13 @@ function setCurrentImage(filepath) {
                         }
                     });
 
-                    console.log('started prev');
                     // load the previous image
-                    mngr.getPrev(true, mngr.current_index, (ready, filename) => {
+                    mngr.getPrevFromIDX(true, mngr.current_index, (ready, filename, new_index) => {
                         if (ready) {
+                            console.log('Prev index: ' + new_index);
                             // set the next object
                             preloader.arr[preloader.prev].name = filename;
+                            preloader.arr[preloader.prev].idx = new_index;
                             // preloader.arr[preloader.prev].dir = mngr.getCurrentDir();
 
                             // Set the image src, so the renderer can display it.
@@ -354,8 +396,8 @@ document.addEventListener('keydown', function(event) {
                 zoomed = false;
             }
 
-            img_element.classList.toggle('scale-fit');
-            img_element.classList.toggle('scale-full');
+            // img_element.classList.toggle('scale-fit');
+            // img_element.classList.toggle('scale-full');
 
             // img_element.className = img_element.className.replace('set-fit', 'set-full');
 

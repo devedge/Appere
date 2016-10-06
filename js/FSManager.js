@@ -217,12 +217,12 @@ FSmanager.prototype.getNextFromIDX = function(wraparound, custom_idx, cb) {
 
                 // Callback with the last image, wrapping around to the end of
                 // the directory
-                cb(true, this.img_list[custom_idx]);
+                cb(true, this.img_list[custom_idx], custom_idx);
             } else {
 
                 // Callback, informing that the next image isn't ready
                 // (Maybe inform that at end of list)
-                cb(false, null);
+                cb(false, null, 0);
             }
         } else {
             // Default behavior
@@ -230,11 +230,11 @@ FSmanager.prototype.getNextFromIDX = function(wraparound, custom_idx, cb) {
             custom_idx = custom_idx + 1;
 
             // Callback with the next filename
-            cb(true, this.img_list[custom_idx]);
+            cb(true, this.img_list[custom_idx], custom_idx);
         }
     } else {
         // The image list hasn't been generated yet, so callback with no value
-        cb(false, null);
+        cb(false, null, 0);
     }
 }
 
@@ -250,12 +250,12 @@ FSmanager.prototype.getPrevFromIDX = function(wraparound, custom_idx, cb) {
 
                 // Callback with the last image, wrapping around to the end of
                 // the directory
-                cb(true, this.img_list[custom_idx]);
+                cb(true, this.img_list[custom_idx], custom_idx);
             } else {
 
                 // Callback, informing that the next image isn't ready
                 // (Maybe inform that at end of list)
-                cb(false, null);
+                cb(false, null, 0);
             }
         } else {
             // Default behavior
@@ -263,11 +263,11 @@ FSmanager.prototype.getPrevFromIDX = function(wraparound, custom_idx, cb) {
             custom_idx = custom_idx - 1;
 
             // Callback with the previous filename
-            cb(true, this.img_list[custom_idx]);
+            cb(true, this.img_list[custom_idx], custom_idx);
         }
     } else {
         // The image list hasn't been generated yet, so callback with no value
-        cb(false, null);
+        cb(false, null, 0);
     }
 }
 
