@@ -111,7 +111,9 @@ function loadNext(wrap, index) {
         // Preload the next image into the next hidden 'img' element
         mngr.getNextFromIDX(wrap, index, (ready, filename, new_index) => {
             if (ready) {
+                // console.time('init');
                 if (mngr.checkFile(path.join(preloader.dir, filename))) {
+                    // console.time('end');
 
                     // Set the next object's name and index
                     preloader.arr[preloader.next].name = filename;
@@ -142,6 +144,40 @@ function loadNext(wrap, index) {
 }
 
 
+function loadPrev(wrap, index) {
+    try {
+        // Preload the next image into the next hidden 'img' element
+        mngr.getPrevFromIDX(wrap, index, (ready, filename, new_index) => {
+            if (ready) {
+                if (mngr.checkFile(path.join(preloader.dir, filename))) {
+                    // Set the previous' object's name and index
+                    preloader.arr[preloader.prev].name = filename;
+                    preloader.arr[preloader.prev].idx = new_index;
+
+                    // Set the image 'src' so the renderer can display it in the background.
+                    // Percent encode the filepath since the 'img' tag can't handle certain
+                    // special characters.
+                    preloader.arr[preloader.prev].element.src = path.join(preloader.dir, pEncode(filename));
+                    err_count = 0;
+                } else {
+                    throw 'Invalid or broken filetype: ' + filename;
+                }
+            }
+        });
+    } catch (e) {
+        err_count ++;
+
+        console.log('loadPrev() ERROR: ' + e + ' - loadPrev() Retry Count: ' + err_count + '/' + err_max);
+
+        if (err_count <= err_max) {
+            loadPrev(wrap, (index - err_count));
+        } else {
+            err_count = 0;
+            console.log('Abandoning retries');
+        }
+    }
+}
+
 // Show the previous image
 function showPrev() {
 
@@ -168,19 +204,20 @@ function showPrev() {
     document.title = 'Appere — ' + preloader.arr[preloader.curr].name + ' — ' +
         (preloader.arr[preloader.curr].idx + 1) + '/' + dirlength;
 
+    loadPrev(true, preloader.arr[preloader.curr].idx);
     // Preload the previous image into the next hidden 'img' element
-    mngr.getPrevFromIDX(true, preloader.arr[preloader.curr].idx, (ready, filename, new_index) => {
-        if (ready) {
-            // Set the previous' object's name and index
-            preloader.arr[preloader.prev].name = filename;
-            preloader.arr[preloader.prev].idx = new_index;
-
-            // Set the image 'src' so the renderer can display it in the background.
-            // Percent encode the filepath since the 'img' tag can't handle certain
-            // special characters.
-            preloader.arr[preloader.prev].element.src = path.join(preloader.dir, pEncode(filename));
-        }
-    });
+    // mngr.getPrevFromIDX(true, preloader.arr[preloader.curr].idx, (ready, filename, new_index) => {
+    //     if (ready) {
+    //         // Set the previous' object's name and index
+    //         preloader.arr[preloader.prev].name = filename;
+    //         preloader.arr[preloader.prev].idx = new_index;
+    //
+    //         // Set the image 'src' so the renderer can display it in the background.
+    //         // Percent encode the filepath since the 'img' tag can't handle certain
+    //         // special characters.
+    //         preloader.arr[preloader.prev].element.src = path.join(preloader.dir, pEncode(filename));
+    //     }
+    // });
 }
 
 
@@ -190,6 +227,7 @@ function showPrev() {
 // todo: check a filetype with its magic number if the extension is not supported
 // todo: cut off the filename after 'x' amount of charaters so it can be
 //      displayed cleanly in the title
+// if size is 100% don't zoom. nothing will move and it'll seem broken
 
 // Set the current image from a filepath
 function setCurrentImage(filepath) {
@@ -214,6 +252,9 @@ function setCurrentImage(filepath) {
             ipcRenderer.send('resize-window', sizeOf(path.join(preloader.dir, preloader.arr[preloader.curr].name)));
 
             preloader.arr[preloader.curr].element.hidden = false;
+            preloader.arr[preloader.curr].element.classList.add('scale-fit');
+            preloader.arr[preloader.curr].element.classList.remove('scale-full');
+
             preloader.arr[preloader.prev].element.hidden = true;
             preloader.arr[preloader.next].element.hidden = true;
 
@@ -242,36 +283,38 @@ function setCurrentImage(filepath) {
                     document.title = 'Appere — ' + preloader.arr[preloader.curr].name + ' — ' + (mngr.current_index + 1) + '/' + dirlength;
 
                     // load the next image
-                    mngr.getNextFromIDX(true, mngr.current_index, (ready, filename, new_index) => {
-                        if (ready) {
-                            // console.log('Next index: ' + new_index);
-                            // set the next object
-                            preloader.arr[preloader.next].name = filename;
-                            preloader.arr[preloader.next].idx = new_index;
-                            // preloader.arr[preloader.next].dir = mngr.getCurrentDir();
-
-                            // Set the image src, so the renderer can display it.
-                            // Use percent encoding, since the 'img' tag can't handle certain
-                            // special characters.
-                            preloader.arr[preloader.next].element.src = path.join(preloader.dir, pEncode(filename));
-                        }
-                    });
+                    loadNext(true, mngr.current_index);
+                    // mngr.getNextFromIDX(true, mngr.current_index, (ready, filename, new_index) => {
+                    //     if (ready) {
+                    //         // console.log('Next index: ' + new_index);
+                    //         // set the next object
+                    //         preloader.arr[preloader.next].name = filename;
+                    //         preloader.arr[preloader.next].idx = new_index;
+                    //         // preloader.arr[preloader.next].dir = mngr.getCurrentDir();
+                    //
+                    //         // Set the image src, so the renderer can display it.
+                    //         // Use percent encoding, since the 'img' tag can't handle certain
+                    //         // special characters.
+                    //         preloader.arr[preloader.next].element.src = path.join(preloader.dir, pEncode(filename));
+                    //     }
+                    // });
 
                     // load the previous image
-                    mngr.getPrevFromIDX(true, mngr.current_index, (ready, filename, new_index) => {
-                        if (ready) {
-                            // console.log('Prev index: ' + new_index);
-                            // set the next object
-                            preloader.arr[preloader.prev].name = filename;
-                            preloader.arr[preloader.prev].idx = new_index;
-                            // preloader.arr[preloader.prev].dir = mngr.getCurrentDir();
-
-                            // Set the image src, so the renderer can display it.
-                            // Use percent encoding, since the 'img' tag can't handle certain
-                            // special characters.
-                            preloader.arr[preloader.prev].element.src = path.join(preloader.dir, pEncode(filename));
-                        }
-                    });
+                    loadPrev(true, mngr.current_index);
+                    // mngr.getPrevFromIDX(true, mngr.current_index, (ready, filename, new_index) => {
+                    //     if (ready) {
+                    //         // console.log('Prev index: ' + new_index);
+                    //         // set the next object
+                    //         preloader.arr[preloader.prev].name = filename;
+                    //         preloader.arr[preloader.prev].idx = new_index;
+                    //         // preloader.arr[preloader.prev].dir = mngr.getCurrentDir();
+                    //
+                    //         // Set the image src, so the renderer can display it.
+                    //         // Use percent encoding, since the 'img' tag can't handle certain
+                    //         // special characters.
+                    //         preloader.arr[preloader.prev].element.src = path.join(preloader.dir, pEncode(filename));
+                    //     }
+                    // });
                 }
 
                 // Reset the drag_called flag
@@ -280,7 +323,7 @@ function setCurrentImage(filepath) {
         }
     } catch (e) {
         // log error, but need to call an error function instead
-        console.log('ERROR: ' + e);
+        console.log('Loading ERROR: ' + e);
 
         // Reset the drag_called flag
         drag_called = false;
@@ -320,57 +363,80 @@ function updateImage(ready, current_dir, fp) {
 document.addEventListener('keydown', function(event) {
     // console.log(event.keyCode);
 
-    // Read the keycode property of the key pressed
-    switch (event.keyCode) {
-        case key_left: {
-            if (!zoomed) {
-                event.preventDefault();
-                showPrev();
-            }
-            break;
-        }
-        case key_right: {
-            if (!zoomed) {
-                event.preventDefault();
-                showNext();
-            }
-            break;
-        }
-        case key_esc: {
+    var key = event.keyCode;
+
+    // Catch the left arrow press
+    if (key === key_left) {
+
+        if (!zoomed) {
             event.preventDefault();
-
-            // minimize the window
-            // console.log('Called esc');
-
-            break;
+            showPrev();
         }
-        case key_del: {
+
+    // Catch the right arrow press
+    } else if (key === key_right) {
+
+        if (!zoomed) {
             event.preventDefault();
-
-            // call code to display confirmation popup to delete image
-            // console.log('Called del');
-
-            break;
+            showNext();
         }
-        case key_space: {
-            event.preventDefault();
 
-            if (!zoomed) {
-                zoomed = true;
-            } else {
-                zoomed = false;
-            }
+    // On 'escape' minimize the window
+    } else if (key === key_esc) {
+        event.preventDefault();
 
-            // img_element.classList.toggle('scale-fit');
-            // img_element.classList.toggle('scale-full');
+    // On delete, prompt to delete the file
+    } else if (key === key_del) {
 
-            // img_element.className = img_element.className.replace('set-fit', 'set-full');
+    // On space, zoom the image to actual size
+    } else if (key === key_space) {
+        event.preventDefault();
 
-            break;
+        if (!zoomed) {
+            zoomed = true;
+        } else {
+            zoomed = false;
         }
-        // default: {}
-            // do nothing, ignore the key
+
+        preloader.arr[preloader.curr].element.classList.toggle('scale-fit');
+        preloader.arr[preloader.curr].element.classList.toggle('scale-full');
     }
+
+    // Read the keycode property of the key pressed
+    // switch (event.keyCode) {
+    //     case key_left: {
+    //         break;
+    //     }
+    //     case key_right: {
+    //         break;
+    //     }
+    //     case key_esc: {
+    //         event.preventDefault();
+    //
+    //         // minimize the window
+    //         // console.log('Called esc');
+    //
+    //         break;
+    //     }
+    //     case key_del: {
+    //
+    //         // call code to display confirmation popup to delete image
+    //         // console.log('Called del');
+    //
+    //         break;
+    //     }
+    //     case key_space: {
+    //
+    //         // img_element.classList.toggle('scale-fit');
+    //         // img_element.classList.toggle('scale-full');
+    //
+    //         // img_element.className = img_element.className.replace('set-fit', 'set-full');
+    //
+    //         break;
+    //     }
+    //     // default: {}
+            // do nothing, ignore the key
+    // }
 });
 
 
