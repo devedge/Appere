@@ -56,9 +56,13 @@ var preloader = {
 
 var dirlength;
 
+
+
 // Show the next image
 function showNext() {
 
+    // Try getting the image size and resizing the window. If the image is
+    // corrupted in some way, catch the error.
     try {
         // Send an ipc resize message first to resize the window to scale to the
         // image. This smooths the image resizing.
@@ -82,105 +86,17 @@ function showNext() {
     document.title = 'Appere — ' + preloader.arr[preloader.curr].name + ' — ' +
         (preloader.arr[preloader.curr].idx + 1) + '/' + dirlength;
 
-    loadNext(true, preloader.arr[preloader.curr].idx);
-
     // Preload the next image into the next hidden 'img' element
-    // mngr.getNextFromIDX(true, preloader.arr[preloader.curr].idx, (ready, filename, new_index) => {
-    //     if (ready) {
-    //         // Set the next object's name and index
-    //         preloader.arr[preloader.next].name = filename;
-    //         preloader.arr[preloader.next].idx = new_index;
-    //
-    //         // Set the image 'src' so the renderer can display it in the background.
-    //         // Percent encode the filepath since the 'img' tag can't handle certain
-    //         // special characters.
-    //         preloader.arr[preloader.next].element.src = path.join(preloader.dir, pEncode(filename));
-    //     }
-    // });
-
-    // try {
-    //     // get next
-    // } catch (e) {
-    //     console.log(e);
-    //
-    // }
-}
-
-function loadNext(wrap, index) {
-    try {
-        // Preload the next image into the next hidden 'img' element
-        mngr.getNextFromIDX(wrap, index, (ready, filename, new_index) => {
-            if (ready) {
-                // console.time('init');
-                if (mngr.checkFile(path.join(preloader.dir, filename))) {
-                    // console.time('end');
-
-                    // Set the next object's name and index
-                    preloader.arr[preloader.next].name = filename;
-                    preloader.arr[preloader.next].idx = new_index;
-
-                    // Set the image 'src' so the renderer can display it in the background.
-                    // Percent encode the filepath since the 'img' tag can't handle certain
-                    // special characters.
-                    preloader.arr[preloader.next].element.src = path.join(preloader.dir, pEncode(filename));
-                    err_count = 0;
-                } else {
-                    throw 'Invalid or broken filetype: ' + filename;
-                }
-            }
-        });
-    } catch (e) {
-        err_count ++;
-
-        console.log('loadNext() ERROR: ' + e + ' - loadNext() Retry Count: ' + err_count + '/' + err_max);
-
-        if (err_count <= err_max) {
-            loadNext(wrap, (index + err_count));
-        } else {
-            err_count = 0;
-            console.log('Abandoning retries');
-        }
-    }
+    loadNext(true, preloader.arr[preloader.curr].idx);
 }
 
 
-function loadPrev(wrap, index) {
-    try {
-        // Preload the next image into the next hidden 'img' element
-        mngr.getPrevFromIDX(wrap, index, (ready, filename, new_index) => {
-            if (ready) {
-                if (mngr.checkFile(path.join(preloader.dir, filename))) {
-                    // Set the previous' object's name and index
-                    preloader.arr[preloader.prev].name = filename;
-                    preloader.arr[preloader.prev].idx = new_index;
-
-                    // Set the image 'src' so the renderer can display it in the background.
-                    // Percent encode the filepath since the 'img' tag can't handle certain
-                    // special characters.
-                    preloader.arr[preloader.prev].element.src = path.join(preloader.dir, pEncode(filename));
-                    err_count = 0;
-                } else {
-                    throw 'Invalid or broken filetype: ' + filename;
-                }
-            }
-        });
-    } catch (e) {
-        err_count ++;
-
-        console.log('loadPrev() ERROR: ' + e + ' - loadPrev() Retry Count: ' + err_count + '/' + err_max);
-
-        if (err_count <= err_max) {
-            loadPrev(wrap, (index - err_count));
-        } else {
-            err_count = 0;
-            console.log('Abandoning retries');
-        }
-    }
-}
 
 // Show the previous image
 function showPrev() {
 
+    // Try getting the image size and resizing the window. If the image is
+    // corrupted in some way, catch the error.
     try {
         // Send an ipc resize message first to resize the window to scale to the
         // image. This smooths the image resizing.
@@ -204,21 +120,107 @@ function showPrev() {
     document.title = 'Appere — ' + preloader.arr[preloader.curr].name + ' — ' +
         (preloader.arr[preloader.curr].idx + 1) + '/' + dirlength;
 
-    loadPrev(true, preloader.arr[preloader.curr].idx);
     // Preload the previous image into the next hidden 'img' element
-    // mngr.getPrevFromIDX(true, preloader.arr[preloader.curr].idx, (ready, filename, new_index) => {
-    //     if (ready) {
-    //         // Set the previous' object's name and index
-    //         preloader.arr[preloader.prev].name = filename;
-    //         preloader.arr[preloader.prev].idx = new_index;
-    //
-    //         // Set the image 'src' so the renderer can display it in the background.
-    //         // Percent encode the filepath since the 'img' tag can't handle certain
-    //         // special characters.
-    //         preloader.arr[preloader.prev].element.src = path.join(preloader.dir, pEncode(filename));
-    //     }
-    // });
+    loadPrev(true, preloader.arr[preloader.curr].idx);
 }
+
+
+
+// Try to preload the next image and quietly handle any errors
+function loadNext(wrap, index) {
+    // Try to load the image. On an error, try loading the next image instead and
+    // continue for three different times.
+    try {
+        // Preload the next image into the next hidden 'img' element
+        mngr.getNextFromIDX(wrap, index, (ready, filename, new_index) => {
+
+            // Once the image filename array is generated, 'ready' is true
+            if (ready) {
+                // Check the filetype by inspecting the file's headers
+                if (mngr.checkFile(path.join(preloader.dir, filename))) {
+
+                    // Set the next object's name and index
+                    preloader.arr[preloader.next].name = filename;
+                    preloader.arr[preloader.next].idx = new_index;
+
+                    // Set the image 'src' so the renderer can display it in the background.
+                    // Percent encode the filepath since the 'img' tag can't handle certain
+                    // special characters.
+                    preloader.arr[preloader.next].element.src = path.join(preloader.dir, pEncode(filename));
+
+                    // Reset the 'err_count' variable on successful load
+                    err_count = 0;
+                } else {
+                    throw 'Invalid or broken filetype: ' + filename;
+                }
+            }
+        });
+    } catch (e) {
+        // Increment the error attempt counter
+        err_count ++;
+
+        // Log the error
+        console.log('loadNext() ERROR: ' + e + ' - loadNext() Retry Count: ' + err_count + '/' + err_max);
+
+        // If the attempt to load another image is below the limit, try again
+        if (err_count <= err_max) {
+            loadNext(wrap, (index + err_count));
+        } else {
+            err_count = 0;
+            console.log('Abandoning retries');
+        }
+    }
+}
+
+
+
+// Try to preload the previous image and quietly handle any errors
+function loadPrev(wrap, index) {
+    // Try to load the image. On an error, try loading the next image instead and
+    // continue for three different times.
+    try {
+        // Preload the next image into the next hidden 'img' element
+        mngr.getPrevFromIDX(wrap, index, (ready, filename, new_index) => {
+
+            // Once the image filename array is generated, 'ready' is true
+            if (ready) {
+                // Check the filetype by inspecting the file's headers
+                if (mngr.checkFile(path.join(preloader.dir, filename))) {
+
+                    // Set the previous' object's name and index
+                    preloader.arr[preloader.prev].name = filename;
+                    preloader.arr[preloader.prev].idx = new_index;
+
+                    // Set the image 'src' so the renderer can display it in the background.
+                    // Percent encode the filepath since the 'img' tag can't handle certain
+                    // special characters.
+                    preloader.arr[preloader.prev].element.src = path.join(preloader.dir, pEncode(filename));
+
+                    // Reset the 'err_count' variable on successful load
+                    err_count = 0;
+                } else {
+                    throw 'Invalid or broken filetype: ' + filename;
+                }
+            }
+        });
+    } catch (e) {
+        // Increment the error attempt counter
+        err_count ++;
+
+        // Log the error
+        console.log('loadPrev() ERROR: ' + e + ' - loadPrev() Retry Count: ' + err_count + '/' + err_max);
+
+        // If the attempt to load another image is below the limit, try again
+        if (err_count <= err_max) {
+            loadPrev(wrap, (index - err_count));
+        } else {
+            err_count = 0;
+            console.log('Abandoning retries');
+        }
+    }
+}
+
+
 
 
 
@@ -284,37 +286,9 @@ function setCurrentImage(filepath) {
 
                     // load the next image
                     loadNext(true, mngr.current_index);
-                    // mngr.getNextFromIDX(true, mngr.current_index, (ready, filename, new_index) => {
-                    //     if (ready) {
-                    //         // console.log('Next index: ' + new_index);
-                    //         // set the next object
-                    //         preloader.arr[preloader.next].name = filename;
-                    //         preloader.arr[preloader.next].idx = new_index;
-                    //         // preloader.arr[preloader.next].dir = mngr.getCurrentDir();
-                    //
-                    //         // Set the image src, so the renderer can display it.
-                    //         // Use percent encoding, since the 'img' tag can't handle certain
-                    //         // special characters.
-                    //         preloader.arr[preloader.next].element.src = path.join(preloader.dir, pEncode(filename));
-                    //     }
-                    // });
 
                     // load the previous image
                     loadPrev(true, mngr.current_index);
-                    // mngr.getPrevFromIDX(true, mngr.current_index, (ready, filename, new_index) => {
-                    //     if (ready) {
-                    //         // console.log('Prev index: ' + new_index);
-                    //         // set the next object
-                    //         preloader.arr[preloader.prev].name = filename;
-                    //         preloader.arr[preloader.prev].idx = new_index;
-                    //         // preloader.arr[preloader.prev].dir = mngr.getCurrentDir();
-                    //
-                    //         // Set the image src, so the renderer can display it.
-                    //         // Use percent encoding, since the 'img' tag can't handle certain
-                    //         // special characters.
-                    //         preloader.arr[preloader.prev].element.src = path.join(preloader.dir, pEncode(filename));
-                    //     }
-                    // });
                 }
 
                 // Reset the drag_called flag
@@ -327,29 +301,6 @@ function setCurrentImage(filepath) {
 
         // Reset the drag_called flag
         drag_called = false;
-    }
-}
-
-
-// Function to update the image in the app.
-function updateImage(ready, current_dir, fp) {
-    // If the image list has been generated, then this function call is ready
-    if (ready) {
-        // Change the filename in the title
-        document.title = 'Appere — ' + fp;
-
-        // Set the image src, so the renderer can display it.
-        // Use percent encoding, since the 'img' tag can't handle certain
-        // special characters.
-        img_element.src = path.join(current_dir, pEncode(fp));
-
-        // Send an ipc message to scale the window to image size
-        ipcRenderer.send('resize-window', sizeOf(path.join(current_dir, fp)));
-
-        // Reset css class to fit the image within the window
-        img_element.classList.add('scale-fit');
-        img_element.classList.remove('scale-full');
-
     }
 }
 
@@ -460,10 +411,3 @@ document.ondrop = document.body.ondrop = (event) => {
         ipcRenderer.send('focus-window');
     }
 }
-
-// document.body.ondrop = (event) => {
-//     // Handle body.onDrop event
-//     event.preventDefault();
-//     setCurrentImage(event.dataTransfer.files[0].path);
-//     ipcRenderer.send('focus-window');
-// }
