@@ -11,7 +11,7 @@ let win;
 var screen_dim = [];
 
 // Set the window bounds variables
-var bounds = [0, 0, 500, 500];
+var bounds = [0, 0, 550, 550];
 
 // Instantiate the genValues variable
 var genValues;
@@ -30,8 +30,8 @@ app.on('ready', () => {
 
     // Create the browser window
     win = new BrowserWindow({
-        width: 900,
-        height: 650,
+        width: 700,
+        height: 700,
         backgroundColor: '#EFF0F1'
         // backgroundColor: '-webkit-linear-gradient(to bottom, #74e3ec, #c7ffe2)'
     });

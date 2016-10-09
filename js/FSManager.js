@@ -1,9 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 const frep = require('frep');
+const readChunk = require('read-chunk');
+const fileType = require('file-type');
+var buffer;
 
 // The supported image filetypes
-const supported_types = /^(\.jpg|\.jpeg|\.jpe|\.jfif|\.jif|\.gif|\.png|\.bmp|\.svg|\.ico)$/;
+const supported_types = /^([\.]*jpg|[\.]*jpeg|[\.]*jpe|[\.]*jfif|[\.]*jif|[\.]*gif|[\.]*png|[\.]*bmp|[\.]*svg|[\.]*ico)$/;
 
 // Flag that indicates if the image list is loaded
 var list_loaded = false;
@@ -23,6 +26,8 @@ function FSmanager() {
 // to set the next image
 // todo: put a hard limit to the size of the number of files?
 FSmanager.prototype.genList = function(filepath, current_filename, cb) {
+
+    console.log('genList called');
 
     // Don't regenerate the image list for the same filepath
     if (filepath !== this.folder) {
@@ -46,7 +51,7 @@ FSmanager.prototype.genList = function(filepath, current_filename, cb) {
                 // Sort the items, ignoring case
                 items.sort((a, b) => {
 
-                    // Try to sort numerically
+                    // Try to sort numerically by the numbers at the start of the filename
                     if (a.match(/^[0-9]+/) && b.match(/^[0-9]+/)) {
                         num_diff = a.match(/^[0-9]+/)[0] - b.match(/^[0-9]+/)[0];
 
@@ -57,9 +62,10 @@ FSmanager.prototype.genList = function(filepath, current_filename, cb) {
                         } else {
                             return num_diff;
                         }
-                    } else if (a.match(/[0-9]+\..*$/) && b.match(/[0-9]+\..*$/)) {
+
+                    // Sort numerically by the numbers at the end of the filename
+                    } else if (a.match(/ [0-9]+\..*$/) && b.match(/ [0-9]+\..*$/)) {
                         num_diff = a.match(/[0-9]+\..*$/)[0].match(/[0-9]*/)[0] - b.match(/[0-9]+\..*$/)[0].match(/[0-9]*/)[0];
-                        // Sort numerically by the numbers at the end of the filename
 
                         // If the difference is 0 (numerical part is identical),
                         // return a unicode diff
@@ -78,6 +84,11 @@ FSmanager.prototype.genList = function(filepath, current_filename, cb) {
                 // Extract all the supported file extensions and push them
                 // on the 'img_list' array
                 items.forEach((filename, index) => {
+
+                    // add everything with a proper file extension right now. When
+                    // the image will be loaded, then check if it's valid.
+
+                    // isSupported(path.join(filepath, filename))
                     if (path.extname(filename).toLowerCase().match(supported_types)) {
                         // If the filename matches the current filename, the array length
                         // is the index of the current file
@@ -110,6 +121,7 @@ FSmanager.prototype.genList = function(filepath, current_filename, cb) {
                 this.current_index = index;
                 // console.log('Index of current file: ' + this.current_index);
                 list_loaded = true;
+                console.log('it was found anyway');
             }
         });
 
@@ -118,6 +130,9 @@ FSmanager.prototype.genList = function(filepath, current_filename, cb) {
         if (!list_loaded) {
             cb('ERROR: The file "' + current_filename +
             '" no longer exists in "' + filepath + '"');
+        } else {
+            // Callback successfully
+            cb();
         }
 
         // console.log(this.img_list);
@@ -274,12 +289,55 @@ FSmanager.prototype.getPrevFromIDX = function(wraparound, custom_idx, cb) {
 
 // Checks that a filename is supported. This does not need the image list
 // to be generated.
-FSmanager.prototype.checkFile = function (filename) {
-    if (path.extname(filename).toLowerCase().match(supported_types)) {
-        return true;
+FSmanager.prototype.checkFile = function (filepath) {
+    return isSupported(filepath);
+    // if (path.extname(filename).toLowerCase().match(supported_types)) {
+    //     return true;
+    // } else {
+    //     return false;
+    // }
+}
+
+// var fileresult;
+
+function isSupported(filepath) {
+    var file_type_result;
+    // fileresult = fileType(readChunk.sync(filepath, 0, 262));
+    // console.log('\'' + fileresult + '\'');
+    // console.log(fileresult.match(supported_types));
+
+    if (fs.lstatSync(filepath).isFile()) {
+        file_type_result = fileType(readChunk.sync(filepath, 0, 262));
+        if (file_type_result) {
+            if (file_type_result.ext.match(supported_types)) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
     } else {
         return false;
     }
+
+    // if (fileresult && ) {
+    //     if (fileresult.ext.match(supported_types)) {
+    //         return true;
+    //     } else {
+    //         return false;
+    //     }
+    // } else {
+    //     return false;
+    // }
+    //
+    // if (fileresult.) {
+    //     console.log('Good file');
+    //     return true;
+    // } else {
+    //     console.log('Bad file');
+    //     return false;
+    // }
 }
 
 
