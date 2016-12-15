@@ -9,14 +9,21 @@ const sizeOf = require('image-size');
 var mngr = new FSmanager();
 
 // List of keys to watch
-const key_left = 37;
-const key_right = 39;
-const key_esc = 27;
-const key_del = 46;
-const key_space = 32;
+const keys = {
+    key_left: 37,
+    key_right: 39,
+    key_esc: 27,
+    key_del: 46,
+    key_space: 32
+}
+// const 
+// const 
+// const 
+// const 
+// const 
 
 // HTML element that contains the image
-var img_element = document.getElementById('image-container');
+// var img_element = document.getElementById('image-container');
 
 // flags
 var zoomed = false;
@@ -317,7 +324,7 @@ document.addEventListener('keydown', function(event) {
     var key = event.keyCode;
 
     // Catch the left arrow press
-    if (key === key_left) {
+    if (key === keys.key_left) {
 
         if (!zoomed) {
             event.preventDefault();
@@ -325,7 +332,7 @@ document.addEventListener('keydown', function(event) {
         }
 
     // Catch the right arrow press
-    } else if (key === key_right) {
+    } else if (key === keys.key_right) {
 
         if (!zoomed) {
             event.preventDefault();
@@ -333,14 +340,14 @@ document.addEventListener('keydown', function(event) {
         }
 
     // On 'escape' minimize the window
-    } else if (key === key_esc) {
+    } else if (key === keys.key_esc) {
         event.preventDefault();
 
     // On delete, prompt to delete the file
-    } else if (key === key_del) {
+    } else if (key === keys.key_del) {
 
     // On space, zoom the image to actual size
-    } else if (key === key_space) {
+    } else if (key === keys.key_space) {
         event.preventDefault();
 
         if (!zoomed) {
@@ -355,13 +362,13 @@ document.addEventListener('keydown', function(event) {
 
     // Read the keycode property of the key pressed
     // switch (event.keyCode) {
-    //     case key_left: {
+    //     case keys.key_left: {
     //         break;
     //     }
-    //     case key_right: {
+    //     case keys.key_right: {
     //         break;
     //     }
-    //     case key_esc: {
+    //     case keys.key_esc: {
     //         event.preventDefault();
     //
     //         // minimize the window
@@ -369,14 +376,14 @@ document.addEventListener('keydown', function(event) {
     //
     //         break;
     //     }
-    //     case key_del: {
+    //     case keys.key_del: {
     //
     //         // call code to display confirmation popup to delete image
     //         // console.log('Called del');
     //
     //         break;
     //     }
-    //     case key_space: {
+    //     case keys.key_space: {
     //
     //         // img_element.classList.toggle('scale-fit');
     //         // img_element.classList.toggle('scale-full');

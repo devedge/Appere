@@ -16,6 +16,7 @@ var bounds = [0, 0, 550, 550];
 // Instantiate the genValues variable
 var genValues;
 
+// console.log('Args: ' + process.argv);
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -93,6 +94,12 @@ app.on('activate', () => {
 // On a drag-and-drop event, focus on the window
 ipcMain.on('focus-window', (event) => {
     win.focus();
+});
+
+
+// Minimize the window
+ipcMain.on('minimize-window', () => {
+
 });
 
 
