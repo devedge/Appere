@@ -342,6 +342,7 @@ document.addEventListener('keydown', function(event) {
     // On 'escape' minimize the window
     } else if (key === keys.key_esc) {
         event.preventDefault();
+        ipcRenderer.send('minimize-window');
 
     // On delete, prompt to delete the file
     } else if (key === keys.key_del) {

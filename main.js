@@ -99,7 +99,7 @@ ipcMain.on('focus-window', (event) => {
 
 // Minimize the window
 ipcMain.on('minimize-window', () => {
-
+    win.minimize();
 });
 
 
