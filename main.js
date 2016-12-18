@@ -100,6 +100,8 @@ ipcMain.on('focus-window', (event) => {
 // Minimize the window
 ipcMain.on('minimize-window', () => {
     win.minimize();
+    
+    // Add logic to clear images and directory list
 });
 
 
@@ -116,6 +118,8 @@ ipcMain.on('resize-window', (event, dimensions) => {
         width: genValues[0],
         height: genValues[1]
     }, true);
+    
+    // options: keep centered? fancy animate? center until moved?
 });
 
 

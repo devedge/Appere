@@ -309,6 +309,9 @@ function isSupported(filepath) {
     if (fs.lstatSync(filepath).isFile()) {
         file_type_result = fileType(readChunk.sync(filepath, 0, 262));
         if (file_type_result) {
+            
+            console.log('Filetype: ' + file_type_result.ext);
+            
             if (file_type_result.ext.match(supported_types)) {
                 return true;
             } else {

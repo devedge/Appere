@@ -346,6 +346,7 @@ document.addEventListener('keydown', function(event) {
 
     // On delete, prompt to delete the file
     } else if (key === keys.key_del) {
+        
 
     // On space, zoom the image to actual size
     } else if (key === keys.key_space) {
