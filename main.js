@@ -1,6 +1,8 @@
 const electron = require('electron');
 const {app, ipcMain, BrowserWindow} = electron;
 
+var dimCalc;
+
 // const {app, ipcMain, BrowserWindow} = require('electron')
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -46,6 +48,8 @@ app.on('ready', () => {
 
     // Open the DevTools
     // win.webContents.openDevTools()
+    
+    dimCalc = require('./lib/dimCalc');
 
 
     // Generate the rest of the values after window load to speed loading
@@ -97,7 +101,7 @@ ipcMain.on('focus-window', (event) => {
 });
 
 
-// Minimize the window
+// Minimize the window on an Escape/Close Key
 ipcMain.on('minimize-window', () => {
     win.minimize();
     
@@ -109,7 +113,10 @@ ipcMain.on('minimize-window', () => {
 // This handles scaling the window to the image
 ipcMain.on('resize-window', (event, dimensions) => {
     // Generate the required dimensions
-    genValues = genD([dimensions.width, dimensions.height], screen_dim, bounds);
+    // genValues = genD([dimensions.width, dimensions.height], screen_dim, bounds);
+    
+    
+    genvalues = dimCalc.centerImage([dimensions.width, dimensions.height], screen_dim, bounds);
 
     // Resize window and center it in screen
     win.setBounds({
