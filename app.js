@@ -78,7 +78,10 @@ ipcRenderer.on('clear-images', (event) => {
 });
 
 
-// Show the next image
+/**
+ * Show the NEXT image in the viewer, setting it as the current one.
+ * Additionally, an IPC message is sent to resize the window.
+ */
 function showNext() {
 
     // Try getting the image size and resizing the window. If the image is
@@ -112,7 +115,10 @@ function showNext() {
 
 
 
-// Show the previous image
+/**
+ * Show the PREVIOUS image in the viewer, setting it as the current one.
+ * Additionally, an IPC message is sent to resize the window.
+ */
 function showPrev() {
 
     // Try getting the image size and resizing the window. If the image is
@@ -146,7 +152,13 @@ function showPrev() {
 
 
 
-// Try to preload the next image and quietly handle any errors
+/**
+ * Try to pre-load the NEXT image, and quietly handle errors.
+ * If 'wrap' is true, the images will wraparound from the end back to
+ * the beginning, and vice versa.
+ * @param  {Boolean} wrap  True if the images should wraparound
+ * @param  {Integer} index The index of the current image (from the preloader object)
+ */ 
 function loadNext(wrap, index) {
     // Try to load the image. On an error, try loading the next image instead and
     // continue for three different times.
@@ -194,7 +206,13 @@ function loadNext(wrap, index) {
 
 
 
-// Try to preload the previous image and quietly handle any errors
+/**
+ * Try to pre-load the PREVIOUS image, and quietly handle errors.
+ * If 'wrap' is true, the images will wraparound from the end back to
+ * the beginning, and vice versa.
+ * @param  {Boolean} wrap  True if the images should wraparound
+ * @param  {Integer} index The index of the current image (from the preloader object)
+ */
 function loadPrev(wrap, index) {
     // Try to load the image. On an error, try loading the next image instead and
     // continue for three different times.
@@ -251,7 +269,11 @@ function loadPrev(wrap, index) {
 //      displayed cleanly in the title
 // if size is 100% don't zoom. nothing will move and it'll seem broken
 
-// Set the current image from a filepath
+
+/**
+ * Sets the current image in the viewer from a filepath.
+ * @param {String} filepath A full filepath to a valid image
+ */
 function setCurrentImage(filepath) {
     var dirname = path.dirname(filepath);
     var filename = path.basename(filepath);
@@ -314,6 +336,8 @@ function setCurrentImage(filepath) {
                 // Reset the drag_called flag
                 drag_called = false;
             });
+        } else {
+            throw 'Invalid filetype';
         }
     } catch (e) {
         // log error, but need to call an error function instead
@@ -330,7 +354,12 @@ function setCurrentImage(filepath) {
 // }
 
 
-// Keylistener logic
+
+/**
+ * The Keylistener logic. Picks up & handles different key presses.
+ * Keys:
+ * 
+ */
 document.addEventListener('keydown', function(event) {
     // console.log(event.keyCode);
 
