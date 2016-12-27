@@ -1,6 +1,6 @@
 const {ipcRenderer} = require('electron');
-const FSmanager = require('./js/FSManager');
-const pEncode = require('./js/PercentEncode');
+const FSmanager = require('./lib/FSManager');
+const pEncode = require('./lib/PercentEncode');
 const path = require('path');
 const sizeOf = require('image-size');
 
@@ -32,9 +32,9 @@ var drag_called = false;
 var err_count = 0;
 var err_max = 3;
 
-var img_elem_1 = document.getElementById('image-cont-1');
-var img_elem_2 = document.getElementById('image-cont-2');
-var img_elem_3 = document.getElementById('image-cont-3');
+// var img_elem_1 = document.getElementById('image-cont-1');
+// var img_elem_2 = document.getElementById('image-cont-2');
+// var img_elem_3 = document.getElementById('image-cont-3');
 
 var preloader = {
     curr: 0,
@@ -43,17 +43,17 @@ var preloader = {
     dir: '',
     arr: [
         {
-            element: img_elem_1,
+            element: document.getElementById('image-cont-1'),
             name: '',
             idx: 0
         },
         {
-            element: img_elem_2,
+            element: document.getElementById('image-cont-2'),
             name: '',
             idx: 0
         },
         {
-            element: img_elem_3,
+            element: document.getElementById('image-cont-3'),
             name: '',
             idx: 0
         }
@@ -63,6 +63,19 @@ var preloader = {
 
 var dirlength;
 
+// The Clear event. Clears the images, the image list array,
+// resets the title, and resizes the window back to the default position.
+// More?
+ipcRenderer.on('clear-images', (event) => {
+    document.title = 'Appere';
+    
+    preloader.arr[0].element.src = '';
+    preloader.arr[0].name = '';
+    preloader.arr[1].element.src = '';
+    preloader.arr[1].name = '';
+    preloader.arr[2].element.src = '';
+    preloader.arr[2].name = '';
+});
 
 
 // Show the next image
@@ -361,42 +374,6 @@ document.addEventListener('keydown', function(event) {
         preloader.arr[preloader.curr].element.classList.toggle('scale-fit');
         preloader.arr[preloader.curr].element.classList.toggle('scale-full');
     }
-
-    // Read the keycode property of the key pressed
-    // switch (event.keyCode) {
-    //     case keys.key_left: {
-    //         break;
-    //     }
-    //     case keys.key_right: {
-    //         break;
-    //     }
-    //     case keys.key_esc: {
-    //         event.preventDefault();
-    //
-    //         // minimize the window
-    //         // console.log('Called esc');
-    //
-    //         break;
-    //     }
-    //     case keys.key_del: {
-    //
-    //         // call code to display confirmation popup to delete image
-    //         // console.log('Called del');
-    //
-    //         break;
-    //     }
-    //     case keys.key_space: {
-    //
-    //         // img_element.classList.toggle('scale-fit');
-    //         // img_element.classList.toggle('scale-full');
-    //
-    //         // img_element.className = img_element.className.replace('set-fit', 'set-full');
-    //
-    //         break;
-    //     }
-    //     // default: {}
-            // do nothing, ignore the key
-    // }
 });
 
 

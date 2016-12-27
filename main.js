@@ -1,9 +1,9 @@
 const electron = require('electron');
 const {app, ipcMain, BrowserWindow} = electron;
 
+// Initialize the imports. For speed, they will be imported
+// after the window has loaded.
 var dimCalc;
-
-// const {app, ipcMain, BrowserWindow} = require('electron')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -12,7 +12,7 @@ let win;
 // Screen dimensions used to scale window
 var screen_dim = [];
 
-// Set the window bounds variables
+// Set the window bounds variables. Should be set elsewhere?
 var bounds = [0, 0, 550, 550];
 
 // Instantiate the genValues variable
@@ -49,7 +49,9 @@ app.on('ready', () => {
     // Open the DevTools
     // win.webContents.openDevTools()
     
-    dimCalc = require('./lib/dimCalc');
+    // loadImports(screend, bounds);
+    
+    
 
 
     // Generate the rest of the values after window load to speed loading
@@ -102,8 +104,10 @@ ipcMain.on('focus-window', (event) => {
 
 
 // Minimize the window on an Escape/Close Key
-ipcMain.on('minimize-window', () => {
+ipcMain.on('minimize-window', (event) => {
     win.minimize();
+    
+    event.sender.send('clear-images');
     
     // Add logic to clear images and directory list
 });
@@ -113,10 +117,14 @@ ipcMain.on('minimize-window', () => {
 // This handles scaling the window to the image
 ipcMain.on('resize-window', (event, dimensions) => {
     // Generate the required dimensions
-    // genValues = genD([dimensions.width, dimensions.height], screen_dim, bounds);
+    genValues = genD([dimensions.width, dimensions.height], screen_dim, bounds);
     
+    // if center option
+    // genvalues = dimCalc.centerImage([dimensions.width, dimensions.height], screen_dim, bounds);
+
+    // if resize option
     
-    genvalues = dimCalc.centerImage([dimensions.width, dimensions.height], screen_dim, bounds);
+    // else, do nothing?
 
     // Resize window and center it in screen
     win.setBounds({
@@ -128,6 +136,19 @@ ipcMain.on('resize-window', (event, dimensions) => {
     
     // options: keep centered? fancy animate? center until moved?
 });
+
+
+
+// A function to load any external imports after the main window 
+// function loadImports() {
+    // dimCalc = require('./lib/dimCalc');
+    
+    // Call the function that sets global 
+//     dimCalc.setGlobals();
+// }
+
+// post-load function instead?
+
 
 
 
