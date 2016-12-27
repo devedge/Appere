@@ -1,12 +1,12 @@
 const {ipcRenderer} = require('electron');
-const FSmanager = require('./lib/fsManager');
+const fsManager = require('./lib/fsManager');
 const pEncode = require('./lib/PercentEncode');
 const path = require('path');
 const sizeOf = require('image-size');
 
 
 // Instantiate a new filesystem manager
-var mngr = new FSmanager();
+var mngr = new fsManager();
 
 // List of keys to watch
 const keys = {
@@ -16,11 +16,6 @@ const keys = {
     key_del: 46,
     key_space: 32
 }
-// const 
-// const 
-// const 
-// const 
-// const 
 
 // HTML element that contains the image
 // var img_element = document.getElementById('image-container');
@@ -32,17 +27,12 @@ var drag_called = false;
 var err_count = 0;
 var err_max = 3;
 
-// var img_elem_1 = document.getElementById('image-cont-1');
-// var img_elem_2 = document.getElementById('image-cont-2');
-// var img_elem_3 = document.getElementById('image-cont-3');
-
 var preloader = {
     curr: 0,
     next: 1,
     prev: 2,
     dir: '',
-    arr: [
-        {
+    arr: [{
             element: document.getElementById('image-cont-1'),
             name: '',
             idx: 0

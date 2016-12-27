@@ -1,13 +1,33 @@
+// Electron imports
 const electron = require('electron');
 const {app, ipcMain, BrowserWindow} = electron;
 
-// Initialize the imports. For speed, they will be imported
-// after the window has loaded.
-var dimCalc;
+// Other imports
+const Config = require('electron-config');
+const dimCalc = require('./lib/dimCalc');
+
+// Initializations
+const config = new Config();
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win;
+
+
+
+var screenDimensions = {
+    width: 0,
+    height: 0,
+    x_center: 0,
+    y_center: 0
+};
+
+// var sbounds = {
+//     max_width: 0,   // 75% of the current window size
+//     max_height: 0,  // 75% of the current window size
+//     min_width: 0,   // x % of the current window size
+//     min_height: 0   // y % of the current window size
+// };
 
 // Screen dimensions used to scale window
 var screen_dim = [];
@@ -25,15 +45,20 @@ var genValues;
 // Some APIs can only be used after this event occurs.
 app.on('ready', () => {
 
+    // Retreive the current screen dimensions. This will be used to scale the
+    // window proportionally to the image.
+    const {width, height} = electron.screen.getPrimaryDisplay().workAreaSize;
+    screenDimensions.width = width;
+    screenDimensions.height = height;
+    
     // Get the screen size to properly scale the image window
     // This may be optional depending on user preferences, move to a function?
-    const {width, height} = electron.screen.getPrimaryDisplay().workAreaSize;
-    screen_dim[0] = width;
-    screen_dim[1] = height;
+    // screen_dim[0] = width;
+    // screen_dim[1] = height;
 
     // Create the browser window
     win = new BrowserWindow({
-        width: 700,
+        width: 700, // sbounds.min_width for example
         height: 700,
         backgroundColor: '#EFF0F1'
         // backgroundColor: '-webkit-linear-gradient(to bottom, #74e3ec, #c7ffe2)'
@@ -49,19 +74,17 @@ app.on('ready', () => {
     // Open the DevTools
     // win.webContents.openDevTools()
     
-    // loadImports(screend, bounds);
-    
-    
+    dimCalc.setGlobals(screenDimensions);
 
 
     // Generate the rest of the values after window load to speed loading
     // times
-    screen_dim[2] = Math.floor(screen_dim[0] / 2); // screen 'x' center
-    screen_dim[3] = Math.floor(screen_dim[1] / 2); // screen 'y' center
+    // screen_dim[2] = Math.floor(screen_dim[0] / 2); // screen 'x' center
+    // screen_dim[3] = Math.floor(screen_dim[1] / 2); // screen 'y' center
 
     // Set maximum screen dimensions to 3/4 of the screen size
-    bounds[0] = Math.floor((screen_dim[0] / 4) * 3);
-    bounds[1] = Math.floor((screen_dim[1] / 4) * 3);
+    // bounds[0] = Math.floor((screen_dim[0] / 4) * 3);
+    // bounds[1] = Math.floor((screen_dim[1] / 4) * 3);
 
 
     // Emit when the window is closed
@@ -97,42 +120,65 @@ app.on('activate', () => {
 });
 
 
-// On a drag-and-drop event, focus on the window
+
+/**
+ * On a drag-and-drop event, focus the window
+ */
 ipcMain.on('focus-window', (event) => {
     win.focus();
 });
 
 
-// Minimize the window on an Escape/Close Key
+
+/**
+ * Minimize the window if an Escape Key/Close Window action happens
+ * @type {event} event The event
+ */
 ipcMain.on('minimize-window', (event) => {
     win.minimize();
     
+    // Send back another IPC to the renderer to reset the viewer
     event.sender.send('clear-images');
-    
-    // Add logic to clear images and directory list
 });
 
 
-// Window resizing Inter-Process Communication channel
-// This handles scaling the window to the image
+
+/**
+ * Handle a 'resize-window' event to ipcMain. Depending on user settings, this 
+ * will proportionally resize the window to fit the image.
+ * @type {object} dimensions An object containing the height & width of the image
+ */
 ipcMain.on('resize-window', (event, dimensions) => {
     // Generate the required dimensions
-    genValues = genD([dimensions.width, dimensions.height], screen_dim, bounds);
+    // genValues = genD([dimensions.width, dimensions.height], screen_dim, bounds);
     
     // if center option
-    // genvalues = dimCalc.centerImage([dimensions.width, dimensions.height], screen_dim, bounds);
-
+    // genValues = dimCalc.centerImage([dimensions.width, dimensions.height], screen_dim, bounds);
+    
+    // config.set('animate', false);
+    
     // if resize option
+    var newDimensions = dimCalc.centerImage(dimensions);
+    
+    console.log('x: ' + newDimensions.x_center + ' y: ' + newDimensions.y_center + ' width: ' + newDimensions.width + ' height: ' + newDimensions.height);
+    
+    win.setBounds({
+        x: newDimensions.x_center,
+        y: newDimensions.y_center,
+        width: newDimensions.width,
+        height: newDimensions.height
+    }, false);
+
     
     // else, do nothing?
 
     // Resize window and center it in screen
-    win.setBounds({
-        x: genValues[2],
-        y: genValues[3],
-        width: genValues[0],
-        height: genValues[1]
-    }, true);
+    // win.setBounds({
+    //     x: genValues[2],
+    //     y: genValues[3],
+    //     width: genValues[0],
+    //     height: genValues[1]
+    // }, true);
     
     // options: keep centered? fancy animate? center until moved?
 });
@@ -158,6 +204,7 @@ ipcMain.on('resize-window', (event, dimensions) => {
 // Generate the required dimensions for the new window size
 // Uses the image size, screen dimensions, and bounds
 // Resizes the longest side, if needed, and scales the other
+/**
 function genD(image_d, screen_d, bnds) {
     var new_width;
     var new_height;
@@ -244,3 +291,4 @@ function genD(image_d, screen_d, bnds) {
         Math.floor(screen_d[3] - (new_height / 2))
     ];
 }
+*/
