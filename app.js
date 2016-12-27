@@ -1,5 +1,5 @@
 const {ipcRenderer} = require('electron');
-const FSmanager = require('./lib/FSManager');
+const FSmanager = require('./lib/fsManager');
 const pEncode = require('./lib/PercentEncode');
 const path = require('path');
 const sizeOf = require('image-size');
