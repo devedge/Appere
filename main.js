@@ -126,7 +126,7 @@ ipcMain.on('resize-window', (event, dimensions) => {
     // if center option
     var newDimensions = dimCalc.centerImage(dimensions);
     
-    console.log('x: ' + newDimensions.x_center + ' y: ' + newDimensions.y_center + ' width: ' + newDimensions.width + ' height: ' + newDimensions.height);
+    console.log('x: ' + newDimensions.x_center + ' - y: ' + newDimensions.y_center + ' - width: ' + newDimensions.width + ' - height: ' + newDimensions.height);
     
     win.setBounds({
         x: newDimensions.x_center,

@@ -87,6 +87,13 @@ function showNext() {
     // Hide the current element and show the next one
     preloader.arr[preloader.curr].element.hidden = true;
     preloader.arr[preloader.next].element.hidden = false;
+    
+    // If the current image is a 'gif', refresh it so it starts from the beginning
+    if (preloader.arr[preloader.next].name.match(/\.gif$/)) {
+        var temp = preloader.arr[preloader.next].element.src;
+        preloader.arr[preloader.next].element.src = '';
+        preloader.arr[preloader.next].element.src = temp;
+    }
 
     // Update the pointer values
     var temp = preloader.prev;
@@ -125,7 +132,14 @@ function showPrev() {
     // Hide the current element and show the previous one
     preloader.arr[preloader.curr].element.hidden = true;
     preloader.arr[preloader.prev].element.hidden = false;
-
+    
+    // If the current image is a 'gif', refresh it so it starts from the beginning
+    if (preloader.arr[preloader.prev].name.match(/\.gif$/)) {
+        var temp = preloader.arr[preloader.prev].element.src;
+        preloader.arr[preloader.prev].element.src = '';
+        preloader.arr[preloader.prev].element.src = temp;
+    }
+    
     // Update the pointer values
     var temp = preloader.next;
     preloader.next = preloader.curr;
