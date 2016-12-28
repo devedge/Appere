@@ -21,6 +21,7 @@ const keys = {
 
 // HTML element that contains the image
 // var img_element = document.getElementById('image-container');
+var dirlength;
 
 // flags
 var zoomed = false;
@@ -53,35 +54,87 @@ var preloader = {
 }
 
 
-var dirlength;
+// todo: option to remember the past location of the application, or
+//       start from the center
+// todo: check that a file exists using fs.existsSync?
+// todo: use filesystem watcher
+// todo: check a filetype with its magic number if the extension is not supported
+// todo: cut off the filename after 'x' amount of charaters so it can be
+//      displayed cleanly in the title
+// if size is 100% don't zoom. nothing will move and it'll seem broken
 
-// The Clear event. Clears the images, the image list array,
-// resets the title, and resizes the window back to the default position.
-// More?
-// ipcRenderer.on('clear-images', (event) => {
-// });
 
-function clearViewer() {
-    document.title = 'Appere';
-    
-    preloader.arr[0].element.src = '';
-    preloader.arr[1].element.src = '';
-    preloader.arr[2].element.src = '';
-    preloader.curr = 0;
-    preloader.prev = 1;
-    preloader.next = 2;
-    preloader.dir = '';
-    preloader.arr[0].name = '';
-    preloader.arr[0].idx = 0;
-    preloader.arr[1].name = '';
-    preloader.arr[1].idx = 0;
-    preloader.arr[2].name = '';
-    preloader.arr[2].idx = 0;
-    
-    ipcRenderer.send('resize-window', {width: 700, height: 700});
-    
-    mngr.resetManager();
+/**
+ * The Keylistener logic. Picks up & handles different key presses.
+ */
+document.addEventListener('keydown', function(event) {
+    // console.log(event.keyCode);
+
+    var key = event.keyCode;
+
+    // Catch the left arrow press
+    if (key === keys.key_left) {
+
+        if (!zoomed) {
+            event.preventDefault();
+            showPrev();
+        }
+
+    // Catch the right arrow press
+    } else if (key === keys.key_right) {
+
+        if (!zoomed) {
+            event.preventDefault();
+            showNext();
+        }
+
+    // On 'escape' minimize the window
+    } else if (key === keys.key_esc) {
+        event.preventDefault();
+        ipcRenderer.send('minimize-window');
+        clearViewer();
+
+    // On delete, prompt to delete the file
+    } else if (key === keys.key_del) {
+        
+
+    // On space, zoom the image to actual size
+    } else if (key === keys.key_space) {
+        event.preventDefault();
+
+        if (!zoomed) {
+            zoomed = true;
+        } else {
+            zoomed = false;
+        }
+
+        preloader.arr[preloader.curr].element.classList.toggle('scale-fit');
+        preloader.arr[preloader.curr].element.classList.toggle('scale-full');
+    }
+});
+
+
+
+// Handle any images drag-and-dropped onto the display window
+document.ondragover = (event) => {
+    // Prevent anything from happening when an item is only dragged over
+    event.preventDefault();
 }
+
+// Display the image in the viewer
+document.ondrop = document.body.ondrop = (event) => {
+    // Handle onDrop event
+    event.preventDefault();
+
+    // To prevent duplicate calls while dropping, check the 'drag_called' flag
+    // Also check that the file dropped is not null
+    if (!drag_called && event.dataTransfer.files[0]) {
+        drag_called = true;
+        setCurrentImage(event.dataTransfer.files[0].path);
+        ipcRenderer.send('focus-window');
+    }
+}
+
 
 
 /**
@@ -216,7 +269,7 @@ function loadNext(wrap, index) {
         err_count ++;
 
         // Log the error
-        console.log('loadNext() ERROR: ' + e + ' - loadNext() Retry Count: ' + err_count + '/' + err_max);
+        console.log('loadNext() ERROR: ' + e + ' - Retry Count: ' + err_count + '/' + err_max);
 
         // If the attempt to load another image is below the limit, try again
         if (err_count <= err_max) {
@@ -270,7 +323,7 @@ function loadPrev(wrap, index) {
         err_count ++;
 
         // Log the error
-        console.log('loadPrev() ERROR: ' + e + ' - loadPrev() Retry Count: ' + err_count + '/' + err_max);
+        console.log('loadPrev() ERROR: ' + e + ' - Retry Count: ' + err_count + '/' + err_max);
 
         // If the attempt to load another image is below the limit, try again
         if (err_count <= err_max) {
@@ -282,16 +335,6 @@ function loadPrev(wrap, index) {
     }
 }
 
-
-
-
-
-// todo: check that a file exists using fs.existsSync?
-// todo: use filesystem watcher
-// todo: check a filetype with its magic number if the extension is not supported
-// todo: cut off the filename after 'x' amount of charaters so it can be
-//      displayed cleanly in the title
-// if size is 100% don't zoom. nothing will move and it'll seem broken
 
 
 /**
@@ -378,77 +421,41 @@ function setCurrentImage(filepath) {
 //
 // }
 
+// The Clear event. Clears the images, the image list array,
+// resets the title, and resizes the window back to the default position.
+// More?
+// ipcRenderer.on('clear-images', (event) => {
+// });
 
 
-/**
- * The Keylistener logic. Picks up & handles different key presses.
- * Keys:
- * 
+/** 
+ * Clear the current viewer, the image list array, and reset the title
+ * and window size
  */
-document.addEventListener('keydown', function(event) {
-    // console.log(event.keyCode);
-
-    var key = event.keyCode;
-
-    // Catch the left arrow press
-    if (key === keys.key_left) {
-
-        if (!zoomed) {
-            event.preventDefault();
-            showPrev();
-        }
-
-    // Catch the right arrow press
-    } else if (key === keys.key_right) {
-
-        if (!zoomed) {
-            event.preventDefault();
-            showNext();
-        }
-
-    // On 'escape' minimize the window
-    } else if (key === keys.key_esc) {
-        event.preventDefault();
-        ipcRenderer.send('minimize-window');
-        clearViewer();
-
-    // On delete, prompt to delete the file
-    } else if (key === keys.key_del) {
-        
-
-    // On space, zoom the image to actual size
-    } else if (key === keys.key_space) {
-        event.preventDefault();
-
-        if (!zoomed) {
-            zoomed = true;
-        } else {
-            zoomed = false;
-        }
-
-        preloader.arr[preloader.curr].element.classList.toggle('scale-fit');
-        preloader.arr[preloader.curr].element.classList.toggle('scale-full');
-    }
-});
-
-
-
-// Handle any images drag-and-dropped onto the display window
-document.ondragover = (event) => {
-    // Prevent anything from happening when an item is only dragged over
-    event.preventDefault();
+function clearViewer() {
+    document.title = 'Appere';
+    
+    preloader.arr[0].element.src = '';
+    preloader.arr[1].element.src = '';
+    preloader.arr[2].element.src = '';
+    preloader.curr = 0;
+    preloader.prev = 1;
+    preloader.next = 2;
+    preloader.dir = '';
+    preloader.arr[0].name = '';
+    preloader.arr[0].idx = 0;
+    preloader.arr[1].name = '';
+    preloader.arr[1].idx = 0;
+    preloader.arr[2].name = '';
+    preloader.arr[2].idx = 0;
+    
+    ipcRenderer.send('resize-window', {width: 700, height: 700});
+    
+    mngr.resetManager();
 }
 
-// Display the image in the viewer
-document.ondrop = document.body.ondrop = (event) => {
-    // Handle onDrop event
-    event.preventDefault();
 
-    // To prevent duplicate calls while dropping, check the 'drag_called' flag
-    // Also check that the file dropped is not null
-    if (!drag_called && event.dataTransfer.files[0]) {
-        drag_called = true;
-        setCurrentImage(event.dataTransfer.files[0].path);
-        ipcRenderer.send('focus-window');
-    }
-}
+
+// function generateTitle() {
+//     
+// }
