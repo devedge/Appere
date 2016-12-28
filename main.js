@@ -7,7 +7,7 @@ const Config = require('electron-config');
 const dimCalc = require('./lib/dimCalc');
 
 // Initializations
-const config = new Config();
+// const config = new Config();
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -69,6 +69,7 @@ app.on('ready', () => {
 });
 
 
+
 // Quit when all windows are closed
 app.on('window-all-closed', () => {
     // On macOS it is common for applications and their menu bar
@@ -76,6 +77,8 @@ app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit();
     }
+    
+    // win.minimize();
 
     // instead of this, add code to remove the loaded image, the
     // image array, and to minimize the app to the toolbar
@@ -90,6 +93,12 @@ app.on('activate', () => {
         createWindow();
     }
 });
+
+
+
+// app.on('open-file', (event, path) => {
+//     
+// });
 
 
 

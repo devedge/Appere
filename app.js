@@ -1,8 +1,10 @@
 const {ipcRenderer} = require('electron');
-const fsManager = require('./lib/fsManager');
-const pEncode = require('./lib/PercentEncode');
-const path = require('path');
 const sizeOf = require('image-size');
+const path = require('path');
+
+// Local Requires
+const pEncode = require('./lib/PercentEncode');
+const fsManager = require('./lib/fsManager');
 
 
 // Instantiate a new filesystem manager
@@ -87,41 +89,43 @@ function clearViewer() {
  * Additionally, an IPC message is sent to resize the window.
  */
 function showNext() {
+    if (mngr.list_loaded) {
 
-    // Try getting the image size and resizing the window. If the image is
-    // corrupted in some way, catch the error.
-    try {
-        // Send an ipc resize message first to resize the window to scale to the
-        // image. This smooths the image resizing.
-        ipcRenderer.send('resize-window', sizeOf(path.join(preloader.dir, preloader.arr[preloader.next].name)));
-    } catch(e) {
-        console.log('IPC \'resize-window\' ERROR: ' + e);
-    }
+        // Try getting the image size and resizing the window. If the image is
+        // corrupted in some way, catch the error.
+        try {
+            // Send an ipc resize message first to resize the window to scale to the
+            // image. This smooths the image resizing.
+            ipcRenderer.send('resize-window', sizeOf(path.join(preloader.dir, preloader.arr[preloader.next].name)));
+        } catch(e) {
+            console.log('IPC \'resize-window\' ERROR: ' + e);
+        }
 
-    // Hide the current element and show the next one
-    preloader.arr[preloader.curr].element.hidden = true;
-    preloader.arr[preloader.next].element.hidden = false;
+        // Hide the current element and show the next one
+        preloader.arr[preloader.curr].element.hidden = true;
+        preloader.arr[preloader.next].element.hidden = false;
     
-    // If the current image is a 'gif', refresh it so it starts from the beginning
-    if (preloader.arr[preloader.next].name.match(/\.gif$/)) {
-        var temp = preloader.arr[preloader.next].element.src;
-        preloader.arr[preloader.next].element.src = '';
-        preloader.arr[preloader.next].element.src = temp;
+        // If the current image is a gif, refresh it so it starts from the beginning
+        if (preloader.arr[preloader.next].name.match(/\.gif$/)) {
+            var temp = preloader.arr[preloader.next].element.src;
+            preloader.arr[preloader.next].element.src = '';
+            preloader.arr[preloader.next].element.src = temp;
+        } 
+
+        // Update the pointer values
+        var temp = preloader.prev;
+        preloader.prev = preloader.curr;
+        preloader.curr = preloader.next;
+        preloader.next = temp;
+
+        // Change the filename in the title
+        // document.title = 'Appere — ' + preloader.arr[preloader.curr].name;
+        document.title = 'Appere — ' + preloader.arr[preloader.curr].name + ' — ' +
+            (preloader.arr[preloader.curr].idx + 1) + '/' + dirlength;
+
+        // Preload the next image into the next hidden 'img' element
+        loadNext(true, preloader.arr[preloader.curr].idx);
     }
-
-    // Update the pointer values
-    var temp = preloader.prev;
-    preloader.prev = preloader.curr;
-    preloader.curr = preloader.next;
-    preloader.next = temp;
-
-    // Change the filename in the title
-    // document.title = 'Appere — ' + preloader.arr[preloader.curr].name;
-    document.title = 'Appere — ' + preloader.arr[preloader.curr].name + ' — ' +
-        (preloader.arr[preloader.curr].idx + 1) + '/' + dirlength;
-
-    // Preload the next image into the next hidden 'img' element
-    loadNext(true, preloader.arr[preloader.curr].idx);
 }
 
 
@@ -131,41 +135,43 @@ function showNext() {
  * Additionally, an IPC message is sent to resize the window.
  */
 function showPrev() {
+    if (mngr.list_loaded) {
 
-    // Try getting the image size and resizing the window. If the image is
-    // corrupted in some way, catch the error.
-    try {
-        // Send an ipc resize message first to resize the window to scale to the
-        // image. This smooths the image resizing.
-        ipcRenderer.send('resize-window', sizeOf(path.join(preloader.dir, preloader.arr[preloader.prev].name)));
-    } catch(e) {
-        console.log('IPC \'resize-window\' ERROR: ' + e);
+        // Try getting the image size and resizing the window. If the image is
+        // corrupted in some way, catch the error.
+        try {
+            // Send an ipc resize message first to resize the window to scale to the
+            // image. This smooths the image resizing.
+            ipcRenderer.send('resize-window', sizeOf(path.join(preloader.dir, preloader.arr[preloader.prev].name)));
+        } catch(e) {
+            console.log('IPC \'resize-window\' ERROR: ' + e);
+        }
+
+
+        // Hide the current element and show the previous one
+        preloader.arr[preloader.curr].element.hidden = true;
+        preloader.arr[preloader.prev].element.hidden = false;
+        
+        // If the current image is a 'gif', refresh it so it starts from the beginning
+        if (preloader.arr[preloader.prev].name.match(/\.gif$/)) {
+            var temp = preloader.arr[preloader.prev].element.src;
+            preloader.arr[preloader.prev].element.src = '';
+            preloader.arr[preloader.prev].element.src = temp;
+        }
+        
+        // Update the pointer values
+        var temp = preloader.next;
+        preloader.next = preloader.curr;
+        preloader.curr = preloader.prev;
+        preloader.prev = temp;
+
+        // Change the filename in the title
+        document.title = 'Appere — ' + preloader.arr[preloader.curr].name + ' — ' +
+            (preloader.arr[preloader.curr].idx + 1) + '/' + dirlength;
+
+        // Preload the previous image into the next hidden 'img' element
+        loadPrev(true, preloader.arr[preloader.curr].idx);
     }
-
-
-    // Hide the current element and show the previous one
-    preloader.arr[preloader.curr].element.hidden = true;
-    preloader.arr[preloader.prev].element.hidden = false;
-    
-    // If the current image is a 'gif', refresh it so it starts from the beginning
-    if (preloader.arr[preloader.prev].name.match(/\.gif$/)) {
-        var temp = preloader.arr[preloader.prev].element.src;
-        preloader.arr[preloader.prev].element.src = '';
-        preloader.arr[preloader.prev].element.src = temp;
-    }
-    
-    // Update the pointer values
-    var temp = preloader.next;
-    preloader.next = preloader.curr;
-    preloader.curr = preloader.prev;
-    preloader.prev = temp;
-
-    // Change the filename in the title
-    document.title = 'Appere — ' + preloader.arr[preloader.curr].name + ' — ' +
-        (preloader.arr[preloader.curr].idx + 1) + '/' + dirlength;
-
-    // Preload the previous image into the next hidden 'img' element
-    loadPrev(true, preloader.arr[preloader.curr].idx);
 }
 
 
@@ -293,8 +299,6 @@ function loadPrev(wrap, index) {
  * @param {String} filepath A full filepath to a valid image
  */
 function setCurrentImage(filepath) {
-    var dirname = path.dirname(filepath);
-    var filename = path.basename(filepath);
 
     try {
         // Reset the 'zoomed' flag
@@ -302,6 +306,9 @@ function setCurrentImage(filepath) {
 
         // If the file is a valid filetype
         if (mngr.checkFile(filepath)) {
+            var dirname = path.dirname(filepath);
+            var filename = path.basename(filepath);
+            
             preloader.curr = 0;
             preloader.prev = 1;
             preloader.next = 2;
