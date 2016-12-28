@@ -57,6 +57,7 @@ app.on('ready', () => {
     // images & window
     dimCalc.setGlobals(screenDimensions);
 
+    // console.log(app.getPath('userData'));
 
     // Emit when the window is closed
     win.on('closed', () => {
@@ -109,7 +110,7 @@ ipcMain.on('minimize-window', (event) => {
     win.minimize();
     
     // Send back another IPC to the renderer to reset the viewer
-    event.sender.send('clear-images');
+    // event.sender.send('clear-images');
 });
 
 
@@ -126,7 +127,7 @@ ipcMain.on('resize-window', (event, dimensions) => {
     // if center option
     var newDimensions = dimCalc.centerImage(dimensions);
     
-    console.log('x: ' + newDimensions.x_center + ' - y: ' + newDimensions.y_center + ' - width: ' + newDimensions.width + ' - height: ' + newDimensions.height);
+    // console.log('x: ' + newDimensions.x_center + ' - y: ' + newDimensions.y_center + ' - width: ' + newDimensions.width + ' - height: ' + newDimensions.height);
     
     win.setBounds({
         x: newDimensions.x_center,

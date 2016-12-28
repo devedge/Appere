@@ -56,16 +56,30 @@ var dirlength;
 // The Clear event. Clears the images, the image list array,
 // resets the title, and resizes the window back to the default position.
 // More?
-ipcRenderer.on('clear-images', (event) => {
+// ipcRenderer.on('clear-images', (event) => {
+// });
+
+function clearViewer() {
     document.title = 'Appere';
     
     preloader.arr[0].element.src = '';
-    preloader.arr[0].name = '';
     preloader.arr[1].element.src = '';
-    preloader.arr[1].name = '';
     preloader.arr[2].element.src = '';
+    preloader.curr = 0;
+    preloader.prev = 1;
+    preloader.next = 2;
+    preloader.dir = '';
+    preloader.arr[0].name = '';
+    preloader.arr[0].idx = 0;
+    preloader.arr[1].name = '';
+    preloader.arr[1].idx = 0;
     preloader.arr[2].name = '';
-});
+    preloader.arr[2].idx = 0;
+    
+    ipcRenderer.send('resize-window', {width: 700, height: 700});
+    
+    mngr.resetManager();
+}
 
 
 /**
@@ -389,6 +403,7 @@ document.addEventListener('keydown', function(event) {
     } else if (key === keys.key_esc) {
         event.preventDefault();
         ipcRenderer.send('minimize-window');
+        clearViewer();
 
     // On delete, prompt to delete the file
     } else if (key === keys.key_del) {
