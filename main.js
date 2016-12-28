@@ -40,7 +40,8 @@ app.on('ready', () => {
         width: 700,
         height: 700,
         backgroundColor: '#EFF0F1',
-        icon: 'icons/appere256.png'
+        icon: 'icons/appere256.png',
+        show: false
         // backgroundColor: '-webkit-linear-gradient(to bottom, #74e3ec, #c7ffe2)'
     });
 
@@ -59,6 +60,11 @@ app.on('ready', () => {
     dimCalc.setGlobals(screenDimensions);
 
     // console.log(app.getPath('userData'));
+
+    win.on('ready-to-show', () => {
+        win.show();
+        win.focus();
+    });
 
     // Emit when the window is closed
     win.on('closed', () => {
