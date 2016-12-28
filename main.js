@@ -39,7 +39,8 @@ app.on('ready', () => {
     win = new BrowserWindow({
         width: 700,
         height: 700,
-        backgroundColor: '#EFF0F1'
+        backgroundColor: '#EFF0F1',
+        icon: 'icons/appere256.png'
         // backgroundColor: '-webkit-linear-gradient(to bottom, #74e3ec, #c7ffe2)'
     });
 
