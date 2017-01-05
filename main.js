@@ -61,6 +61,8 @@ app.on('ready', () => {
 
     // console.log(app.getPath('userData'));
 
+    // Show the window once it has loaded, to prevent seeing the 
+    // browser's white flash
     win.on('ready-to-show', () => {
         win.show();
         win.focus();

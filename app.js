@@ -26,7 +26,6 @@ var dirlength;
 // flags
 var zoomed = false;
 var drag_called = false;
-
 var err_count = 0;
 var err_max = 3;
 
