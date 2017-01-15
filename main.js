@@ -61,7 +61,7 @@ app.on('ready', () => {
 
     // console.log(app.getPath('userData'));
 
-    // Show the window once it has loaded, to prevent seeing the 
+    // Show the window once it has loaded, to prevent seeing the
     // browser's white flash
     win.on('ready-to-show', () => {
         win.show();
@@ -86,7 +86,7 @@ app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit();
     }
-    
+
     // win.minimize();
 
     // instead of this, add code to remove the loaded image, the
@@ -106,7 +106,7 @@ app.on('activate', () => {
 
 
 // app.on('open-file', (event, path) => {
-//     
+//
 // });
 
 
@@ -126,7 +126,7 @@ ipcMain.on('focus-window', (event) => {
  */
 ipcMain.on('minimize-window', (event) => {
     win.minimize();
-    
+
     // Send back another IPC to the renderer to reset the viewer
     // event.sender.send('clear-images');
 });
@@ -134,19 +134,21 @@ ipcMain.on('minimize-window', (event) => {
 
 
 /**
- * Handle a 'resize-window' event to ipcMain. Depending on user settings, this 
+ * Handle a 'resize-window' event to ipcMain. Depending on user settings, this
  * will proportionally resize the window to fit the image.
  * @type {object} dimensions An object containing the height & width of the image
  */
 ipcMain.on('resize-window', (event, dimensions) => {
     // Generate the required dimensions
     // config.set('animate', false);
-    
+
     // if center option
     var newDimensions = dimCalc.centerImage(dimensions);
-    
+
+    // event.sender.sent('percent-title', ());
+
     // console.log('x: ' + newDimensions.x_center + ' - y: ' + newDimensions.y_center + ' - width: ' + newDimensions.width + ' - height: ' + newDimensions.height);
-    
+
     win.setBounds({
         x: newDimensions.x_center,
         y: newDimensions.y_center,
@@ -154,13 +156,12 @@ ipcMain.on('resize-window', (event, dimensions) => {
         height: newDimensions.height
     }, false);
 
-    
-    
+
+
     // if resize option
 
-    
+
     // else, do nothing?
-    
+
     // options: keep centered? fancy animate? center until moved?
 });
-

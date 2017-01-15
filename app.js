@@ -13,7 +13,9 @@ var mngr = new fsManager();
 // List of keys to watch
 const keys = {
     key_left: 37,
+    key_up: 38,
     key_right: 39,
+    key_down: 40,
     key_esc: 27,
     key_del: 46,
     key_space: 32
@@ -71,45 +73,65 @@ document.addEventListener('keydown', function(event) {
 
     var key = event.keyCode;
 
-    // Catch the left arrow press
-    if (key === keys.key_left) {
-
-        if (!zoomed) {
-            event.preventDefault();
-            showPrev();
-        }
-
-    // Catch the right arrow press
-    } else if (key === keys.key_right) {
-
-        if (!zoomed) {
-            event.preventDefault();
-            showNext();
-        }
-
-    // On 'escape' minimize the window
-    } else if (key === keys.key_esc) {
-        event.preventDefault();
-        ipcRenderer.send('minimize-window');
-        clearViewer();
-
-    // On delete, prompt to delete the file
-    } else if (key === keys.key_del) {
-        
-
-    // On space, zoom the image to actual size
-    } else if (key === keys.key_space) {
-        event.preventDefault();
-
-        if (!zoomed) {
+    // First check if the shift key was hit
+    if (event.shiftKey) {
+        // send an ipc resize event to make viewing the image easier?
+        // check if image will get bigger, and do nothing if not?
+        if (key === keys.key_up) {
+            // Zoom in
             zoomed = true;
-        } else {
-            zoomed = false;
-        }
+            preloader.arr[preloader.curr].element.classList.remove('scale-fit');
+            preloader.arr[preloader.curr].element.classList.add('scale-full');
 
-        preloader.arr[preloader.curr].element.classList.toggle('scale-fit');
-        preloader.arr[preloader.curr].element.classList.toggle('scale-full');
+        } else if (key === keys.key_down) {
+            // Zoom out
+            zoomed = false;
+            preloader.arr[preloader.curr].element.classList.remove('scale-full');
+            preloader.arr[preloader.curr].element.classList.add('scale-fit');
+
+        }
+    } else {
+        // Catch the left arrow press
+        if (key === keys.key_left || key === keys.key_up) {
+
+            if (!zoomed) {
+                event.preventDefault();
+                showPrev();
+            }
+
+            // Catch the right arrow press
+        } else if (key === keys.key_right || key === keys.key_down || key === keys.key_space) {
+
+            if (!zoomed) {
+                event.preventDefault();
+                showNext();
+            }
+
+            // On 'escape' minimize the window
+        } else if (key === keys.key_esc) {
+            event.preventDefault();
+            ipcRenderer.send('minimize-window');
+            clearViewer();
+
+            // On delete, prompt to delete the file
+        } else if (key === keys.key_del) {
+
+
+            // On space, zoom the image to actual size
+        } else if (key === keys.key_space) {
+            // event.preventDefault();
+
+            // if (!zoomed) {
+            //     zoomed = true;
+            // } else {
+            //     zoomed = false;
+            // }
+            //
+            // preloader.arr[preloader.curr].element.classList.toggle('scale-fit');
+            // preloader.arr[preloader.curr].element.classList.toggle('scale-full');
+        }
     }
+
 });
 
 
@@ -135,6 +157,9 @@ document.ondrop = document.body.ondrop = (event) => {
 }
 
 
+// determine the percent amount that the image was shrunk
+// ipcRenderer.on()
+
 
 /**
  * Show the NEXT image in the viewer, setting it as the current one.
@@ -156,13 +181,13 @@ function showNext() {
         // Hide the current element and show the next one
         preloader.arr[preloader.curr].element.hidden = true;
         preloader.arr[preloader.next].element.hidden = false;
-    
+
         // If the current image is a gif, refresh it so it starts from the beginning
         if (preloader.arr[preloader.next].name.match(/\.gif$/)) {
             var temp = preloader.arr[preloader.next].element.src;
             preloader.arr[preloader.next].element.src = '';
             preloader.arr[preloader.next].element.src = temp;
-        } 
+        }
 
         // Update the pointer values
         var temp = preloader.prev;
@@ -203,14 +228,14 @@ function showPrev() {
         // Hide the current element and show the previous one
         preloader.arr[preloader.curr].element.hidden = true;
         preloader.arr[preloader.prev].element.hidden = false;
-        
+
         // If the current image is a 'gif', refresh it so it starts from the beginning
         if (preloader.arr[preloader.prev].name.match(/\.gif$/)) {
             var temp = preloader.arr[preloader.prev].element.src;
             preloader.arr[preloader.prev].element.src = '';
             preloader.arr[preloader.prev].element.src = temp;
         }
-        
+
         // Update the pointer values
         var temp = preloader.next;
         preloader.next = preloader.curr;
@@ -234,7 +259,7 @@ function showPrev() {
  * the beginning, and vice versa.
  * @param  {Boolean} wrap  True if the images should wraparound
  * @param  {Integer} index The index of the current image (from the preloader object)
- */ 
+ */
 function loadNext(wrap, index) {
     // Try to load the image. On an error, try loading the next image instead and
     // continue for three different times.
@@ -350,7 +375,7 @@ function setCurrentImage(filepath) {
         if (mngr.checkFile(filepath)) {
             var dirname = path.dirname(filepath);
             var filename = path.basename(filepath);
-            
+
             preloader.curr = 0;
             preloader.prev = 1;
             preloader.next = 2;
@@ -427,13 +452,13 @@ function setCurrentImage(filepath) {
 // });
 
 
-/** 
+/**
  * Clear the current viewer, the image list array, and reset the title
  * and window size
  */
 function clearViewer() {
     document.title = 'Appere';
-    
+
     preloader.arr[0].element.src = '';
     preloader.arr[1].element.src = '';
     preloader.arr[2].element.src = '';
@@ -447,14 +472,14 @@ function clearViewer() {
     preloader.arr[1].idx = 0;
     preloader.arr[2].name = '';
     preloader.arr[2].idx = 0;
-    
+
     ipcRenderer.send('resize-window', {width: 700, height: 700});
-    
+
     mngr.resetManager();
 }
 
 
 
 // function generateTitle() {
-//     
+//
 // }
