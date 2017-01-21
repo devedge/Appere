@@ -5,6 +5,7 @@ const {app, ipcMain, BrowserWindow} = electron;
 // Other imports
 const Config = require('electron-config');
 const dimCalc = require('./lib/dimCalc');
+const path = require('path');
 
 // Initializations
 // const config = new Config();
@@ -40,7 +41,7 @@ app.on('ready', () => {
         width: 700,
         height: 700,
         backgroundColor: '#EFF0F1',
-        icon: 'icons/appere256.png',
+        icon: path.join(__dirname, 'icons/appere256x256.png'),
         show: false
         // backgroundColor: '-webkit-linear-gradient(to bottom, #74e3ec, #c7ffe2)'
     });
@@ -50,7 +51,7 @@ app.on('ready', () => {
     win.setMenuBarVisibility(false);
 
     // and load the index.html of the app
-    win.loadURL('file://' + __dirname + '/index.html');
+    win.loadURL(path.join('file://', __dirname,'/index.html'));
 
     // Open the DevTools
     // win.webContents.openDevTools()

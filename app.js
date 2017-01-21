@@ -99,7 +99,7 @@ document.addEventListener('keydown', function(event) {
                 showPrev();
             }
 
-            // Catch the right arrow press
+            // Catch the right arrow press or space
         } else if (key === keys.key_right || key === keys.key_down || key === keys.key_space) {
 
             if (!zoomed) {
@@ -279,7 +279,8 @@ function loadNext(wrap, index) {
                     // Set the image 'src' so the renderer can display it in the background.
                     // Percent encode the filepath since the 'img' tag can't handle certain
                     // special characters.
-                    preloader.arr[preloader.next].element.src = path.join(preloader.dir, pEncode(filename));
+                    preloader.arr[preloader.next].element.src =
+                        path.join(preloader.dir, pEncode(filename));
 
                     // Reset the 'err_count' variable on successful load
                     err_count = 0;
@@ -333,7 +334,8 @@ function loadPrev(wrap, index) {
                     // Set the image 'src' so the renderer can display it in the background.
                     // Percent encode the filepath since the 'img' tag can't handle certain
                     // special characters.
-                    preloader.arr[preloader.prev].element.src = path.join(preloader.dir, pEncode(filename));
+                    preloader.arr[preloader.prev].element.src =
+                        path.join(preloader.dir, pEncode(filename));
 
                     // Reset the 'err_count' variable on successful load
                     err_count = 0;

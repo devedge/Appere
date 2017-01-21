@@ -11,11 +11,14 @@
   "license": "GPL-3.0",
   "dependencies": {
     "chokidar": "^1.6.1",
-    "electron": "^1.4.13",
+    "electron": "^1.4.15",
     "electron-config": "^0.2.1",
-    "file-type": "^4.0.0",
+    "file-type": "^4.1.0",
     "frep": "^0.2.3",
     "image-size": "^0.5.1",
     "read-chunk": "^2.0.0"
+  },
+  "devDependencies": {
+    "electron-packager": "^8.5.0"
   }
 }
