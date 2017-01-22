@@ -38,7 +38,7 @@ app.on('ready', () => {
 
     // Create the browser window
     win = new BrowserWindow({
-        width: 700,
+        width: 1000,
         height: 700,
         backgroundColor: '#EFF0F1',
         icon: path.join(__dirname, 'icons/appere256x256.png'),
@@ -127,9 +127,6 @@ ipcMain.on('focus-window', (event) => {
  */
 ipcMain.on('minimize-window', (event) => {
     win.minimize();
-
-    // Send back another IPC to the renderer to reset the viewer
-    // event.sender.send('clear-images');
 });
 
 
@@ -145,6 +142,14 @@ ipcMain.on('resize-window', (event, dimensions) => {
 
     // if center option
     var newDimensions = dimCalc.centerImage(dimensions);
+
+    // console.log(dimensions.width * dimensions.height);
+    // console.log(newDimensions.width * newDimensions.height);
+    var totalp = (100 * (newDimensions.width * newDimensions.height) / (dimensions.width * dimensions.height)).toFixed(0) + '%';
+    var wid = (100 * (newDimensions.width / dimensions.width)).toFixed(0);
+    var hei = (100 * (newDimensions.height / dimensions.height)).toFixed(0);
+    console.log(totalp + ' - ' + wid + '|' + hei);
+    // console.log(' ');
 
     // event.sender.sent('percent-title', ());
 

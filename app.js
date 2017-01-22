@@ -6,7 +6,6 @@ const path = require('path');
 const pEncode = require('./lib/PercentEncode');
 const fsManager = require('./lib/fsManager');
 
-
 // Instantiate a new filesystem manager
 var mngr = new fsManager();
 
@@ -21,8 +20,7 @@ const keys = {
     key_space: 32
 }
 
-// HTML element that contains the image
-// var img_element = document.getElementById('image-container');
+// Global variable that stores the number of items in the current directory
 var dirlength;
 
 // flags
@@ -31,7 +29,8 @@ var drag_called = false;
 var err_count = 0;
 var err_max = 3;
 
-var preloader = {
+// Initialize the 'state' of the image viewer
+var imageState = {
     curr: 0,
     next: 1,
     prev: 2,
@@ -55,70 +54,80 @@ var preloader = {
 }
 
 
+// Initialize the 'state' of the window title
+var titleState = {
+    fileName: '',
+    fileIndex: '',
+    totalFiles: '',
+    percentShrunk: ''
+}
+
+
+// TODO: reset image state/title state function?
+
+// TODO: use the 'screen' event emitter from electron to check the current screen
+// TODO: use filesystem watcher
+// TODO: cut off the filename after 'x' amount of charaters so it can be
+// TODO: if size is 100% don't zoom. nothing will move and it'll seem broken
+// TODO: application logic summary? This is getting somewhat intricate
 // todo: option to remember the past location of the application, or
 //       start from the center
 // todo: check that a file exists using fs.existsSync?
-// todo: use filesystem watcher
 // todo: check a filetype with its magic number if the extension is not supported
-// todo: cut off the filename after 'x' amount of charaters so it can be
 //      displayed cleanly in the title
-// if size is 100% don't zoom. nothing will move and it'll seem broken
-
 
 /**
  * The Keylistener logic. Picks up & handles different key presses.
  */
 document.addEventListener('keydown', function(event) {
     // console.log(event.keyCode);
-
     var key = event.keyCode;
 
     // First check if the shift key was hit
     if (event.shiftKey) {
-        // send an ipc resize event to make viewing the image easier?
+        // send an ipc resize event to make viewing the image easier? option?
         // check if image will get bigger, and do nothing if not?
         if (key === keys.key_up) {
+            event.preventDefault();
             // Zoom in
             zoomed = true;
-            preloader.arr[preloader.curr].element.classList.remove('scale-fit');
-            preloader.arr[preloader.curr].element.classList.add('scale-full');
+            imageState.arr[imageState.curr].element.classList.remove('scale-fit');
+            imageState.arr[imageState.curr].element.classList.add('scale-full');
 
         } else if (key === keys.key_down) {
+            event.preventDefault();
             // Zoom out
             zoomed = false;
-            preloader.arr[preloader.curr].element.classList.remove('scale-full');
-            preloader.arr[preloader.curr].element.classList.add('scale-fit');
+            imageState.arr[imageState.curr].element.classList.remove('scale-full');
+            imageState.arr[imageState.curr].element.classList.add('scale-fit');
 
         }
     } else {
         // Catch the left arrow press
         if (key === keys.key_left || key === keys.key_up) {
-
             if (!zoomed) {
                 event.preventDefault();
                 showPrev();
             }
 
-            // Catch the right arrow press or space
+        // Catch the right arrow press or space
         } else if (key === keys.key_right || key === keys.key_down || key === keys.key_space) {
-
             if (!zoomed) {
                 event.preventDefault();
                 showNext();
             }
 
-            // On 'escape' minimize the window
+        // On 'escape' minimize the window
         } else if (key === keys.key_esc) {
             event.preventDefault();
             ipcRenderer.send('minimize-window');
             clearViewer();
 
-            // On delete, prompt to delete the file
+        // On delete, prompt to delete the file
         } else if (key === keys.key_del) {
 
-
-            // On space, zoom the image to actual size
-        } else if (key === keys.key_space) {
+        // On space, zoom the image to actual size (removed, non-intuitive)
+        } //else if (key === keys.key_space) {
             // event.preventDefault();
 
             // if (!zoomed) {
@@ -127,11 +136,10 @@ document.addEventListener('keydown', function(event) {
             //     zoomed = false;
             // }
             //
-            // preloader.arr[preloader.curr].element.classList.toggle('scale-fit');
-            // preloader.arr[preloader.curr].element.classList.toggle('scale-full');
-        }
+            // imageState.arr[imageState.curr].element.classList.toggle('scale-fit');
+            // imageState.arr[imageState.curr].element.classList.toggle('scale-full');
+        // }
     }
-
 });
 
 
@@ -157,9 +165,6 @@ document.ondrop = document.body.ondrop = (event) => {
 }
 
 
-// determine the percent amount that the image was shrunk
-// ipcRenderer.on()
-
 
 /**
  * Show the NEXT image in the viewer, setting it as the current one.
@@ -173,35 +178,39 @@ function showNext() {
         try {
             // Send an ipc resize message first to resize the window to scale to the
             // image. This smooths the image resizing.
-            ipcRenderer.send('resize-window', sizeOf(path.join(preloader.dir, preloader.arr[preloader.next].name)));
+            ipcRenderer.send('resize-window', sizeOf(path.join(imageState.dir,
+                imageState.arr[imageState.next].name)));
         } catch(e) {
             console.log('IPC \'resize-window\' ERROR: ' + e);
         }
 
         // Hide the current element and show the next one
-        preloader.arr[preloader.curr].element.hidden = true;
-        preloader.arr[preloader.next].element.hidden = false;
+        imageState.arr[imageState.curr].element.hidden = true;
+        imageState.arr[imageState.next].element.hidden = false;
 
         // If the current image is a gif, refresh it so it starts from the beginning
-        if (preloader.arr[preloader.next].name.match(/\.gif$/)) {
-            var temp = preloader.arr[preloader.next].element.src;
-            preloader.arr[preloader.next].element.src = '';
-            preloader.arr[preloader.next].element.src = temp;
+        if (imageState.arr[imageState.next].name.match(/\.gif$/)) {
+            var temp = imageState.arr[imageState.next].element.src;
+            imageState.arr[imageState.next].element.src = '';
+            imageState.arr[imageState.next].element.src = temp;
         }
 
         // Update the pointer values
-        var temp = preloader.prev;
-        preloader.prev = preloader.curr;
-        preloader.curr = preloader.next;
-        preloader.next = temp;
+        var temp = imageState.prev;
+        imageState.prev = imageState.curr;
+        imageState.curr = imageState.next;
+        imageState.next = temp;
 
         // Change the filename in the title
-        // document.title = 'Appere — ' + preloader.arr[preloader.curr].name;
-        document.title = 'Appere — ' + preloader.arr[preloader.curr].name + ' — ' +
-            (preloader.arr[preloader.curr].idx + 1) + '/' + dirlength;
+        // document.title = 'Appere — ' + imageState.arr[imageState.curr].name;
+        setTitle(true, {
+            fileName: imageState.arr[imageState.curr].name,
+            fileIndex: imageState.arr[imageState.curr].idx + 1,
+            totalFiles: dirlength
+        });
 
         // Preload the next image into the next hidden 'img' element
-        loadNext(true, preloader.arr[preloader.curr].idx);
+        loadNext(true, imageState.arr[imageState.curr].idx);
     }
 }
 
@@ -219,35 +228,40 @@ function showPrev() {
         try {
             // Send an ipc resize message first to resize the window to scale to the
             // image. This smooths the image resizing.
-            ipcRenderer.send('resize-window', sizeOf(path.join(preloader.dir, preloader.arr[preloader.prev].name)));
+            ipcRenderer.send('resize-window', sizeOf(path.join(imageState.dir,
+                imageState.arr[imageState.prev].name)));
         } catch(e) {
             console.log('IPC \'resize-window\' ERROR: ' + e);
         }
 
-
         // Hide the current element and show the previous one
-        preloader.arr[preloader.curr].element.hidden = true;
-        preloader.arr[preloader.prev].element.hidden = false;
+        imageState.arr[imageState.curr].element.hidden = true;
+        imageState.arr[imageState.prev].element.hidden = false;
 
         // If the current image is a 'gif', refresh it so it starts from the beginning
-        if (preloader.arr[preloader.prev].name.match(/\.gif$/)) {
-            var temp = preloader.arr[preloader.prev].element.src;
-            preloader.arr[preloader.prev].element.src = '';
-            preloader.arr[preloader.prev].element.src = temp;
+        if (imageState.arr[imageState.prev].name.match(/\.gif$/)) {
+            var temp = imageState.arr[imageState.prev].element.src;
+            imageState.arr[imageState.prev].element.src = '';
+            imageState.arr[imageState.prev].element.src = temp;
         }
 
         // Update the pointer values
-        var temp = preloader.next;
-        preloader.next = preloader.curr;
-        preloader.curr = preloader.prev;
-        preloader.prev = temp;
+        var temp = imageState.next;
+        imageState.next = imageState.curr;
+        imageState.curr = imageState.prev;
+        imageState.prev = temp;
 
         // Change the filename in the title
-        document.title = 'Appere — ' + preloader.arr[preloader.curr].name + ' — ' +
-            (preloader.arr[preloader.curr].idx + 1) + '/' + dirlength;
+        setTitle(true, {
+            fileName: imageState.arr[imageState.curr].name,
+            fileIndex: imageState.arr[imageState.curr].idx + 1,
+            totalFiles: dirlength
+        });
+        // document.title = 'Appere — ' + imageState.arr[imageState.curr].name + ' — ' +
+            // (imageState.arr[imageState.curr].idx + 1) + '/' + dirlength;
 
         // Preload the previous image into the next hidden 'img' element
-        loadPrev(true, preloader.arr[preloader.curr].idx);
+        loadPrev(true, imageState.arr[imageState.curr].idx);
     }
 }
 
@@ -258,7 +272,7 @@ function showPrev() {
  * If 'wrap' is true, the images will wraparound from the end back to
  * the beginning, and vice versa.
  * @param  {Boolean} wrap  True if the images should wraparound
- * @param  {Integer} index The index of the current image (from the preloader object)
+ * @param  {Integer} index The index of the current image (from the imageState object)
  */
 function loadNext(wrap, index) {
     // Try to load the image. On an error, try loading the next image instead and
@@ -270,17 +284,17 @@ function loadNext(wrap, index) {
             // Once the image filename array is generated, 'ready' is true
             if (ready) {
                 // Check the filetype by inspecting the file's headers
-                if (mngr.checkFile(path.join(preloader.dir, filename))) {
+                if (mngr.checkFile(path.join(imageState.dir, filename))) {
 
                     // Set the next object's name and index
-                    preloader.arr[preloader.next].name = filename;
-                    preloader.arr[preloader.next].idx = new_index;
+                    imageState.arr[imageState.next].name = filename;
+                    imageState.arr[imageState.next].idx = new_index;
 
                     // Set the image 'src' so the renderer can display it in the background.
                     // Percent encode the filepath since the 'img' tag can't handle certain
                     // special characters.
-                    preloader.arr[preloader.next].element.src =
-                        path.join(preloader.dir, pEncode(filename));
+                    imageState.arr[imageState.next].element.src =
+                        path.join(imageState.dir, pEncode(filename));
 
                     // Reset the 'err_count' variable on successful load
                     err_count = 0;
@@ -313,7 +327,7 @@ function loadNext(wrap, index) {
  * If 'wrap' is true, the images will wraparound from the end back to
  * the beginning, and vice versa.
  * @param  {Boolean} wrap  True if the images should wraparound
- * @param  {Integer} index The index of the current image (from the preloader object)
+ * @param  {Integer} index The index of the current image (from the imageState object)
  */
 function loadPrev(wrap, index) {
     // Try to load the image. On an error, try loading the next image instead and
@@ -325,17 +339,17 @@ function loadPrev(wrap, index) {
             // Once the image filename array is generated, 'ready' is true
             if (ready) {
                 // Check the filetype by inspecting the file's headers
-                if (mngr.checkFile(path.join(preloader.dir, filename))) {
+                if (mngr.checkFile(path.join(imageState.dir, filename))) {
 
                     // Set the previous' object's name and index
-                    preloader.arr[preloader.prev].name = filename;
-                    preloader.arr[preloader.prev].idx = new_index;
+                    imageState.arr[imageState.prev].name = filename;
+                    imageState.arr[imageState.prev].idx = new_index;
 
                     // Set the image 'src' so the renderer can display it in the background.
                     // Percent encode the filepath since the 'img' tag can't handle certain
                     // special characters.
-                    preloader.arr[preloader.prev].element.src =
-                        path.join(preloader.dir, pEncode(filename));
+                    imageState.arr[imageState.prev].element.src =
+                        path.join(imageState.dir, pEncode(filename));
 
                     // Reset the 'err_count' variable on successful load
                     err_count = 0;
@@ -378,36 +392,39 @@ function setCurrentImage(filepath) {
             var dirname = path.dirname(filepath);
             var filename = path.basename(filepath);
 
-            preloader.curr = 0;
-            preloader.prev = 1;
-            preloader.next = 2;
+            resetView();
+
+            // imageState.curr = 0;
+            // imageState.prev = 1;
+            // imageState.next = 2;
 
             // updateImage(true, dirname, filename);
-            preloader.arr[preloader.curr].name = filename;
-            preloader.dir = dirname;
+            imageState.arr[imageState.curr].name = filename;
+            imageState.dir = dirname;
 
             // Send an ipc message to scale the window to image size
-            ipcRenderer.send('resize-window', sizeOf(path.join(preloader.dir, preloader.arr[preloader.curr].name)));
+            ipcRenderer.send('resize-window', sizeOf(path.join(imageState.dir, imageState.arr[imageState.curr].name)));
 
-            preloader.arr[preloader.curr].element.hidden = false;
-            preloader.arr[preloader.curr].element.classList.add('scale-fit');
-            preloader.arr[preloader.curr].element.classList.remove('scale-full');
-
-            preloader.arr[preloader.prev].element.hidden = true;
-            preloader.arr[preloader.next].element.hidden = true;
+            // imageState.arr[imageState.curr].element.hidden = false;
+            // imageState.arr[imageState.curr].element.classList.add('scale-fit');
+            // imageState.arr[imageState.curr].element.classList.remove('scale-full');
+            //
+            // imageState.arr[imageState.prev].element.hidden = true;
+            // imageState.arr[imageState.next].element.hidden = true;
 
             // load later
-            preloader.arr[preloader.curr].element.src = path.join(dirname, pEncode(filename));
+            imageState.arr[imageState.curr].element.src = path.join(dirname, pEncode(filename));
 
-            // Change the filename in the title
-            document.title = 'Appere — ' + preloader.arr[preloader.curr].name;
+            // Change the filename in the title (No need for this?)
+            // setTitle
+            // document.title = 'Appere — ' + imageState.arr[imageState.curr].name;
 
-            preloader.arr[preloader.curr].element.classList.add('quick-transition');
+            imageState.arr[imageState.curr].element.classList.add('quick-transition');
 
 
             // Reset css class to fit the image within the window
-            // preloader.arr[preloader.curr].element.classList.add('scale-fit');
-            // preloader.arr[preloader.curr].element.classList.remove('scale-full');
+            // imageState.arr[imageState.curr].element.classList.add('scale-fit');
+            // imageState.arr[imageState.curr].element.classList.remove('scale-full');
 
 
             mngr.genList(dirname, filename, (err) => {
@@ -418,7 +435,14 @@ function setCurrentImage(filepath) {
                     // console.log('Current index: ' + mngr.current_index);
                     dirlength = mngr.img_list.length;
 
-                    document.title = 'Appere — ' + preloader.arr[preloader.curr].name + ' — ' + (mngr.current_index + 1) + '/' + dirlength;
+                    setTitle(true, {
+                        fileName: imageState.arr[imageState.curr].name,
+                        fileIndex: mngr.current_index + 1,
+                        totalFiles: dirlength
+                    });
+
+                    // document.title = 'Appere — ' + imageState.arr[imageState.curr].name +
+                        // ' — ' + (mngr.current_index + 1) + '/' + dirlength;
 
                     // load the next image
                     loadNext(true, mngr.current_index);
@@ -461,27 +485,73 @@ function setCurrentImage(filepath) {
 function clearViewer() {
     document.title = 'Appere';
 
-    preloader.arr[0].element.src = '';
-    preloader.arr[1].element.src = '';
-    preloader.arr[2].element.src = '';
-    preloader.curr = 0;
-    preloader.prev = 1;
-    preloader.next = 2;
-    preloader.dir = '';
-    preloader.arr[0].name = '';
-    preloader.arr[0].idx = 0;
-    preloader.arr[1].name = '';
-    preloader.arr[1].idx = 0;
-    preloader.arr[2].name = '';
-    preloader.arr[2].idx = 0;
+    resetView();
 
-    ipcRenderer.send('resize-window', {width: 700, height: 700});
+    ipcRenderer.send('resize-window', {width: 1000, height: 700});
 
     mngr.resetManager();
 }
 
+function resetView() {
+    // reset the imageState object
+    imageState.curr = 0;
+    imageState.prev = 1;
+    imageState.next = 2;
+    imageState.dir = '';
+    imageState.arr[0].element.src = '';
+    imageState.arr[0].element.classList.add('scale-fit');
+    imageState.arr[0].element.classList.remove('scale-full');
+    imageState.arr[0].name = '';
+    imageState.arr[0].idx = 0;
+
+    imageState.arr[1].element.src = '';
+    imageState.arr[1].element.classList.add('scale-fit');
+    imageState.arr[1].element.classList.remove('scale-full');
+    imageState.arr[1].name = '';
+    imageState.arr[1].idx = 0;
+
+    imageState.arr[2].element.src = '';
+    imageState.arr[2].element.classList.add('scale-fit');
+    imageState.arr[2].element.classList.remove('scale-full');
+    imageState.arr[2].name = '';
+    imageState.arr[2].idx = 0;
+
+    imageState.arr[0].element.hidden = false;
+    imageState.arr[1].element.hidden = true;
+    imageState.arr[2].element.hidden = true;
+}
 
 
-// function generateTitle() {
-//
-// }
+// determine the percent amount that the image was shrunk
+// ipcRenderer.on()
+
+// TODO: the setTitle function sets it, while an updateTitle function updates it
+// TODO: updateTitle is designed to update the current title, in case some of the
+//          asynchronous calculations (percent) come in late, but still need to be
+//          set in the title
+function setTitle(displayAppname, titleData) {
+    // format:
+    // <filename> (z%) — <x>/<y> — Appere
+
+    var appTitle = '';
+
+    if (titleData.fileName) {
+        appTitle = titleData.fileName;
+
+        if (titleData.percentShrunk) {
+            appTitle += ' (' + percentShrunk + '%)';
+        }
+
+        if (titleData.fileIndex && titleData.totalFiles) {
+            appTitle += ' — ' + titleData.fileIndex + '/' + titleData.totalFiles;
+        }
+
+        if (displayAppname) {
+            appTitle += ' — Appere';
+        }
+    } else {
+        appTitle = 'Appere';
+    }
+
+    document.title = appTitle;
+}
