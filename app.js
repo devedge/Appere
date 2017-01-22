@@ -28,6 +28,7 @@ var zoomed = false;
 var drag_called = false;
 var err_count = 0;
 var err_max = 3;
+var prevZoom = 0;
 
 // Initialize the 'state' of the image viewer
 var imageState = {
@@ -65,6 +66,7 @@ var titleState = {
 
 // TODO: reset image state/title state function?
 
+// TODO: A 'move' feature?
 // TODO: use the 'screen' event emitter from electron to check the current screen
 // TODO: use filesystem watcher
 // TODO: cut off the filename after 'x' amount of charaters so it can be
@@ -85,22 +87,26 @@ document.addEventListener('keydown', function(event) {
 
     // First check if the shift key was hit
     if (event.shiftKey) {
-        // send an ipc resize event to make viewing the image easier? option?
-        // check if image will get bigger, and do nothing if not?
-        if (key === keys.key_up) {
-            event.preventDefault();
-            // Zoom in
-            zoomed = true;
-            imageState.arr[imageState.curr].element.classList.remove('scale-fit');
-            imageState.arr[imageState.curr].element.classList.add('scale-full');
+        if (titleState.percentShrunk < 100 || zoomed == true) {
+            // send an ipc resize event to make viewing the image easier? option?
+            // check if image will get bigger, and do nothing if not?
+            if (key === keys.key_up) {
+                event.preventDefault();
+                // Zoom in
+                zoomed = true;
+                prevZoom = titleState.percentShrunk;
+                setTitle({ percentShrunk: 100 });
+                imageState.arr[imageState.curr].element.classList.remove('scale-fit');
+                imageState.arr[imageState.curr].element.classList.add('scale-full');
 
-        } else if (key === keys.key_down) {
-            event.preventDefault();
-            // Zoom out
-            zoomed = false;
-            imageState.arr[imageState.curr].element.classList.remove('scale-full');
-            imageState.arr[imageState.curr].element.classList.add('scale-fit');
-
+            } else if (key === keys.key_down) {
+                event.preventDefault();
+                // Zoom out
+                zoomed = false;
+                setTitle({ percentShrunk: prevZoom });
+                imageState.arr[imageState.curr].element.classList.remove('scale-full');
+                imageState.arr[imageState.curr].element.classList.add('scale-fit');
+            }
         }
     } else {
         // Catch the left arrow press
@@ -126,19 +132,7 @@ document.addEventListener('keydown', function(event) {
         // On delete, prompt to delete the file
         } else if (key === keys.key_del) {
 
-        // On space, zoom the image to actual size (removed, non-intuitive)
-        } //else if (key === keys.key_space) {
-            // event.preventDefault();
-
-            // if (!zoomed) {
-            //     zoomed = true;
-            // } else {
-            //     zoomed = false;
-            // }
-            //
-            // imageState.arr[imageState.curr].element.classList.toggle('scale-fit');
-            // imageState.arr[imageState.curr].element.classList.toggle('scale-full');
-        // }
+        }
     }
 });
 
@@ -301,7 +295,6 @@ function loadNext(wrap, index) {
                     // Set the next object's name and index
                     imageState.arr[imageState.next].name = filename;
                     imageState.arr[imageState.next].idx = new_index;
-                    console.log('Next index: ' + new_index);
 
                     // Set the image 'src' so the renderer can display it in the background.
                     // Percent encode the filepath since the 'img' tag can't handle certain
@@ -357,7 +350,6 @@ function loadPrev(wrap, index) {
                     // Set the previous' object's name and index
                     imageState.arr[imageState.prev].name = filename;
                     imageState.arr[imageState.prev].idx = new_index;
-                    console.log('Prev index: ' + new_index);
 
                     // Set the image 'src' so the renderer can display it in the background.
                     // Percent encode the filepath since the 'img' tag can't handle certain
@@ -485,6 +477,7 @@ function clearViewer() {
     mngr.resetManager();
 }
 
+
 function resetView() {
     // reset the imageState object
     imageState.curr = 0;
@@ -526,6 +519,11 @@ function resetView() {
 // Title management
 
 // set the title using the data from the titleState object
+/**
+ * [setTitle description]
+ * @method setTitle
+ * @param  {[type]} newFields [description]
+ */
 function setTitle(newFields) {
 
     // If any of these fields are not blank, update them
