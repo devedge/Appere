@@ -41,7 +41,7 @@ app.on('ready', () => {
         width: 1000,
         height: 700,
         backgroundColor: '#EFF0F1',
-        icon: path.join(__dirname, 'icons/appere256x256.png'),
+        icon: 'icons/appere256x256.png',
         show: false
         // backgroundColor: '-webkit-linear-gradient(to bottom, #74e3ec, #c7ffe2)'
     });
@@ -136,22 +136,26 @@ ipcMain.on('minimize-window', (event) => {
  * will proportionally resize the window to fit the image.
  * @type {object} dimensions An object containing the height & width of the image
  */
-ipcMain.on('resize-window', (event, dimensions) => {
+ipcMain.on('resize-window', (event, dimensions, sendPercentCalc) => {
     // Generate the required dimensions
     // config.set('animate', false);
 
     // if center option
     var newDimensions = dimCalc.centerImage(dimensions);
 
-    // console.log(dimensions.width * dimensions.height);
-    // console.log(newDimensions.width * newDimensions.height);
-    var totalp = (100 * (newDimensions.width * newDimensions.height) / (dimensions.width * dimensions.height)).toFixed(0) + '%';
-    var wid = (100 * (newDimensions.width / dimensions.width)).toFixed(0);
-    var hei = (100 * (newDimensions.height / dimensions.height)).toFixed(0);
-    console.log(totalp + ' - ' + wid + '|' + hei);
+    // console.log(dimensions.width);
+    // console.log(dimensions.height);
+    // console.log(newDimensions.width);
+    // console.log(newDimensions.height);
+    var totalp = (100 * (newDimensions.width + newDimensions.height) / (dimensions.width + dimensions.height)).toFixed(0);
+    // var wid = (100 * (newDimensions.width / dimensions.width)).toFixed(0);
+    // var hei = (100 * (newDimensions.height / dimensions.height)).toFixed(0);
+    // console.log(totalp + ' - ' + wid + '|' + hei);
     // console.log(' ');
 
-    // event.sender.sent('percent-title', ());
+    if (sendPercentCalc) {
+        event.sender.send('percent-reduc', totalp);
+    }
 
     // console.log('x: ' + newDimensions.x_center + ' - y: ' + newDimensions.y_center + ' - width: ' + newDimensions.width + ' - height: ' + newDimensions.height);
 

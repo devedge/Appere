@@ -179,7 +179,7 @@ function showNext() {
             // Send an ipc resize message first to resize the window to scale to the
             // image. This smooths the image resizing.
             ipcRenderer.send('resize-window', sizeOf(path.join(imageState.dir,
-                imageState.arr[imageState.next].name)));
+                imageState.arr[imageState.next].name)), true);
         } catch(e) {
             console.log('IPC \'resize-window\' ERROR: ' + e);
         }
@@ -203,7 +203,13 @@ function showNext() {
 
         // Change the filename in the title
         // document.title = 'Appere — ' + imageState.arr[imageState.curr].name;
-        setTitle(true, {
+        // setTitle(true, {
+        //     fileName: imageState.arr[imageState.curr].name,
+        //     fileIndex: imageState.arr[imageState.curr].idx + 1,
+        //     totalFiles: dirlength
+        // });
+
+        setTitle({
             fileName: imageState.arr[imageState.curr].name,
             fileIndex: imageState.arr[imageState.curr].idx + 1,
             totalFiles: dirlength
@@ -229,7 +235,7 @@ function showPrev() {
             // Send an ipc resize message first to resize the window to scale to the
             // image. This smooths the image resizing.
             ipcRenderer.send('resize-window', sizeOf(path.join(imageState.dir,
-                imageState.arr[imageState.prev].name)));
+                imageState.arr[imageState.prev].name)), true);
         } catch(e) {
             console.log('IPC \'resize-window\' ERROR: ' + e);
         }
@@ -252,7 +258,13 @@ function showPrev() {
         imageState.prev = temp;
 
         // Change the filename in the title
-        setTitle(true, {
+        // setTitle(true, {
+        //     fileName: imageState.arr[imageState.curr].name,
+        //     fileIndex: imageState.arr[imageState.curr].idx + 1,
+        //     totalFiles: dirlength
+        // });
+
+        setTitle({
             fileName: imageState.arr[imageState.curr].name,
             fileIndex: imageState.arr[imageState.curr].idx + 1,
             totalFiles: dirlength
@@ -289,6 +301,7 @@ function loadNext(wrap, index) {
                     // Set the next object's name and index
                     imageState.arr[imageState.next].name = filename;
                     imageState.arr[imageState.next].idx = new_index;
+                    console.log('Next index: ' + new_index);
 
                     // Set the image 'src' so the renderer can display it in the background.
                     // Percent encode the filepath since the 'img' tag can't handle certain
@@ -344,6 +357,7 @@ function loadPrev(wrap, index) {
                     // Set the previous' object's name and index
                     imageState.arr[imageState.prev].name = filename;
                     imageState.arr[imageState.prev].idx = new_index;
+                    console.log('Prev index: ' + new_index);
 
                     // Set the image 'src' so the renderer can display it in the background.
                     // Percent encode the filepath since the 'img' tag can't handle certain
@@ -392,57 +406,36 @@ function setCurrentImage(filepath) {
             var dirname = path.dirname(filepath);
             var filename = path.basename(filepath);
 
+            // Reset the app's view
             resetView();
 
-            // imageState.curr = 0;
-            // imageState.prev = 1;
-            // imageState.next = 2;
-
-            // updateImage(true, dirname, filename);
+            // Set the current filename and current directory
             imageState.arr[imageState.curr].name = filename;
             imageState.dir = dirname;
 
             // Send an ipc message to scale the window to image size
-            ipcRenderer.send('resize-window', sizeOf(path.join(imageState.dir, imageState.arr[imageState.curr].name)));
+            ipcRenderer.send('resize-window', sizeOf(path.join(imageState.dir, imageState.arr[imageState.curr].name)), true);
 
-            // imageState.arr[imageState.curr].element.hidden = false;
-            // imageState.arr[imageState.curr].element.classList.add('scale-fit');
-            // imageState.arr[imageState.curr].element.classList.remove('scale-full');
-            //
-            // imageState.arr[imageState.prev].element.hidden = true;
-            // imageState.arr[imageState.next].element.hidden = true;
-
-            // load later
+            // Load the image after the IPC message
             imageState.arr[imageState.curr].element.src = path.join(dirname, pEncode(filename));
 
-            // Change the filename in the title (No need for this?)
-            // setTitle
-            // document.title = 'Appere — ' + imageState.arr[imageState.curr].name;
-
-            imageState.arr[imageState.curr].element.classList.add('quick-transition');
-
-
-            // Reset css class to fit the image within the window
-            // imageState.arr[imageState.curr].element.classList.add('scale-fit');
-            // imageState.arr[imageState.curr].element.classList.remove('scale-full');
-
-
+            // Generate the list of files from the directory name
             mngr.genList(dirname, filename, (err) => {
                 if (err) {
                     console.log(err);
                 } else {
-
-                    // console.log('Current index: ' + mngr.current_index);
+                    // Set the number of items in the current directory
                     dirlength = mngr.img_list.length;
 
-                    setTitle(true, {
+                    // Set the current image's index
+                    imageState.arr[imageState.curr].idx = mngr.current_index;
+
+                    // Set the title
+                    setTitle({
                         fileName: imageState.arr[imageState.curr].name,
                         fileIndex: mngr.current_index + 1,
                         totalFiles: dirlength
                     });
-
-                    // document.title = 'Appere — ' + imageState.arr[imageState.curr].name +
-                        // ' — ' + (mngr.current_index + 1) + '/' + dirlength;
 
                     // load the next image
                     loadNext(true, mngr.current_index);
@@ -471,12 +464,6 @@ function setCurrentImage(filepath) {
 //
 // }
 
-// The Clear event. Clears the images, the image list array,
-// resets the title, and resizes the window back to the default position.
-// More?
-// ipcRenderer.on('clear-images', (event) => {
-// });
-
 
 /**
  * Clear the current viewer, the image list array, and reset the title
@@ -484,10 +471,16 @@ function setCurrentImage(filepath) {
  */
 function clearViewer() {
     document.title = 'Appere';
+    titleState = {
+        fileName: '',
+        fileIndex: '',
+        totalFiles: '',
+        percentShrunk: ''
+    }
 
     resetView();
 
-    ipcRenderer.send('resize-window', {width: 1000, height: 700});
+    ipcRenderer.send('resize-window', {width: 1000, height: 700}, false);
 
     mngr.resetManager();
 }
@@ -522,36 +515,87 @@ function resetView() {
 }
 
 
-// determine the percent amount that the image was shrunk
-// ipcRenderer.on()
+
 
 // TODO: the setTitle function sets it, while an updateTitle function updates it
 // TODO: updateTitle is designed to update the current title, in case some of the
 //          asynchronous calculations (percent) come in late, but still need to be
 //          set in the title
-function setTitle(displayAppname, titleData) {
+
+
+// Title management
+
+// set the title using the data from the titleState object
+function setTitle(newFields) {
+
+    // If any of these fields are not blank, update them
+    if (newFields.fileName) {
+        titleState.fileName = newFields.fileName;
+    }
+
+    if (newFields.percentShrunk) {
+        titleState.percentShrunk = newFields.percentShrunk;
+    }
+
+    if (newFields.fileIndex) {
+        titleState.fileIndex = newFields.fileIndex;
+    }
+
+    if (newFields.totalFiles) {
+        titleState.totalFiles = newFields.totalFiles;
+    }
+
+    genTitle();
+}
+
+
+// generates and sets the title from the titleState object
+function genTitle() {
     // format:
     // <filename> (z%) — <x>/<y> — Appere
 
     var appTitle = '';
 
-    if (titleData.fileName) {
-        appTitle = titleData.fileName;
+    // If there's a filename, add all relevant info. Otherwise, only display
+    // the application name
+    if (titleState.fileName) {
+        appTitle = titleState.fileName;
 
-        if (titleData.percentShrunk) {
-            appTitle += ' (' + percentShrunk + '%)';
+        if (titleState.percentShrunk) {
+            appTitle += ' (' + titleState.percentShrunk + '%)';
         }
 
-        if (titleData.fileIndex && titleData.totalFiles) {
-            appTitle += ' — ' + titleData.fileIndex + '/' + titleData.totalFiles;
+        if (titleState.fileIndex && titleState.totalFiles) {
+            appTitle += ' — ' + titleState.fileIndex + '/' + titleState.totalFiles;
         }
 
-        if (displayAppname) {
-            appTitle += ' — Appere';
-        }
+        appTitle += ' — Appere';
     } else {
         appTitle = 'Appere';
     }
 
+    // Set the new title string
     document.title = appTitle;
 }
+
+/**
+*/
+// sets any new fields in the titleState, and call for an update
+// displayAppname,
+// This function is designed to update new fields in the title that might
+// come late due to asynchronous calculations, such as the 'percent shrunk'
+// amount
+// function updateTitle(newFields) {
+//
+//
+//     setTitle();
+// }
+
+
+ipcRenderer.on('percent-reduc', (event, percentCalc) => {
+    if (percentCalc > 100) {
+        setTitle({ percentShrunk: 100 });
+    } else {
+        setTitle({ percentShrunk: percentCalc });
+    }
+});
