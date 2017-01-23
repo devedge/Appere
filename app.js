@@ -87,23 +87,34 @@ document.addEventListener('keydown', function(event) {
 
     // First check if the shift key was hit
     if (event.shiftKey) {
+        // If the image is not already at full scale, or it is
+        // not zoomed
         if (titleState.percentShrunk < 100 || zoomed == true) {
             // send an ipc resize event to make viewing the image easier? option?
             // check if image will get bigger, and do nothing if not?
             if (key === keys.key_up) {
                 event.preventDefault();
-                // Zoom in
+                // Zoom in flag
                 zoomed = true;
+
+                // Save the previous shrunk percentage, and set the
+                // current shrunk amount to 100
                 prevZoom = titleState.percentShrunk;
                 setTitle({ percentShrunk: 100 });
+
+                // Switch css classes to zoom in
                 imageState.arr[imageState.curr].element.classList.remove('scale-fit');
                 imageState.arr[imageState.curr].element.classList.add('scale-full');
 
             } else if (key === keys.key_down) {
                 event.preventDefault();
-                // Zoom out
+                // Zoom out flag
                 zoomed = false;
+
+                // Reset the original zoom amount
                 setTitle({ percentShrunk: prevZoom });
+
+                // Switch css classes to 'fit' again
                 imageState.arr[imageState.curr].element.classList.remove('scale-full');
                 imageState.arr[imageState.curr].element.classList.add('scale-fit');
             }
@@ -509,20 +520,16 @@ function resetView() {
 
 
 
-
-// TODO: the setTitle function sets it, while an updateTitle function updates it
-// TODO: updateTitle is designed to update the current title, in case some of the
-//          asynchronous calculations (percent) come in late, but still need to be
-//          set in the title
-
-
 // Title management
 
-// set the title using the data from the titleState object
 /**
- * [setTitle description]
- * @method setTitle
- * @param  {[type]} newFields [description]
+ * Sets any new fields in the titleState object, and calls
+ * genTitle() to regenerate an updated title.
+ * This function is designed to update new fields in the title that might
+ * come late due to asynchronous calculations, such as the 'percent shrunk'
+ * amount.
+ * @param  {object} newFields The new fields to set in titleState. This
+ *                            must have all the same fields as titleState.
  */
 function setTitle(newFields) {
 
@@ -547,7 +554,9 @@ function setTitle(newFields) {
 }
 
 
-// generates and sets the title from the titleState object
+/**
+ * Generates the application title from the titleState object
+ */
 function genTitle() {
     // format:
     // <filename> (z%) — <x>/<y> — Appere
@@ -576,20 +585,11 @@ function genTitle() {
     document.title = appTitle;
 }
 
+
 /**
-*/
-// sets any new fields in the titleState, and call for an update
-// displayAppname,
-// This function is designed to update new fields in the title that might
-// come late due to asynchronous calculations, such as the 'percent shrunk'
-// amount
-// function updateTitle(newFields) {
-//
-//
-//     setTitle();
-// }
-
-
+ * Handle the IPC message that sends the scaled zoom percentage reduction
+ * @type {int} percentCalc The integer percentage that the returned image is set
+ */
 ipcRenderer.on('percent-reduc', (event, percentCalc) => {
     if (percentCalc > 100) {
         setTitle({ percentShrunk: 100 });
