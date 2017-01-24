@@ -72,6 +72,7 @@ var titleState = {
 // TODO: cut off the filename after 'x' amount of charaters so it can be
 // TODO: if size is 100% don't zoom. nothing will move and it'll seem broken
 // TODO: application logic summary? This is getting somewhat intricate
+// TODO: custom scrollbar?
 // todo: option to remember the past location of the application, or
 //       start from the center
 // todo: check that a file exists using fs.existsSync?
@@ -207,13 +208,6 @@ function showNext() {
         imageState.next = temp;
 
         // Change the filename in the title
-        // document.title = 'Appere — ' + imageState.arr[imageState.curr].name;
-        // setTitle(true, {
-        //     fileName: imageState.arr[imageState.curr].name,
-        //     fileIndex: imageState.arr[imageState.curr].idx + 1,
-        //     totalFiles: dirlength
-        // });
-
         setTitle({
             fileName: imageState.arr[imageState.curr].name,
             fileIndex: imageState.arr[imageState.curr].idx + 1,
@@ -263,19 +257,11 @@ function showPrev() {
         imageState.prev = temp;
 
         // Change the filename in the title
-        // setTitle(true, {
-        //     fileName: imageState.arr[imageState.curr].name,
-        //     fileIndex: imageState.arr[imageState.curr].idx + 1,
-        //     totalFiles: dirlength
-        // });
-
         setTitle({
             fileName: imageState.arr[imageState.curr].name,
             fileIndex: imageState.arr[imageState.curr].idx + 1,
             totalFiles: dirlength
         });
-        // document.title = 'Appere — ' + imageState.arr[imageState.curr].name + ' — ' +
-            // (imageState.arr[imageState.curr].idx + 1) + '/' + dirlength;
 
         // Preload the previous image into the next hidden 'img' element
         loadPrev(true, imageState.arr[imageState.curr].idx);

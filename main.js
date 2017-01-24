@@ -137,34 +137,50 @@ ipcMain.on('minimize-window', (event) => {
  * @type {object} dimensions An object containing the height & width of the image
  */
 ipcMain.on('resize-window', (event, dimensions, sendPercentCalc) => {
+    var keepCentered = true;
+
+    // Don't try to resize if the window is maximized
+    if (!win.isFullScreen()) {
+
+        // Generate the new window dimensions
+        var newDimensions = dimCalc.centerImage(dimensions);
+
+        // If the renderer wants the scaled-down percentage, send it
+        if (sendPercentCalc) {
+            event.sender.send('percent-reduc', (100 *
+                (newDimensions.width + newDimensions.height) /
+                (dimensions.width + dimensions.height)).toFixed(0));
+        }
+
+        // If the user option is to keep the window centered, set the
+        // new window bounds and a new x,y coordinate
+        if (keepCentered) {
+            win.setBounds({
+                x: newDimensions.x_center,
+                y: newDimensions.y_center,
+                width: newDimensions.width,
+                height: newDimensions.height
+            }, false);
+        }
+    }
+
     // Generate the required dimensions
     // config.set('animate', false);
 
     // if center option
-    var newDimensions = dimCalc.centerImage(dimensions);
 
     // console.log(dimensions.width);
     // console.log(dimensions.height);
     // console.log(newDimensions.width);
     // console.log(newDimensions.height);
-    var totalp = (100 * (newDimensions.width + newDimensions.height) / (dimensions.width + dimensions.height)).toFixed(0);
     // var wid = (100 * (newDimensions.width / dimensions.width)).toFixed(0);
     // var hei = (100 * (newDimensions.height / dimensions.height)).toFixed(0);
     // console.log(totalp + ' - ' + wid + '|' + hei);
     // console.log(' ');
 
-    if (sendPercentCalc) {
-        event.sender.send('percent-reduc', totalp);
-    }
 
     // console.log('x: ' + newDimensions.x_center + ' - y: ' + newDimensions.y_center + ' - width: ' + newDimensions.width + ' - height: ' + newDimensions.height);
 
-    win.setBounds({
-        x: newDimensions.x_center,
-        y: newDimensions.y_center,
-        width: newDimensions.width,
-        height: newDimensions.height
-    }, false);
 
 
 
