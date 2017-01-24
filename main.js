@@ -138,6 +138,7 @@ ipcMain.on('minimize-window', (event) => {
  */
 ipcMain.on('resize-window', (event, dimensions, sendPercentCalc) => {
     var keepCentered = true;
+    var keepResizing = false;
 
     // Don't try to resize if the window is maximized
     if (!win.isFullScreen()) {
@@ -161,33 +162,14 @@ ipcMain.on('resize-window', (event, dimensions, sendPercentCalc) => {
                 width: newDimensions.width,
                 height: newDimensions.height
             }, false);
+        } else if (keepResizing) {
+            // The user does not want the window to remain centered, but
+            // wants it to keep scaling to the image
+            win.setSize(newDimensions.width, newDimensions.height, false);
+        } else {
+            // The user doesn't want the image re-centering or scaling to the
+            // image
+            // Do nothing
         }
     }
-
-    // Generate the required dimensions
-    // config.set('animate', false);
-
-    // if center option
-
-    // console.log(dimensions.width);
-    // console.log(dimensions.height);
-    // console.log(newDimensions.width);
-    // console.log(newDimensions.height);
-    // var wid = (100 * (newDimensions.width / dimensions.width)).toFixed(0);
-    // var hei = (100 * (newDimensions.height / dimensions.height)).toFixed(0);
-    // console.log(totalp + ' - ' + wid + '|' + hei);
-    // console.log(' ');
-
-
-    // console.log('x: ' + newDimensions.x_center + ' - y: ' + newDimensions.y_center + ' - width: ' + newDimensions.width + ' - height: ' + newDimensions.height);
-
-
-
-
-    // if resize option
-
-
-    // else, do nothing?
-
-    // options: keep centered? fancy animate? center until moved?
 });
