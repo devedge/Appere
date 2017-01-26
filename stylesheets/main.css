@@ -2,6 +2,7 @@
     background-image: radial-gradient(to bottom, #fafafa, #000000);
 }*/
 
+
 .main-app {
     -webkit-user-select: none;
     -webkit-app-region: drag;
@@ -17,12 +18,12 @@
 }
 
 /* Position settings to center the spinner */
-.spinner {
+/*.spinner {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-}
+}*/
 
 /* Keep the image always centered, but within the bounds of the window */
 .image-container {
@@ -30,21 +31,21 @@
     margin: auto;
 }
 
-.quick-transition {
+/*.quick-transition {*/
     /*transition-duration: 0.17s;*/
     /*transition-timing-function: cubic-bezier(0.44, 0.53, 0.79, 1.0);*/
 
     /*transition-timing-function: ease-in-out;*/
-}
+/*}*/
 
 .scale-fit {
     animation: fadein 0.17s;
 
     /* Align against the edges of the window */
-    top:0;
-    bottom:0;
-    left:0;
-    right:0;
+    top:0px;
+    bottom:0px;
+    left:0px;
+    right:0px;
 
     /* keep the the max width 100% of the view width &
     the max height 100% of the view height */
@@ -53,12 +54,30 @@
 }
 
 .scale-full {
-    top:0;
-    left:0;
-
+    top:0px;
+    bottom:0px;
+    left:0px;
+    /*right:0px;*/
     /*width: auto;*/
     /*height: auto;*/
 }
+
+::-webkit-scrollbar-corner {
+    background-color: transparent;
+}
+
+::-webkit-scrollbar {
+    background-color: transparent;
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 2px;
+    background: rgba(150, 150, 150, .33);
+}
+
+
 
 
 /* Alignment effects (and transitions?) for the controls */

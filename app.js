@@ -2,6 +2,10 @@ const {ipcRenderer} = require('electron');
 const sizeOf = require('image-size');
 const path = require('path');
 
+// var Ps = require('perfect-scrollbar');
+// var imgContainer = document.getElementById('image-cont-1');
+// Ps.initialize(imgContainer);
+
 // Local Requires
 const pEncode = require('./lib/PercentEncode');
 const fsManager = require('./lib/fsManager');
