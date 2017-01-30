@@ -28,7 +28,7 @@ var screenDimensions = {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', () => {
+function createWindow() {
 
     // Retreive the current screen dimensions. This will be used to scale the
     // window proportionally to the image.
@@ -76,7 +76,11 @@ app.on('ready', () => {
         // when you should delete the corresponding element.
         win = null;
     });
-});
+}
+
+
+
+app.on('ready', createWindow);
 
 
 
@@ -139,6 +143,7 @@ ipcMain.on('minimize-window', (event) => {
 ipcMain.on('resize-window', (event, dimensions, sendPercentCalc) => {
     var keepCentered = true;
     var keepResizing = false;
+    var animateWindow = false;
 
     // Don't try to resize if the window is maximized
     if (!win.isFullScreen()) {
@@ -161,15 +166,13 @@ ipcMain.on('resize-window', (event, dimensions, sendPercentCalc) => {
                 y: newDimensions.y_center,
                 width: newDimensions.width,
                 height: newDimensions.height
-            }, false);
+            }, animateWindow);
         } else if (keepResizing) {
             // The user does not want the window to remain centered, but
             // wants it to keep scaling to the image
-            win.setSize(newDimensions.width, newDimensions.height, false);
-        } else {
-            // The user doesn't want the image re-centering or scaling to the
-            // image
-            // Do nothing
+            win.setSize(newDimensions.width, newDimensions.height, animateWindow);
         }
+
+        // The user doesn't want the image re-centering or scaled, so do nothing
     }
 });

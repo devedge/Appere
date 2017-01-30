@@ -2,20 +2,17 @@
     background-image: radial-gradient(to bottom, #fafafa, #000000);
 }*/
 
-
 .main-app {
     -webkit-user-select: none;
     -webkit-app-region: drag;
 
     animation: fadein 0.5s;
-    /*margin: 0;*1
-    /*padding: 0;*/
 }
 
 /* General display effects applied to the entire image area */
-.image-display {
+/*.image-display {*/
     /* Centering */
-}
+/*}*/
 
 /* Position settings to center the spinner */
 /*.spinner {
@@ -25,7 +22,6 @@
     transform: translate(-50%, -50%);
 }*/
 
-/* Keep the image always centered, but within the bounds of the window */
 .image-container {
     position: absolute;
     margin: auto;
@@ -38,6 +34,7 @@
     /*transition-timing-function: ease-in-out;*/
 /*}*/
 
+/* Keep the image always centered, but within the bounds of the window */
 .scale-fit {
     animation: fadein 0.17s;
 
@@ -55,14 +52,15 @@
 
 .scale-full {
     top:0px;
-    bottom:0px;
+    /*bottom:0px;*/
     left:0px;
     /*right:0px;*/
-    /*width: auto;*/
-    /*height: auto;*/
+
+    /*margin-right: -8px;*/
+
 }
 
-::-webkit-scrollbar-corner {
+/*::-webkit-scrollbar-corner {
     background-color: transparent;
 }
 
@@ -75,8 +73,25 @@
 ::-webkit-scrollbar-thumb {
     border-radius: 2px;
     background: rgba(150, 150, 150, .33);
+}*/
+
+/*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
 }
 
+::-webkit-scrollbar-thumb:vertical {
+  margin: 5px;
+  background-color: #999;
+  -webkit-border-radius: 5px;
+}
+
+::-webkit-scrollbar-button:start:decrement,
+::-webkit-scrollbar-button:end:increment {
+  height: 5px;
+  width: 5px;
+  display: block;
+}*/
 
 
 
@@ -116,19 +131,11 @@
 }*/
 
 @keyframes fadein {
-  from {
-    opacity: 0.6;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0.6; }
+  to { opacity: 1; }
 }
 
 @keyframes fadepart {
-  from {
-    opacity: 0.5;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0.5; }
+  to { opacity: 1; }
 }

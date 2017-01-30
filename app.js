@@ -3,7 +3,7 @@ const sizeOf = require('image-size');
 const path = require('path');
 
 // var Ps = require('perfect-scrollbar');
-// var imgContainer = document.getElementById('image-cont-1');
+// var imgContainer = document.getElementById('image-display');
 // Ps.initialize(imgContainer);
 
 // Local Requires
@@ -27,12 +27,15 @@ const keys = {
 // Global variable that stores the number of items in the current directory
 var dirlength;
 
+// var bdy = document.getElementById('bdy');
+
 // flags
 var zoomed = false;
 var drag_called = false;
 var err_count = 0;
 var err_max = 3;
 var prevZoom = 0;
+
 
 // Initialize the 'state' of the image viewer
 var imageState = {
@@ -68,20 +71,21 @@ var titleState = {
 }
 
 
-// TODO: reset image state/title state function?
 
+// TODO: reset image state/title state function? DONE
 // TODO: A 'move' feature?
 // TODO: use the 'screen' event emitter from electron to check the current screen
 // TODO: use filesystem watcher
 // TODO: cut off the filename after 'x' amount of charaters so it can be
-// TODO: if size is 100% don't zoom. nothing will move and it'll seem broken
+//      displayed cleanly in the title DONE? Already implemented by WM?
+// TODO: if size is 100% don't zoom. nothing will move and it'll seem broken DONE
 // TODO: application logic summary? This is getting somewhat intricate
 // TODO: custom scrollbar?
 // todo: option to remember the past location of the application, or
-//       start from the center
-// todo: check that a file exists using fs.existsSync?
-// todo: check a filetype with its magic number if the extension is not supported
-//      displayed cleanly in the title
+//       start from the center?
+// TODO: check that a file exists using fs.existsSync? DONE
+// TODO: check a filetype with its magic number if the extension is not supported DONE
+// TODO: Optimization: After a successful mngr.checkFile(), store the result status in the array
 
 /**
  * The Keylistener logic. Picks up & handles different key presses.
@@ -92,9 +96,9 @@ document.addEventListener('keydown', function(event) {
 
     // First check if the shift key was hit
     if (event.shiftKey) {
-        // If the image is not already at full scale, or it is
-        // not zoomed
-        if (titleState.percentShrunk < 100 || zoomed == true) {
+        // If the image is not already at full scale or it is
+        // not zoomed, continue
+        if (titleState.percentShrunk < 100 || zoomed === true) {
             // send an ipc resize event to make viewing the image easier? option?
             // check if image will get bigger, and do nothing if not?
             if (key === keys.key_up) {
@@ -125,14 +129,14 @@ document.addEventListener('keydown', function(event) {
             }
         }
     } else {
-        // Catch the left arrow press
+        // Catch the left/up arrow press
         if (key === keys.key_left || key === keys.key_up) {
             if (!zoomed) {
                 event.preventDefault();
                 showPrev();
             }
 
-        // Catch the right arrow press or space
+        // Catch the right/down arrow press or space
         } else if (key === keys.key_right || key === keys.key_down || key === keys.key_space) {
             if (!zoomed) {
                 event.preventDefault();
@@ -203,6 +207,7 @@ function showNext() {
             var temp = imageState.arr[imageState.next].element.src;
             imageState.arr[imageState.next].element.src = '';
             imageState.arr[imageState.next].element.src = temp;
+            temp = '';
         }
 
         // Update the pointer values
@@ -252,6 +257,7 @@ function showPrev() {
             var temp = imageState.arr[imageState.prev].element.src;
             imageState.arr[imageState.prev].element.src = '';
             imageState.arr[imageState.prev].element.src = temp;
+            temp = '';
         }
 
         // Update the pointer values
@@ -479,8 +485,11 @@ function clearViewer() {
 }
 
 
+
+/**
+ * Resets the view, 'imageState' and all the elements in the html
+ */
 function resetView() {
-    // reset the imageState object
     imageState.curr = 0;
     imageState.prev = 1;
     imageState.next = 2;
@@ -511,7 +520,6 @@ function resetView() {
 
 
 // Title management
-
 /**
  * Sets any new fields in the titleState object, and calls
  * genTitle() to regenerate an updated title.

@@ -10,11 +10,6 @@
     <body>
         <div class="main-app">
             <div class="image-display" id="image-display">
-                <!-- keep the spinner always running in the background? -->
-                <!-- <img class="image-container scale-fit" id="image-container" src=""/> -->
-                <!-- <div class="spinner" hidden> -->
-                    <!-- <i class="fa fa-2x fa-spin fa-circle-o-notch"></i> -->
-                <!-- </div> -->
                 <img class="image-container scale-fit quick-transition" id="image-cont-1" src="" hidden="false"/>
                 <img class="image-container scale-fit quick-transition" id="image-cont-2" src="" hidden="true"/>
                 <img class="image-container scale-fit quick-transition" id="image-cont-3" src="" hidden="true"/>
@@ -24,8 +19,8 @@
                 <div class="right-controls"></div>
             </div>
         </div>
-        <!-- Delayed script loader to speed startup times -->
         <script>
+            // Delayed script loader to speed startup times
             function load(element_type, filename) {
                 var new_element = document.createElement(element_type);
                 new_element.src = filename;
