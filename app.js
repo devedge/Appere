@@ -415,6 +415,8 @@ function setCurrentImage(filepath) {
             // Send an ipc message to scale the window to image size
             ipcRenderer.send('resize-window', sizeOf(path.join(imageState.dir, imageState.arr[imageState.curr].name)), true);
 
+            document.body.classList.remove('welcome');
+
             // Load the image after the IPC message
             imageState.arr[imageState.curr].element.src = path.join(dirname, pEncode(filename));
 
@@ -515,6 +517,8 @@ function resetView() {
     imageState.arr[0].element.hidden = false;
     imageState.arr[1].element.hidden = true;
     imageState.arr[2].element.hidden = true;
+
+    document.body.classList.add('welcome');
 }
 
 

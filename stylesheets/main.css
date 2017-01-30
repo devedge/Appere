@@ -1,13 +1,25 @@
-/*.gradient {
-    background-image: radial-gradient(to bottom, #fafafa, #000000);
-}*/
-
 .main-app {
     -webkit-user-select: none;
     -webkit-app-region: drag;
 
-    animation: fadein 0.5s;
+    animation: crossimagefade 0.5s;
 }
+
+/* The App's welcome image */
+.welcome {
+    background: url(../icons/apphome.png);
+}
+
+/*.gradient {
+    height: 680px;
+    width: 980px;
+    background-image: radial-gradient(
+        ellipse,
+        #FFFFFF,
+        #EFF0F1
+        );
+    filter: blur(100px);
+}*/
 
 /* General display effects applied to the entire image area */
 /*.image-display {*/
@@ -25,6 +37,8 @@
 .image-container {
     position: absolute;
     margin: auto;
+
+
 }
 
 /*.quick-transition {*/
@@ -36,7 +50,7 @@
 
 /* Keep the image always centered, but within the bounds of the window */
 .scale-fit {
-    animation: fadein 0.17s;
+    animation: crossimagefade 0.17s;
 
     /* Align against the edges of the window */
     top:0px;
@@ -113,7 +127,7 @@
 /* Animation effects */
 
 /* 2 second fade-in effect */
-/*.fadein {
+/*.crossimagefade {
     animation: fi1 2s;
 }
 @keyframes fi1 {
@@ -130,7 +144,7 @@
     to   { opacity: 0; }
 }*/
 
-@keyframes fadein {
+@keyframes crossimagefade {
   from { opacity: 0.6; }
   to { opacity: 1; }
 }
