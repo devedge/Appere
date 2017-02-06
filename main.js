@@ -23,6 +23,7 @@ var screenDimensions = {
     y_center: 0
 };
 
+var cliArgs = process.argv;
 // console.log('Args: ' + process.argv);
 
 // This method will be called when Electron has finished
@@ -43,7 +44,6 @@ function createWindow() {
         backgroundColor: '#EFF0F1',
         icon: 'icons/appere256x256.png',
         show: false
-        // backgroundColor: '-webkit-linear-gradient(to bottom, #74e3ec, #c7ffe2)'
     });
 
     // hide the default menubar
@@ -67,6 +67,10 @@ function createWindow() {
     win.on('ready-to-show', () => {
         win.show();
         win.focus();
+
+        if (cliArgs[2]) {
+            console.log(cliArgs[2]);
+        }
     });
 
     // Emit when the window is closed
@@ -131,6 +135,11 @@ ipcMain.on('focus-window', (event) => {
  */
 ipcMain.on('minimize-window', (event) => {
     win.minimize();
+
+    // Wait for a quarter of a second before resetting the window
+    setTimeout(() => {
+        event.sender.send('minimize-done');
+    }, 250);
 });
 
 
@@ -176,3 +185,10 @@ ipcMain.on('resize-window', (event, dimensions, sendPercentCalc) => {
         // The user doesn't want the image re-centering or scaled, so do nothing
     }
 });
+
+
+// ipcMain.on('args-ready', (event) => {
+//     if (cliArgs[2]) {
+//         event.sender.send(cliArgs[2]);
+//     }
+// });

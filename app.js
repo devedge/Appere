@@ -101,10 +101,14 @@ document.addEventListener('keydown', function(event) {
         if (titleState.percentShrunk < 100 || zoomed === true) {
             // send an ipc resize event to make viewing the image easier? option?
             // check if image will get bigger, and do nothing if not?
-            if (key === keys.key_up) {
+            if (key === keys.key_up && zoomed !== true) {
                 event.preventDefault();
                 // Zoom in flag
                 zoomed = true;
+
+                // Resize the window to a square with max dimensions
+                // to facilitate viewing the image
+
 
                 // Save the previous shrunk percentage, and set the
                 // current shrunk amount to 100
@@ -115,7 +119,7 @@ document.addEventListener('keydown', function(event) {
                 imageState.arr[imageState.curr].element.classList.remove('scale-fit');
                 imageState.arr[imageState.curr].element.classList.add('scale-full');
 
-            } else if (key === keys.key_down) {
+            } else if (key === keys.key_down && zoomed !== false) {
                 event.preventDefault();
                 // Zoom out flag
                 zoomed = false;
@@ -147,7 +151,10 @@ document.addEventListener('keydown', function(event) {
         } else if (key === keys.key_esc) {
             event.preventDefault();
             ipcRenderer.send('minimize-window');
-            clearViewer();
+
+            // The main process will callback with 'minimize-done' to
+            // clear the viewer in the background, avoiding
+            // jumpy animations as the window resets
 
         // On delete, prompt to delete the file
         } else if (key === keys.key_del) {
@@ -518,7 +525,14 @@ function resetView() {
     imageState.arr[1].element.hidden = true;
     imageState.arr[2].element.hidden = true;
 
+    // Re-add the welcome app home screen
     document.body.classList.add('welcome');
+
+    // Add and remove an image to the application to avoid the
+    // screen tears from previously loaded images. Use the welcome screen
+    // Doesn't work
+    // imageState.arr[imageState.curr].element.src = '../icons/apphome.png'
+    // imageState.arr[imageState.curr].element.src = ''
 }
 
 
@@ -598,4 +612,26 @@ ipcRenderer.on('percent-reduc', (event, percentCalc) => {
     } else {
         setTitle({ percentShrunk: percentCalc });
     }
+});
+
+
+
+// ipcRenderer.send('args-ready', (event, argsFilepath) => {
+//     if (argsFilepath) {
+//         setCurrentImage(argsFilepath);
+//     }
+// });
+
+// const argsFilepath = ipcRenderer.sendSync('args-ready');
+// if (argsFilepath) {
+//     setCurrentImage(argsFilepath);
+// }
+
+
+/**
+ * Clear the viewer after the window has been minimized to avoid
+ * jumpy animations
+ */
+ipcRenderer.on('minimize-done', () => {
+    clearViewer();
 });
