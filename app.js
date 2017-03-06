@@ -2,6 +2,11 @@ const {ipcRenderer} = require('electron');
 const sizeOf = require('image-size');
 const path = require('path');
 
+// Imports so command line argument can be opened, or an image
+// can be opened from a click
+// const remote = require('electron').remote;
+// const arguments = remote.getGlobal('sharedObject').argv;
+
 // var Ps = require('perfect-scrollbar');
 // var imgContainer = document.getElementById('image-display');
 // Ps.initialize(imgContainer);
@@ -46,17 +51,20 @@ var imageState = {
     arr: [{
             element: document.getElementById('image-cont-1'),
             name: '',
-            idx: 0
+            idx: 0,     // 
+            dim: {}     // the current image's original dimensions
         },
         {
             element: document.getElementById('image-cont-2'),
             name: '',
-            idx: 0
+            idx: 0,     // 
+            dim: {}     // the current image's original dimensions
         },
         {
             element: document.getElementById('image-cont-3'),
             name: '',
-            idx: 0
+            idx: 0,     // 
+            dim: {}     // the current image's original dimensions
         }
     ]
 }
@@ -87,6 +95,18 @@ var titleState = {
 // TODO: check a filetype with its magic number if the extension is not supported DONE
 // TODO: Optimization: After a successful mngr.checkFile(), store the result status in the array
 
+
+
+// Load the title screen
+imageState.arr[imageState.curr].element.src = path.join(__dirname,'icons/apphome2.png');
+imageState.arr[imageState.curr].element.hidden = false;
+
+
+
+// if (arguments[2]) {
+//     setCurrentImage(arguments[2]);
+// }
+
 /**
  * The Keylistener logic. Picks up & handles different key presses.
  */
@@ -108,6 +128,8 @@ document.addEventListener('keydown', function(event) {
 
                 // Resize the window to a square with max dimensions
                 // to facilitate viewing the image
+                
+                // if the width/height of the zoomed-in image is greater than the 
 
 
                 // Save the previous shrunk percentage, and set the
@@ -152,8 +174,8 @@ document.addEventListener('keydown', function(event) {
             event.preventDefault();
             ipcRenderer.send('minimize-window');
 
-            // The main process will callback with 'minimize-done' to
-            // clear the viewer in the background, avoiding
+            // The main process will callback with 'minimize-done' (located
+            // lower down) to clear the viewer in the background, avoiding
             // jumpy animations as the window resets
 
         // On delete, prompt to delete the file
@@ -197,10 +219,13 @@ function showNext() {
         // Try getting the image size and resizing the window. If the image is
         // corrupted in some way, catch the error.
         try {
+            // Save the original image dimensions
+            imageState.arr[imageState.curr].dim = sizeOf(path.join(imageState.dir,
+                imageState.arr[imageState.next].name));
+            
             // Send an ipc resize message first to resize the window to scale to the
             // image. This smooths the image resizing.
-            ipcRenderer.send('resize-window', sizeOf(path.join(imageState.dir,
-                imageState.arr[imageState.next].name)), true);
+            ipcRenderer.send('resize-window', imageState.arr[imageState.curr].dim, true);
         } catch(e) {
             console.log('IPC \'resize-window\' ERROR: ' + e);
         }
@@ -247,10 +272,12 @@ function showPrev() {
         // Try getting the image size and resizing the window. If the image is
         // corrupted in some way, catch the error.
         try {
+            // Save the original image dimensions
+            imageState.arr[imageState.curr].dim = sizeOf(path.join(imageState.dir, imageState.arr[imageState.prev].name));
+            
             // Send an ipc resize message first to resize the window to scale to the
             // image. This smooths the image resizing.
-            ipcRenderer.send('resize-window', sizeOf(path.join(imageState.dir,
-                imageState.arr[imageState.prev].name)), true);
+            ipcRenderer.send('resize-window', imageState.arr[imageState.curr].dim, true);
         } catch(e) {
             console.log('IPC \'resize-window\' ERROR: ' + e);
         }
@@ -503,7 +530,7 @@ function resetView() {
     imageState.prev = 1;
     imageState.next = 2;
     imageState.dir = '';
-    imageState.arr[0].element.src = '';
+    imageState.arr[0].element.src = 'icons/apphome2.png';
     imageState.arr[0].element.classList.add('scale-fit');
     imageState.arr[0].element.classList.remove('scale-full');
     imageState.arr[0].name = '';
@@ -526,7 +553,7 @@ function resetView() {
     imageState.arr[2].element.hidden = true;
 
     // Re-add the welcome app home screen
-    document.body.classList.add('welcome');
+    // document.body.classList.add('welcome');
 
     // Add and remove an image to the application to avoid the
     // screen tears from previously loaded images. Use the welcome screen
@@ -615,6 +642,17 @@ ipcRenderer.on('percent-reduc', (event, percentCalc) => {
 });
 
 
+/**
+ * Clear the viewer after the window has been minimized to avoid
+ * jumpy animations
+ */
+ipcRenderer.on('minimize-done', () => {
+    clearViewer();
+});
+
+
+
+
 
 // ipcRenderer.send('args-ready', (event, argsFilepath) => {
 //     if (argsFilepath) {
@@ -626,12 +664,3 @@ ipcRenderer.on('percent-reduc', (event, percentCalc) => {
 // if (argsFilepath) {
 //     setCurrentImage(argsFilepath);
 // }
-
-
-/**
- * Clear the viewer after the window has been minimized to avoid
- * jumpy animations
- */
-ipcRenderer.on('minimize-done', () => {
-    clearViewer();
-});

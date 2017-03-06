@@ -1,11 +1,18 @@
+console.time('init');
+
 // Electron imports
 const electron = require('electron');
 const {app, ipcMain, BrowserWindow} = electron;
 
 // Other imports
-const Config = require('electron-config');
-const dimCalc = require('./lib/dimCalc');
+// const Config = require('electron-config');
+// const dimCalc = require('./lib/dimCalc'); LAZY LOADED
 const path = require('path');
+let dimCalc;
+
+// Set a global shared object so the renderer can read the 
+// cli arguments
+global.sharedObject = { argv: process.argv };
 
 // Initializations
 // const config = new Config();
@@ -14,17 +21,13 @@ const path = require('path');
 // be closed automatically when the JavaScript object is garbage collected.
 let win;
 
-
 // Screen dimensions used to scale window
-var screenDimensions = {
+let screenDimensions = {
     width: 0,
     height: 0,
     x_center: 0,
     y_center: 0
 };
-
-var cliArgs = process.argv;
-// console.log('Args: ' + process.argv);
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -42,7 +45,7 @@ function createWindow() {
         width: 1000,
         height: 700,
         backgroundColor: '#EFF0F1',
-        icon: 'icons/appere256x256.png',
+        icon: path.join(__dirname,'icons/appere256x256.png'),
         show: false
     });
 
@@ -55,11 +58,6 @@ function createWindow() {
 
     // Open the DevTools
     // win.webContents.openDevTools()
-
-    // Set screen values in the dimCalc library to automatically resize the
-    // images & window
-    dimCalc.setGlobals(screenDimensions);
-
     // console.log(app.getPath('userData'));
 
     // Show the window once it has loaded, to prevent seeing the
@@ -68,9 +66,9 @@ function createWindow() {
         win.show();
         win.focus();
 
-        if (cliArgs[2]) {
-            console.log(cliArgs[2]);
-        }
+        // if (cliArgs[2]) {
+        //     console.log(cliArgs[2]);
+        // }
     });
 
     // Emit when the window is closed
@@ -80,7 +78,20 @@ function createWindow() {
         // when you should delete the corresponding element.
         win = null;
     });
+    
+    console.timeEnd('init');
+    
+    
+    // Window creation is done, so lazy-load the other imports and 
+    // initialize anything that depends on them
+    dimCalc = require('./lib/dimCalc');
+    
+    // Set screen values in the dimCalc library to automatically resize the
+    // images & window
+    dimCalc.setGlobals(screenDimensions);
 }
+
+
 
 
 
@@ -150,15 +161,15 @@ ipcMain.on('minimize-window', (event) => {
  * @type {object} dimensions An object containing the height & width of the image
  */
 ipcMain.on('resize-window', (event, dimensions, sendPercentCalc) => {
-    var keepCentered = true;
-    var keepResizing = false;
-    var animateWindow = false;
+    let keepCentered = true;
+    let keepResizing = false;
+    let animateWindow = false;
 
     // Don't try to resize if the window is maximized
     if (!win.isFullScreen()) {
-
+        
         // Generate the new window dimensions
-        var newDimensions = dimCalc.centerImage(dimensions);
+        let newDimensions = dimCalc.centerImage(dimensions);
 
         // If the renderer wants the scaled-down percentage, send it
         if (sendPercentCalc) {
@@ -181,10 +192,14 @@ ipcMain.on('resize-window', (event, dimensions, sendPercentCalc) => {
             // wants it to keep scaling to the image
             win.setSize(newDimensions.width, newDimensions.height, animateWindow);
         }
-
-        // The user doesn't want the image re-centering or scaled, so do nothing
     }
 });
+
+
+
+
+
+
 
 
 // ipcMain.on('args-ready', (event) => {
