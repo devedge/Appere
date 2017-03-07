@@ -40,6 +40,7 @@ var drag_called = false;
 var err_count = 0;
 var err_max = 3;
 var prevZoom = 0;
+var home = true;
 
 
 // Initialize the 'state' of the image viewer
@@ -96,26 +97,30 @@ var titleState = {
 // TODO: Optimization: After a successful mngr.checkFile(), store the result status in the array
 
 
+// Script execution start. Everything here gets automatically run, while
+// the rest of the file consists of function definitions and event listeners
+// that react to events.
 
 // Load the title screen
 imageState.arr[imageState.curr].element.src = path.join(__dirname,'icons/apphome2.png');
 imageState.arr[imageState.curr].element.hidden = false;
 
-
-
+// If the application was started with an image, open it automatically
 // if (arguments[2]) {
 //     setCurrentImage(arguments[2]);
 // }
 
+
 /**
- * The Keylistener logic. Picks up & handles different key presses.
+ * The Keylistener logic. Listens to key events and
+ * handles different key presses.
  */
 document.addEventListener('keydown', function(event) {
     // console.log(event.keyCode);
     var key = event.keyCode;
 
     // First check if the shift key was hit
-    if (event.shiftKey) {
+    if (event.shiftKey && !home) {
         // If the image is not already at full scale or it is
         // not zoomed, continue
         if (titleState.percentShrunk < 100 || zoomed === true) {
@@ -130,7 +135,7 @@ document.addEventListener('keydown', function(event) {
                 // to facilitate viewing the image
                 
                 // if the width/height of the zoomed-in image is greater than the 
-
+                ipcRenderer.send('fill-window', imageState.arr[imageState.curr].dim);
 
                 // Save the previous shrunk percentage, and set the
                 // current shrunk amount to 100
@@ -145,6 +150,8 @@ document.addEventListener('keydown', function(event) {
                 event.preventDefault();
                 // Zoom out flag
                 zoomed = false;
+                
+                ipcRenderer.send('resize-window', imageState.arr[imageState.curr].dim);
 
                 // Reset the original zoom amount
                 setTitle({ percentShrunk: prevZoom });
@@ -203,7 +210,7 @@ document.ondrop = document.body.ondrop = (event) => {
     if (!drag_called && event.dataTransfer.files[0]) {
         drag_called = true;
         setCurrentImage(event.dataTransfer.files[0].path);
-        ipcRenderer.send('focus-window');
+        // ipcRenderer.send('focus-window');
     }
 }
 
@@ -220,12 +227,12 @@ function showNext() {
         // corrupted in some way, catch the error.
         try {
             // Save the original image dimensions
-            imageState.arr[imageState.curr].dim = sizeOf(path.join(imageState.dir,
+            imageState.arr[imageState.next].dim = sizeOf(path.join(imageState.dir,
                 imageState.arr[imageState.next].name));
             
             // Send an ipc resize message first to resize the window to scale to the
             // image. This smooths the image resizing.
-            ipcRenderer.send('resize-window', imageState.arr[imageState.curr].dim, true);
+            ipcRenderer.send('resize-window', imageState.arr[imageState.next].dim, true);
         } catch(e) {
             console.log('IPC \'resize-window\' ERROR: ' + e);
         }
@@ -273,11 +280,11 @@ function showPrev() {
         // corrupted in some way, catch the error.
         try {
             // Save the original image dimensions
-            imageState.arr[imageState.curr].dim = sizeOf(path.join(imageState.dir, imageState.arr[imageState.prev].name));
+            imageState.arr[imageState.prev].dim = sizeOf(path.join(imageState.dir, imageState.arr[imageState.prev].name));
             
             // Send an ipc resize message first to resize the window to scale to the
             // image. This smooths the image resizing.
-            ipcRenderer.send('resize-window', imageState.arr[imageState.curr].dim, true);
+            ipcRenderer.send('resize-window', imageState.arr[imageState.prev].dim, true);
         } catch(e) {
             console.log('IPC \'resize-window\' ERROR: ' + e);
         }
@@ -445,11 +452,21 @@ function setCurrentImage(filepath) {
             // Set the current filename and current directory
             imageState.arr[imageState.curr].name = filename;
             imageState.dir = dirname;
-
+            
+            ipcRenderer.send('focus-window');
+            
+            // Save the original image dimensions
+            imageState.arr[imageState.curr].dim = sizeOf(path.join(imageState.dir, imageState.arr[imageState.curr].name));
+            
+            // Send an ipc resize message first to resize the window to scale to the
+            // image. This smooths the image resizing.
+            ipcRenderer.send('resize-window', imageState.arr[imageState.curr].dim, true);
+            
+            home = false;
             // Send an ipc message to scale the window to image size
-            ipcRenderer.send('resize-window', sizeOf(path.join(imageState.dir, imageState.arr[imageState.curr].name)), true);
+            // ipcRenderer.send('resize-window', sizeOf(path.join(imageState.dir, imageState.arr[imageState.curr].name)), true);
 
-            document.body.classList.remove('welcome');
+            // document.body.classList.remove('welcome');
 
             // Load the image after the IPC message
             imageState.arr[imageState.curr].element.src = path.join(dirname, pEncode(filename));
@@ -551,6 +568,8 @@ function resetView() {
     imageState.arr[0].element.hidden = false;
     imageState.arr[1].element.hidden = true;
     imageState.arr[2].element.hidden = true;
+
+    home = true;
 
     // Re-add the welcome app home screen
     // document.body.classList.add('welcome');

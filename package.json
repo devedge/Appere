@@ -1,10 +1,10 @@
 {
   "name": "Appere",
   "version": "1.0.0",
-  "description": "A lightweight, minimalistic image viewer",
+  "description": "A simple, minimalistic image viewer",
   "main": "main.js",
   "scripts": {
-    "start": "./node_modules/.bin/electron .",
+    "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -12,19 +12,16 @@
     "url": "git+https://github.com/devedge/Appere.git"
   },
   "author": "devedge",
-  "license": "GPL-3.0",
+  "license": "Apache-2.0",
   "dependencies": {
     "alphanum-sort": "^1.0.2",
     "chokidar": "^1.6.1",
-    "electron": "^1.6.1",
     "electron-config": "^0.2.1",
     "file-type": "^4.1.0",
     "frep": "^0.2.3",
-    "gemini-scrollbar": "^1.4.3",
     "image-size": "^0.5.1",
+    "perfect-scrollbar": "^0.6.16",
     "read-chunk": "^2.0.0"
   },
-  "devDependencies": {
-    "electron-packager": "^8.5.2"
-  }
+  "devDependencies": {}
 }

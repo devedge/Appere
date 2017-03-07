@@ -21,14 +21,6 @@ global.sharedObject = { argv: process.argv };
 // be closed automatically when the JavaScript object is garbage collected.
 let win;
 
-// Screen dimensions used to scale window
-let screenDimensions = {
-    width: 0,
-    height: 0,
-    x_center: 0,
-    y_center: 0
-};
-
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -37,8 +29,6 @@ function createWindow() {
     // Retreive the current screen dimensions. This will be used to scale the
     // window proportionally to the image.
     const {width, height} = electron.screen.getPrimaryDisplay().workAreaSize;
-    screenDimensions.width = width;
-    screenDimensions.height = height;
 
     // Create the browser window
     win = new BrowserWindow({
@@ -65,10 +55,6 @@ function createWindow() {
     win.on('ready-to-show', () => {
         win.show();
         win.focus();
-
-        // if (cliArgs[2]) {
-        //     console.log(cliArgs[2]);
-        // }
     });
 
     // Emit when the window is closed
@@ -88,15 +74,11 @@ function createWindow() {
     
     // Set screen values in the dimCalc library to automatically resize the
     // images & window
-    dimCalc.setGlobals(screenDimensions);
+    dimCalc.setGlobals({width, height});
 }
 
 
-
-
-
 app.on('ready', createWindow);
-
 
 
 // Quit when all windows are closed
@@ -114,7 +96,6 @@ app.on('window-all-closed', () => {
 });
 
 
-
 app.on('activate', () => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
@@ -122,6 +103,11 @@ app.on('activate', () => {
         createWindow();
     }
 });
+
+
+// ------------------------------------- //
+// ---- End of 'app' event watchers ---- //
+// ------------------------------------- //
 
 
 
@@ -197,6 +183,45 @@ ipcMain.on('resize-window', (event, dimensions, sendPercentCalc) => {
 
 
 
+
+ipcMain.on('fill-window', (event, dimensions) => {
+    let keepCentered = true;
+    let keepResizing = false;
+    let animateWindow = false;
+    
+    // Don't try to resize if the window is maximized
+    if (!win.isFullScreen()) {
+        
+        // Generate the new window dimensions
+        var newDimensions = dimCalc.maximizeDimensions(dimensions);
+        
+        // If the renderer wants the scaled-down percentage, send it
+        // if (sendPercentCalc) {
+        //     event.sender.send('percent-reduc', (100 *
+        //         (newDimensions.width + newDimensions.height) /
+        //         (dimensions.width + dimensions.height)).toFixed(0));
+        // }
+        // console.log(newDimensions.x_center);
+        // console.log(newDimensions.y_center);
+        // console.log(newDimensions.width);
+        // console.log(newDimensions.height);
+
+        // If the user option is to keep the window centered, set the
+        // new window bounds and a new x,y coordinate
+        if (keepCentered) {
+            win.setBounds({
+                x: newDimensions.x_center,
+                y: newDimensions.y_center,
+                width: newDimensions.width,
+                height: newDimensions.height
+            }, animateWindow);
+        } else if (keepResizing) {
+            // The user does not want the window to remain centered, but
+            // wants it to keep scaling to the image
+            win.setSize(newDimensions.width, newDimensions.height, animateWindow);
+        }
+    }
+});
 
 
 
