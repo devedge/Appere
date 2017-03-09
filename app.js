@@ -41,7 +41,7 @@ var err_count = 0;
 var err_max = 3;
 var prevZoom = 0;
 var home = true;
-
+var apphomepath = 'img/apphome.png'
 
 // Initialize the 'state' of the image viewer
 var imageState = {
@@ -102,7 +102,7 @@ var titleState = {
 // that react to events.
 
 // Load the title screen
-imageState.arr[imageState.curr].element.src = path.join(__dirname,'icons/apphome2.png');
+imageState.arr[imageState.curr].element.src = path.join(__dirname,apphomepath);
 imageState.arr[imageState.curr].element.hidden = false;
 
 // If the application was started with an image, open it automatically
@@ -547,7 +547,7 @@ function resetView() {
     imageState.prev = 1;
     imageState.next = 2;
     imageState.dir = '';
-    imageState.arr[0].element.src = 'icons/apphome2.png';
+    imageState.arr[0].element.src = apphomepath;
     imageState.arr[0].element.classList.add('scale-fit');
     imageState.arr[0].element.classList.remove('scale-full');
     imageState.arr[0].name = '';
@@ -577,7 +577,7 @@ function resetView() {
     // Add and remove an image to the application to avoid the
     // screen tears from previously loaded images. Use the welcome screen
     // Doesn't work
-    // imageState.arr[imageState.curr].element.src = '../icons/apphome.png'
+    // imageState.arr[imageState.curr].element.src = '../img/apphome.png'
     // imageState.arr[imageState.curr].element.src = ''
 }
 

@@ -3,12 +3,11 @@
 .main-app {
     -webkit-user-select: none;
     -webkit-app-region: drag;
-
-    animation: crossfadeimage 0.5s;    
+    animation: crossfadeimage 0.5s;
 }
 
 // The container for the three image classes
-.image-container {
+.image-container, .controls {
     // The image container should take up the entire window 
     position: absolute;
     // keep images centered vertically & horizontally
@@ -38,6 +37,15 @@
     left:0px;
 }
 
+.button {
+    display: flex;
+	// flex-direction: row;
+	// flex-wrap: nowrap;
+	justify-content: center;
+	// align-items: flex-end;
+	align-content: center;
+}
+
 // The fade animation 
 @keyframes crossfadeimage {
   from { opacity: 0.6; }
@@ -52,5 +60,3 @@
     width: 0px;
     height: 0px;
 }
-
-

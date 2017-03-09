@@ -3,7 +3,8 @@
   -webkit-app-region: drag;
   animation: crossfadeimage 0.5s;
 }
-.image-container {
+.image-container,
+.controls {
   position: absolute;
   margin: auto;
 }
@@ -19,6 +20,11 @@
 .scale-full {
   top: 0px;
   left: 0px;
+}
+.button {
+  display: flex;
+  justify-content: center;
+  align-content: center;
 }
 @keyframes crossfadeimage {
   from {
