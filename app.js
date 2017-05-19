@@ -1,3 +1,5 @@
+'use strict';
+
 const {ipcRenderer} = require('electron');
 const sizeOf = require('image-size');
 const path = require('path');
@@ -44,6 +46,7 @@ var home = true;
 var apphomepath = 'img/apphome.png'
 
 // Initialize the 'state' of the image viewer
+// TODO: call this the 'view'
 var imageState = {
     curr: 0,
     next: 1,
@@ -442,7 +445,7 @@ function setCurrentImage(filepath) {
         zoomed = false;
 
         // If the file is a valid filetype
-        if (mngr.checkFile(filepath)) {
+        if (mngr.checkFile(filepath)) { // TODO: validate function
             var dirname = path.dirname(filepath);
             var filename = path.basename(filepath);
 
@@ -450,12 +453,14 @@ function setCurrentImage(filepath) {
             resetView();
 
             // Set the current filename and current directory
+            // TODO: set all attributes of a current image
             imageState.arr[imageState.curr].name = filename;
             imageState.dir = dirname;
             
             ipcRenderer.send('focus-window');
             
             // Save the original image dimensions
+            // TODO: doesn't need the full imageState stuff
             imageState.arr[imageState.curr].dim = sizeOf(path.join(imageState.dir, imageState.arr[imageState.curr].name));
             
             // Send an ipc resize message first to resize the window to scale to the
