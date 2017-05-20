@@ -1,3 +1,12 @@
+/**
+ * [ViewHandler description]
+ *
+ * The callbacks are used to set error messages on the screen
+ * TODO: a 'dumb' resize type. (already done?)
+ * 
+ * @type {[type]}
+ */
+
 
 'use-strict';
 
