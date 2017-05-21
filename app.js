@@ -12,8 +12,7 @@ const ViewHandler = require('./lib/ViewHandler.js');
 const keyAction = require('./lib/HandleKeypress.js');
 
 
-// let DRAG_FLAG = false; // Flag to handle repeat drag-and-drops
-let APP_HOME = true;
+let DRAG_FLAG = false; // Flag to handle repeat drag-and-drops
 
 // Create new ViewHandler and KeypressHandler objects
 let view = new ViewHandler();
@@ -32,16 +31,14 @@ view.init(
 // If an image is dragged onto the window, display it
 document.ondrop = document.body.ondrop = (event) => {
   event.preventDefault();
-  console.log('drag-and-drop called');
 
   // To prevent duplicate calls during drag-and-drop, check DRAG_FLAG
-  if (/*!DRAG_FLAG && */event.dataTransfer.files[0]) {
-      // DRAG_FLAG = true;
+  if (!DRAG_FLAG && event.dataTransfer.files[0]) {
+      DRAG_FLAG = true;
       
       // Hook into the callback to reset the flag
       view.setCurrentImage(event.dataTransfer.files[0].path, () => {
-        // DRAG_FLAG = false; // Reset the DRAG_FLAG
-        APP_HOME = false;
+        DRAG_FLAG = false; // Reset the DRAG_FLAG
       });
   }
 };
@@ -49,7 +46,7 @@ document.ondrop = document.body.ondrop = (event) => {
 
 // Key listener logic
 document.addEventListener('keydown', function(event) {
-  switch (keyAction.validate(event, event.keyCode, APP_HOME, view.isZoomed())) {
+  switch (keyAction.validate(event, event.keyCode, view.isZoomed())) {
     case 'next':
       view.showNext();
       break;
@@ -67,7 +64,6 @@ document.addEventListener('keydown', function(event) {
       break;
       
     case 'esc':
-      APP_HOME = true;
       view.minimize();
       break;
   }
