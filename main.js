@@ -7,6 +7,7 @@
  * continuously check if there is a second monitor attached
  * fix the icons
  * ability to delete files
+ * Listen for win.on('move') event to determine new position
  */
 
 console.time('init');
@@ -52,7 +53,7 @@ function createWindow() {
 
     // hide the default menubar
     win.setAutoHideMenuBar(true);
-    win.setMenuBarVisibility(false);
+    win.setMenuBarVisibility(false); // TODO: There's a better call for new()
 
     // and load the index.html of the app
     win.loadURL(path.join('file://', __dirname,'/index.html'));
