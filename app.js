@@ -11,12 +11,11 @@
 const ViewHandler = require('./lib/ViewHandler.js');
 const keyAction = require('./lib/HandleKeypress.js');
 
+// Flag to handle repeat drag-and-drops
+let DRAG_FLAG = false;
 
-let DRAG_FLAG = false; // Flag to handle repeat drag-and-drops
-
-// Create new ViewHandler and KeypressHandler objects
+// Create new ViewHandler object
 let view = new ViewHandler();
-// let keyAction = new KeypressHandler();
 
 // Initialize the ViewHandler with elements from the page.
 // These three elements are updated as the user cycles through
