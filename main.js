@@ -22,7 +22,7 @@ let userSettings = {
     width: 1000,
     height: 700,
     BACKGROUND_COLOR: '#EFF0F1',
-    ICON_PATH: 'icons/appere256x256.png',
+    ICON_PATH: 'img/icons/appere256.png',
     center: true,
     titleName: 'Appere',
     show: true,
@@ -97,6 +97,8 @@ function createWindow() {
   });
 
   console.timeEnd('init');
+
+  console.log(path.join(__dirname, userSettings.INIT.ICON_PATH));
 
   // TODO: check win.center()
   // TODO: check win.blurWebView()
