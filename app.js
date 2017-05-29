@@ -21,9 +21,9 @@ let view = new ViewHandler();
 // These three elements are updated as the user cycles through
 // images
 view.init(
-  document.getElementById('image-cont-1'),
-  document.getElementById('image-cont-2'),
-  document.getElementById('image-cont-3')
+  document.getElementById('image-element-1'),
+  document.getElementById('image-element-2'),
+  document.getElementById('image-element-3')
 );
 
 
@@ -34,7 +34,7 @@ document.ondrop = document.body.ondrop = (event) => {
   // To prevent duplicate calls during drag-and-drop, check DRAG_FLAG
   if (!DRAG_FLAG && event.dataTransfer.files[0]) {
       DRAG_FLAG = true;
-      
+
       // Hook into the callback to reset the flag
       view.setCurrentImage(event.dataTransfer.files[0].path, () => {
         DRAG_FLAG = false; // Reset the DRAG_FLAG
@@ -44,24 +44,24 @@ document.ondrop = document.body.ondrop = (event) => {
 
 
 // Key listener logic
-document.addEventListener('keydown', function(event) {
+document.addEventListener('keydown', (event) => {
   switch (keyAction.validate(event, event.keyCode, view.isZoomed())) {
     case 'next':
       view.showNext();
       break;
-      
+
     case 'prev':
       view.showPrev();
       break;
-      
+
     case 'zoom-in':
       view.zoomImage();
       break;
-      
+
     case 'zoom-out':
       view.fitImage();
       break;
-      
+
     case 'esc':
       view.minimize();
       break;

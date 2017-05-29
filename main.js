@@ -41,7 +41,7 @@ app.on('window-all-closed', () => {
   // On macOS it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== 'darwin') {
-      app.quit();
+    app.quit();
   }
 });
 
@@ -49,9 +49,9 @@ app.on('window-all-closed', () => {
 // On macOS it's common to re-create a window in the app when the
 // dock icon is clicked and there are no other windows open.
 app.on('activate', () => {
-    if (win === null) {
-        createWindow();
-    }
+  if (win === null) {
+    createWindow();
+  }
 });
 
 
@@ -80,8 +80,10 @@ function createWindow() {
 
   // When the app is ready, focus it
   win.on('ready-to-show', () => {
+    console.log('Window is ready');
     win.focus();
     // win.show() TODO should a splash screen be added instead?
+    // TODO: send an IPC back to trigger css animation?
   });
 
   // Emitted when the window is closed
@@ -105,10 +107,12 @@ function createWindow() {
 
   // Lazy-load the window dimension calculator
   calcDim = require('./lib/CalculateDimensions.js');
+  var sc = electron.screen.getPrimaryDisplay().workAreaSize;
+  console.log(sc.width + ' ' + sc.height);
 
   // Set up the screen size in the module that
   // calculates new window dimensions
-  calcDim.updateScreen(electron.screen.getPrimaryDisplay().workAreaSize);
+  calcDim.updateScreen(sc);
 }
 
 

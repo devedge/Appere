@@ -1,20 +1,20 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <title>Appere</title>
-
-        <!-- Stylesheets -->
-        <link href="stylesheets/styles.css" rel="stylesheet">
-    </head>
-    <body>
-        <div class="main-app">
-            <div class="image-display" id="image-display">
-                <img class="image-container scale-fit quick-transition" id="image-cont-1" src="" hidden="false"/>
-                <img class="image-container scale-fit quick-transition" id="image-cont-2" src="" hidden="true"/>
-                <img class="image-container scale-fit quick-transition" id="image-cont-3" src="" hidden="true"/>
-            </div>
-        </div>
-        <script src="app.js"></script>
-    </body>
+  <head>
+    <meta charset="utf-8">
+    <title>Appere</title>
+    <link href="stylesheets/styles.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="main-app">
+      <div class="home-container" hidden></div>
+      <div class="error-container" hidden></div>
+      <div class="image-container">
+        <img class="image-element fit-img" id="image-element-1" src="" />
+        <img class="image-element fit-img" id="image-element-2" src="" hidden/>
+        <img class="image-element fit-img" id="image-element-3" src="" hidden/>
+      </div>
+    </div>
+    <script src="app.js"></script>
+  </body>
 </html>

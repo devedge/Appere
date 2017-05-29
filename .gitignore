@@ -1,2 +1,4 @@
 node_modules/
 images/
+.sass-cache/
+*styles.css.map
