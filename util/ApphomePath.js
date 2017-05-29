@@ -1,1 +1,1 @@
-module.exports = './img/apphome.png';
+module.exports = './img/apperelogocropped.png';

@@ -2,6 +2,18 @@
   -webkit-user-select: none;
   -webkit-app-region: drag; }
 
+.home-container {
+  display: flex;
+  justify-content: center; }
+
+.logo-effect {
+  margin-top: 10vh;
+  padding: 30px;
+  animation-delay: 0.7s;
+  animation: logo-animation 1s;
+  animation-timing-function: ease;
+  -webkit-app-region: no-drag; }
+
 .image-element {
   position: absolute;
   margin: auto; }
@@ -21,5 +33,12 @@
 ::-webkit-scrollbar {
   width: 0px;
   height: 0px; }
+
+@keyframes logo-animation {
+  0% {
+    opacity: 0;
+    transform: translate(0, 10px); }
+  100% {
+    opacity: 1; } }
 
 /*# sourceMappingURL=styles.css.map */

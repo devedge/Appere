@@ -4,20 +4,28 @@
   -webkit-app-region: drag;
 }
 
-// .home-container {
-  // The image should fill up the entire application view
-  // position: absolute;
-// }
+// The parent element of the logo
+.home-container {
+  display: flex;
+  justify-content: center;
+}
 
-// .error-container {
+// The logo, its animation, and its positioning
+.logo-effect {
+  margin-top: 10vh; // keep the logo aligned 10vh from the top
+  padding: 30px;
+  animation-delay: 0.7s;  // wait, so the animation runs smooth
+  animation: logo-animation 1s;
+  animation-timing-function: ease;
+  -webkit-app-region: no-drag; // prevent the image from being dragged
+}
 
-// }
+// .error-container {}
 
 // The element for each element tag
 .image-element {
   // The image should fill up the entire application view
   position: absolute;
-
   // Keep images centered vertically & horizontally
   margin: auto;
 }
@@ -48,4 +56,16 @@
   // the scrollbar over the image while hiding the track
   width: 0px;
   height: 0px;
+}
+
+// Fade-in and scroll-up animation for the logo. This is the
+// reverse of the background highlight animation, which slides up.
+@keyframes logo-animation {
+  0% {
+    opacity: 0;
+    transform: translate(0, 10px);
+  }
+  100% {
+    opacity: 1;
+  }
 }

@@ -11,6 +11,10 @@ const path = require('path');
 let calcDim;
 
 // TODO: Determine if platform is on Windows and use a different icon
+// TODO:
+//    hide the image container until images show up
+//    display the home page css, and hide that on program start
+// TODO: include attributions, including the font type
 
 let win;
 
@@ -80,8 +84,8 @@ function createWindow() {
 
   // When the app is ready, focus it
   win.on('ready-to-show', () => {
-    console.log('Window is ready');
-    win.focus();
+    // console.log('Window is ready');
+    // win.focus();
     // win.show() TODO should a splash screen be added instead?
     // TODO: send an IPC back to trigger css animation?
   });
@@ -100,7 +104,7 @@ function createWindow() {
 
   console.timeEnd('init');
 
-  console.log(path.join(__dirname, userSettings.INIT.ICON_PATH));
+  // console.log(path.join(__dirname, userSettings.INIT.ICON_PATH));
 
   // TODO: check win.center()
   // TODO: check win.blurWebView()
@@ -108,7 +112,7 @@ function createWindow() {
   // Lazy-load the window dimension calculator
   calcDim = require('./lib/CalculateDimensions.js');
   var sc = electron.screen.getPrimaryDisplay().workAreaSize;
-  console.log(sc.width + ' ' + sc.height);
+  // console.log(sc.width + ' ' + sc.height);
 
   // Set up the screen size in the module that
   // calculates new window dimensions
