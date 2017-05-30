@@ -22,12 +22,11 @@
 
 // .error-container {}
 
-// The element for each element tag
+// The element for each image tag
+// The image should fill up the entire application view
 .image-element {
-  // The image should fill up the entire application view
-  position: absolute;
-  // Keep images centered vertically & horizontally
   margin: auto;
+  position: absolute;
 }
 
 // Fit & scale the image within the application's view

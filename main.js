@@ -31,7 +31,7 @@ let userSettings = {
     titleName: 'Appere',
     show: true,
     autoHideMenuBar: true,
-    INDEX_PATH: '/index.html'
+    INDEX_PATH: 'index.html'
   }
 };
 

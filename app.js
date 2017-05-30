@@ -18,12 +18,14 @@ let DRAG_FLAG = false;
 let view = new ViewHandler();
 
 // Initialize the ViewHandler with elements from the page.
-// These three elements are updated as the user cycles through
+// The first three elements are updated as the user cycles through
 // images
 view.init(
   document.getElementById('image-element-1'),
   document.getElementById('image-element-2'),
-  document.getElementById('image-element-3')
+  document.getElementById('image-element-3'),
+  document.getElementById('image-container'),
+  document.getElementById('logo')
 );
 
 

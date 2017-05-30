@@ -15,8 +15,8 @@
   -webkit-app-region: no-drag; }
 
 .image-element {
-  position: absolute;
-  margin: auto; }
+  margin: auto;
+  position: absolute; }
 
 .fit-img {
   top: 0px;
