@@ -72,7 +72,7 @@ document.addEventListener('keydown', (event) => {
       view.fitImage();
       break;
 
-    case 'esc':
+    case 'min':
       view.minimize();
       break;
   }
