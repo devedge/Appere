@@ -25,8 +25,7 @@ console.time('init');
 
 // Import electron
 const electron = require('electron');
-// Extract modules from electron
-const {app, ipcMain, BrowserWindow} = electron;
+const {app, ipcMain, BrowserWindow} = electron; // Extract modules from electron
 
 // Other imports
 const path = require('path');
