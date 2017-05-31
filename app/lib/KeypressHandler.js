@@ -1,13 +1,6 @@
 /**
  * A module that determines an action to take based on the keys pressed
  *
- *
- * TODO
- * 'm' --> minimize
- * 'shift c' --> center
- * add code to determine current monitor
- * animations as pictures slide
- * a blur effect for the settings
  */
 
 'use-strict';

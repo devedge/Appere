@@ -11,7 +11,8 @@
  *
  */
 
-let SCALE_AMT = 0.75;
+// TODO: export into module
+let SCALE_FACTOR = 0.85;
 
 let bounds = {
   MAX_WIDTH: 0,
@@ -38,7 +39,7 @@ let screenDimensions = {
 function updateBounds(newBounds) {
   // Update the scale modifier if a new one is set
   if (newBounds.newScale) {
-    SCALE_AMT = newBounds.newScale;
+    SCALE_FACTOR = newBounds.newScale;
   }
 
   // If any of the bounds are set, update them
@@ -64,8 +65,8 @@ function updateScreen(newScreen) {
   screenDimensions.HEIGHT = newScreen.height;
   screenDimensions.X_CENTER = (newScreen.width / 2);
   screenDimensions.Y_CENTER = (newScreen.height / 2);
-  bounds.MAX_WIDTH = screenDimensions.WIDTH * SCALE_AMT;
-  bounds.MAX_HEIGHT = screenDimensions.HEIGHT * SCALE_AMT;
+  bounds.MAX_WIDTH = screenDimensions.WIDTH * SCALE_FACTOR;
+  bounds.MAX_HEIGHT = screenDimensions.HEIGHT * SCALE_FACTOR;
 }
 
 

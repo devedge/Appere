@@ -1,3 +1,26 @@
+/**
+ * The main module that starts the electron application. This loads the
+ * home page, which in turn starts the renderer process: app.js
+ *
+ */
+
+// TODO: Determine if platform is on Windows and use a different icon
+// TODO:
+//    hide the image container until images show up
+//    display the home page css, and hide that on program start
+// TODO: include attributions, including the font type
+// TODO: Fade in the logo, then have helpful animations appear below it
+// TODO: 'Info' page, displaying image information (animate blur transition)
+// TODO: Settings page (animate blur transition)
+// TODO: Delete page (animate blur transition)
+// TODO: Blurred-background view (will also animate resize)
+// TODO: global user settings
+// TODO: 'm' --> minimize
+// TODO: 'shift c' --> center
+// TODO: add code to determine current monitor
+// TODO: animations as pictures slide
+// TODO: a blur effect for the settings
+
 console.time('init');
 
 // Import electron
@@ -21,24 +44,17 @@ let userSettings = {
     width: 1000,
     height: 700,
     BACKGROUND_COLOR: '#EFF0F1',
-    ICON_PATH: 'img/icons/appere256.png',
+    ICON_PATH: 'app/img/icons/appere256.png',
     center: true,
     titleName: 'Appere',
     show: true,
     autoHideMenuBar: true,
-    INDEX_PATH: 'index.html'
+    INDEX_PATH: 'app/index.html'
   },
   keepCentered: true,
   keepResizing: false,
   animateWindow: false
 };
-
-// TODO: Determine if platform is on Windows and use a different icon
-// TODO:
-//    hide the image container until images show up
-//    display the home page css, and hide that on program start
-// TODO: include attributions, including the font type
-
 
 
 // Determine if the app should quit
@@ -97,6 +113,7 @@ app.on('activate', () => {
  */
 function createWindow() {
   // Create the new browser window
+  // TODO: set min width and min height
   win = new BrowserWindow({
     width: userSettings.INIT.width,
     height: userSettings.INIT.height,
@@ -139,7 +156,7 @@ function createWindow() {
   // TODO: check win.blurWebView()
 
   // Lazy-load the window dimension calculator
-  calcDim = require('./lib/CalculateDimensions.js');
+  calcDim = require('./app/lib/CalculateDimensions.js');
 
   // Set up the screen size in the module that calculates new
   // window dimensions

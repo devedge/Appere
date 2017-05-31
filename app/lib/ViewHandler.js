@@ -4,7 +4,7 @@
  *
  * This is currently only used by the 'app.js' module imported in the view
  *
- * TODO: Fade in the logo, then have helpful animations appear below it
+ * 
  */
 
 'use-strict';
