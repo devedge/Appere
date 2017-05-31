@@ -192,7 +192,7 @@ ipcMain.on('minimize-window', (event) => {
 ipcMain.on('resize-window', (event, type, dimensions, returnPercentCalc) => {
   // Don't try to resize if the window is maximized
   if (!win.isFullScreen()) {
-    let newDimensions;
+    let newDimensions = null;
 
     // Check the options passed in, and set the new dimensions
     switch (type) {
