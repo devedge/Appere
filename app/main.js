@@ -43,12 +43,12 @@ let userSettings = {
     width: 1000,
     height: 700,
     BACKGROUND_COLOR: '#EFF0F1',
-    ICON_PATH: 'app/img/icons/appere256.png',
+    ICON_PATH: 'img/icons/appere256.png',
     center: true,
     titleName: 'Appere',
     show: true,
     autoHideMenuBar: true,
-    INDEX_PATH: 'app/index.html'
+    INDEX_PATH: 'index.html'
   },
   keepCentered: true,
   keepResizing: false,
@@ -155,7 +155,7 @@ function createWindow() {
   // TODO: check win.blurWebView()
 
   // Lazy-load the window dimension calculator
-  calcDim = require('./app/lib/CalculateDimensions.js');
+  calcDim = require('./lib/CalculateDimensions.js');
 
   // Set up the screen size in the module that calculates new
   // window dimensions
