@@ -1,4 +1,3 @@
-
 console.time('init');
 
 // Import electron
@@ -8,16 +7,19 @@ const {app, ipcMain, BrowserWindow} = electron;
 
 // Other imports
 const path = require('path');
-let calcDim;
+
+let calcDim = null;
+let win = null;
+
+// Set command line arguments into a global object
+global.shared = { args: process.argv };
+
 
 // TODO: Determine if platform is on Windows and use a different icon
 // TODO:
 //    hide the image container until images show up
 //    display the home page css, and hide that on program start
 // TODO: include attributions, including the font type
-
-let win;
-
 
 // A temporary global object that holds all user settings
 let userSettings = {
@@ -36,9 +38,35 @@ let userSettings = {
 };
 
 
+// Determine if the app should the app quit?
+let shouldQuit = app.makeSingleInstance((commandLine, workingDir) => {
+  // Since the user tried to make another instance, focus & restore
+  // it and handle the new commands
+  if (win) {
+    // Restore if it's minimized
+    if (win.isMinimized()) {
+      win.restore();
+    }
+
+    // Focus the window
+    win.focus();
+
+    // Set the new command line arguments, if any. Then, notify
+    // the renderer with a event
+    global.shared.args = commandLine;
+    win.webContents.send('new-file');
+  }
+});
+
+// If this instance is a second one, quit itself
+if (shouldQuit) {
+  app.quit();
+  return;
+}
+
+
 // When Electron has finished initialization
 app.on('ready', createWindow);
-
 
 // Quit when all windows are closed
 app.on('window-all-closed', () => {
@@ -48,7 +76,6 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
-
 
 // On macOS it's common to re-create a window in the app when the
 // dock icon is clicked and there are no other windows open.
@@ -73,9 +100,7 @@ function createWindow() {
     icon: path.join(__dirname, userSettings.INIT.ICON_PATH),
     // center: userSettings.INIT.center,
     title: userSettings.INIT.titleName,
-    // show immediately, so the logo can fade in TODO
     show: userSettings.INIT.show,
-    // don't show menu bar unless 'alt' is pressed
     autoHideMenuBar: userSettings.INIT.autoHideMenuBar
   });
 
@@ -84,7 +109,7 @@ function createWindow() {
 
   // When the app is ready, focus it
   win.on('ready-to-show', () => {
-    // console.log('Window is ready');
+    console.log('Window is ready');
     // win.focus();
     // win.show() TODO should a splash screen be added instead?
     // TODO: send an IPC back to trigger css animation?
@@ -104,19 +129,15 @@ function createWindow() {
 
   console.timeEnd('init');
 
-  // console.log(path.join(__dirname, userSettings.INIT.ICON_PATH));
-
   // TODO: check win.center()
   // TODO: check win.blurWebView()
 
   // Lazy-load the window dimension calculator
   calcDim = require('./lib/CalculateDimensions.js');
-  var sc = electron.screen.getPrimaryDisplay().workAreaSize;
-  // console.log(sc.width + ' ' + sc.height);
 
-  // Set up the screen size in the module that
-  // calculates new window dimensions
-  calcDim.updateScreen(sc);
+  // Set up the screen size in the module that calculates new
+  // window dimensions
+  calcDim.updateScreen(electron.screen.getPrimaryDisplay().workAreaSize);
 }
 
 
@@ -130,6 +151,7 @@ ipcMain.on('focus-window', (event) => {
     win.focus();
 });
 
+
 ipcMain.on('minimize-window', (event) => {
     win.minimize();
 
@@ -138,7 +160,6 @@ ipcMain.on('minimize-window', (event) => {
         event.sender.send('minimize-done');
     }, 250);
 });
-
 
 
 ipcMain.on('resize-window', (event, type, dimensions, returnPercentCalc) => {
