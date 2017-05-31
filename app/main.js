@@ -14,7 +14,7 @@
 // TODO: Settings page (animate blur transition)
 // TODO: Delete page (animate blur transition)
 // TODO: Blurred-background view (will also animate resize)
-// TODO: global user settings
+// TODONE: global user settings
 // TODO: 'm' --> minimize
 // TODO: 'shift c' --> center
 // TODO: add code to determine current monitor
@@ -23,38 +23,30 @@
 
 console.time('init');
 
-// Import electron
-const electron = require('electron');
+
+const path = require('path');
+const electron = require('electron'); // Import electron
 const {app, ipcMain, BrowserWindow} = electron; // Extract modules from electron
 
-// Other imports
-const path = require('path');
+// User settings configuration
+const Config = require('electron-config');
+const config = new Config();
 
+// Global variables
 let calcDim = null;
 let win = null;
 
-// Set command line arguments into a global object
-global.shared = { args: process.argv };
+// Try to load user configuration by checking for a configuration
+// value, and if it doesn't exist, initialize it
+if (!config.store.set) {
+  config.store = require('./util/InitialConfig.js');
+}
 
-// A temporary global object that holds all user settings
-let userSettings = {
-  ENABLE_WIN_ANIMATION: true,
-  INIT: {
-    width: 1000,
-    height: 700,
-    BACKGROUND_COLOR: '#EFF0F1',
-    ICON_PATH: 'img/icons/appere256.png',
-    center: true,
-    titleName: 'Appere',
-    show: true,
-    autoHideMenuBar: true,
-    INDEX_PATH: 'index.html'
-  },
-  keepCentered: true,
-  keepResizing: false,
-  animateWindow: false
+// Set the command line arguments & user config into a global object
+global.shared = {
+  args: process.argv,
+  userConfig: config
 };
-
 
 // Determine if the app should quit
 let shouldQuit = app.makeSingleInstance((commandLine, workingDir) => {
@@ -114,26 +106,30 @@ function createWindow() {
   // Create the new browser window
   // TODO: set min width and min height
   win = new BrowserWindow({
-    width: userSettings.INIT.width,
-    height: userSettings.INIT.height,
-    backgroundColor: userSettings.INIT.BACKGROUND_COLOR,
-    icon: path.join(__dirname, userSettings.INIT.ICON_PATH),
-    // center: userSettings.INIT.center,
-    title: userSettings.INIT.titleName,
-    show: userSettings.INIT.show,
-    autoHideMenuBar: userSettings.INIT.autoHideMenuBar
+    width: config.get('BROWSER_WIN.width'),
+    height: config.get('BROWSER_WIN.height'),
+    backgroundColor: config.get('BROWSER_WIN.backgroundColor'),
+    icon: path.join(__dirname, config.get('BROWSER_WIN.iconPath')),
+    // center: config.get('BROWSER_WIN.center'),
+    title: config.get('BROWSER_WIN.titleName'),
+    show: config.get('BROWSER_WIN.show'),
+    autoHideMenuBar: config.get('BROWSER_WIN.autoHideMenuBar')
   });
 
   // Then, load the app's page
-  win.loadURL(path.join('file://', __dirname, userSettings.INIT.INDEX_PATH));
+  win.loadURL(path.join(
+    'file://',
+    __dirname,
+    config.get('BROWSER_WIN.indexPath')
+  ));
 
   // When the app is ready, focus it
-  win.on('ready-to-show', () => {
-    console.log('Window is ready');
+  // win.on('ready-to-show', () => {
+    // console.log('Window is ready');
     // win.focus();
     // win.show() TODO should a splash screen be added instead?
     // TODO: send an IPC back to trigger css animation?
-  });
+  // });
 
   // Emitted when the window is closed
   win.on('closed', () => {
@@ -218,15 +214,18 @@ ipcMain.on('resize-window', (event, type, dimensions, returnPercentCalc) => {
       }
 
       // If the user wants the window to remain in the center of the screen
-      if (userSettings.keepCentered) {
+      if (config.get('CENTER_WIN')) {
         win.setBounds(
-          newDimensions, userSettings.animateWindow
+          newDimensions,
+          config.get('ANIMATE_WIN')
         );
 
       // If the user just wants the window to resize to fit the image
-      } else if (userSettings.keepResizing) {
+      } else if (config.get('RESIZE_WIN')) {
         win.setSize(
-          newDimensions.width, newDimensions.height, userSettings.animateWindow
+          newDimensions.width,
+          newDimensions.height,
+          config.get('ANIMATE_WIN')
         );
       }
     }

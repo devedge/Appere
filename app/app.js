@@ -9,6 +9,7 @@
 
 const {ipcRenderer} = require('electron');
 const remote = require('electron').remote;
+let cliArgs = remote.getGlobal('shared').args;
 
 // Local module imports
 const ViewHandler = require('./lib/ViewHandler.js');
@@ -100,7 +101,7 @@ ipcRenderer.on('new-file', () => {
 function setFromArgs() {
   // The first command is 'electron' and the second is the
   // main function, making the third one the (possible) file
-  if (remote.getGlobal('shared').args.length >= 3) {
-    view.setCurrentImage(remote.getGlobal('shared').args[2]);
+  if (cliArgs.length >= 3) {
+    view.setCurrentImage(cliArgs[2]);
   }
 }
