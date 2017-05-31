@@ -12,7 +12,7 @@ const remote = require('electron').remote;
 
 // Local module imports
 const ViewHandler = require('./lib/ViewHandler.js');
-const keyAction = require('./lib/HandleKeypress.js');
+const keyAction = require('./lib/KeypressHandler.js');
 
 // Flag to handle repeat drag-and-drops
 let DRAG_FLAG = false;
@@ -33,7 +33,7 @@ view.init(
 
 
 // Immediately try to load the image from the command line args,
-// if it exists
+// if it is provided
 setFromArgs();
 
 
@@ -55,7 +55,7 @@ document.ondrop = document.body.ondrop = (event) => {
 
 // Key listener logic
 document.addEventListener('keydown', (event) => {
-  switch (keyAction.validate(event, event.keyCode, view.isZoomed())) {
+  switch (keyAction.get(event, view.isZoomed())) {
     case 'next':
       view.showNext();
       break;
@@ -81,10 +81,10 @@ document.addEventListener('keydown', (event) => {
 
 // If anything is dragged over the display window, prevent
 // default behavior
-document.ondragover = (event) => {event.preventDefault();};
+document.ondragover = (event) => { event.preventDefault(); };
 
 
-// This event get emitted if a new instance of the app was
+// This event gets emitted if a new instance of the app was
 // opened. This triggers the function that sets the current
 // image & directory from the selected image.
 ipcRenderer.on('new-file', () => {

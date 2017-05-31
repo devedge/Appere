@@ -14,13 +14,6 @@ let win = null;
 // Set command line arguments into a global object
 global.shared = { args: process.argv };
 
-
-// TODO: Determine if platform is on Windows and use a different icon
-// TODO:
-//    hide the image container until images show up
-//    display the home page css, and hide that on program start
-// TODO: include attributions, including the font type
-
 // A temporary global object that holds all user settings
 let userSettings = {
   ENABLE_WIN_ANIMATION: true,
@@ -34,11 +27,21 @@ let userSettings = {
     show: true,
     autoHideMenuBar: true,
     INDEX_PATH: 'index.html'
-  }
+  },
+  keepCentered: true,
+  keepResizing: false,
+  animateWindow: false
 };
 
+// TODO: Determine if platform is on Windows and use a different icon
+// TODO:
+//    hide the image container until images show up
+//    display the home page css, and hide that on program start
+// TODO: include attributions, including the font type
 
-// Determine if the app should the app quit?
+
+
+// Determine if the app should quit
 let shouldQuit = app.makeSingleInstance((commandLine, workingDir) => {
   // Since the user tried to make another instance, focus & restore
   // it and handle the new commands
@@ -52,7 +55,7 @@ let shouldQuit = app.makeSingleInstance((commandLine, workingDir) => {
     win.focus();
 
     // Set the new command line arguments, if any. Then, notify
-    // the renderer with a event
+    // the renderer with an event
     global.shared.args = commandLine;
     win.webContents.send('new-file');
   }
@@ -65,7 +68,8 @@ if (shouldQuit) {
 }
 
 
-// When Electron has finished initialization
+// When Electron has finished initialization, create
+// a new window
 app.on('ready', createWindow);
 
 // Quit when all windows are closed
@@ -125,6 +129,8 @@ function createWindow() {
   // application position
   win.on('move', () => {
     // console.log('Moved to ' + win.getPosition()); // or win.getPosition()
+    // maybe constantly set a variable here, which can be passed into the
+    // resize function
   });
 
   console.timeEnd('init');
@@ -142,16 +148,19 @@ function createWindow() {
 
 
 
+// ------------------------------------- //
+//          IPC handler methods          //
+// ------------------------------------- //
 
-
-
-
-// TEMPORARY ipc methods, to be moved into an external module
+// Re-focus the window
 ipcMain.on('focus-window', (event) => {
     win.focus();
 });
 
 
+// On a minimize event, minimize the window, then wait for a quarter
+// of a second before resetting the window dimensions. This prevents
+// jumpy animations while the window minimizes
 ipcMain.on('minimize-window', (event) => {
     win.minimize();
 
@@ -162,15 +171,13 @@ ipcMain.on('minimize-window', (event) => {
 });
 
 
+// Resize the window while the image gets set in the renderer
 ipcMain.on('resize-window', (event, type, dimensions, returnPercentCalc) => {
-  let keepCentered = true;
-  let keepResizing = false;
-  let animateWindow = false;
-
   // Don't try to resize if the window is maximized
   if (!win.isFullScreen()) {
-    let newDimensions = {};
+    let newDimensions;
 
+    // Check the options passed in, and set the new dimensions
     switch (type) {
       case 'resize':
         newDimensions = calcDim.getCentered(dimensions);
@@ -180,20 +187,33 @@ ipcMain.on('resize-window', (event, type, dimensions, returnPercentCalc) => {
         break;
     }
 
-    if (returnPercentCalc) {
-      event.sender.send(
-        'percent-reduc',
-        (
-          100 * (newDimensions.width + newDimensions.height) /
-          (dimensions.width + dimensions.height)
-        ).toFixed(0)
-      );
+    // If these new dimensions were set
+    if (newDimensions) {
+      // If the caller needs the 'percentage shrunk' variable, calculate
+      // it and return it
+      if (returnPercentCalc) {
+        event.sender.send(
+          'percent-reduc',
+          (
+            100 * (newDimensions.width + newDimensions.height) /
+            (dimensions.width + dimensions.height)
+          ).toFixed(0)
+        );
+      }
+
+      // If the user wants the window to remain in the center of the screen
+      if (userSettings.keepCentered) {
+        win.setBounds(
+          newDimensions, userSettings.animateWindow
+        );
+
+      // If the user just wants the window to resize to fit the image
+      } else if (userSettings.keepResizing) {
+        win.setSize(
+          newDimensions.width, newDimensions.height, userSettings.animateWindow
+        );
+      }
     }
 
-    if (keepCentered) {
-      win.setBounds(newDimensions, animateWindow);
-    } else if (keepResizing) {
-      win.setSize(newDimensions.width, newDimensions.height, animateWindow);
-    }
   }
 });

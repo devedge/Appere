@@ -1,4 +1,6 @@
 module.exports = {
+  ZOOM_IN: 38, // the up arrow. this needs to be paired with the shift key
+  ZOOM_OUT: 40, // down arrow, also needs shift key
   LEFT: 37,
   UP: 38,
   RIGHT: 39,
