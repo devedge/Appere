@@ -5,14 +5,29 @@
  */
 
 // TODO: Determine if platform is on Windows and use a different icon
-// TODO:
+// TODONE:
 //    hide the image container until images show up
 //    display the home page css, and hide that on program start
 // TODO: include attributions, including the font type
 // TODO: Fade in the logo, then have helpful animations appear below it
 // TODO: 'Info' page, displaying image information (animate blur transition)
 // TODO: Settings page (animate blur transition)
+//        Three display options (row of buttons)
+//        blur background (enabled only for no resize)
+//        enable window animations
+//        enable image transition animations
+//        wrap images
+//        window scale factor (value between 0.x and 1)
+//        ? center window on start ?
+//        Re-center key: (enabled for everything)
+//        Minimize:
+//          Clear on minimize (enabled)
+//          Minimize with close button (CTRL+Q quits app) (disabled)
+//          Minimize key: ESC, m
+//
 // TODO: Delete page (animate blur transition)
+//        Move to trash?
+//        Yes(selected) No
 // TODO: Blurred-background view (will also animate resize)
 // TODONE: global user settings
 // TODONE: Reload gifs
@@ -25,6 +40,8 @@
 // TODO: check win.center()
 // TODO: check win.blurWebView()
 // TODO: Automatic updater
+// TODO: if error, clear current values and set error flag in the state array
+// TODO: maybe a uniform 'image state populate' function
 
 console.time('init');
 
@@ -32,6 +49,7 @@ console.time('init');
 const path = require('path');
 const electron = require('electron'); // Import electron
 const {app, ipcMain, BrowserWindow} = electron; // Extract modules from electron
+const bwInit = require('./util/InitialConfig.js');
 
 // User settings configuration
 const Config = require('electron-config');
@@ -44,8 +62,8 @@ let win = null;
 
 // Try to load user configuration by checking for a configuration
 // value, and if it doesn't exist, initialize it
-if (config.store.set) { //!
-  config.store = require('./util/InitialConfig.js');
+if (!config.store.set) { //!
+  config.store = bwInit;
 }
 
 // Set the command line arguments & user config into a global object
@@ -79,11 +97,11 @@ if (shouldQuit) {
   return;
 }
 
+// TODO: figure this out
 app.on('open-url', (event, url) => {
   event.preventDefault();
   console.log('url: ' + url);
 });
-
 app.on('open-file', (event, path) => {
   event.preventDefault();
   console.log('path: ' + path);
@@ -118,9 +136,6 @@ app.on('activate', () => {
  * @return {none}
  */
 function createWindow() {
-  // minimize the number of 'gets' for performance
-  // let bw = config.get('BROWSER_WIN');
-
   // Create the new browser window
   win = new BrowserWindow({
     width: config.get('BROWSER_WIN.width'),
@@ -145,17 +160,20 @@ function createWindow() {
   // Emitted just before the window will be closed. This is watched so
   // the window size can be saved
   win.on('close', () => {
+    let windowSize = win.getSize();
+
     // If the user want to remember the window size, save it for
     // the next start up
     if (config.get('POSITION_STYLE') === 'RESIZE_REMEMBER') {
-      config.set('BROWSER_WIN.width', win.getSize()[0]);
-      config.set('BROWSER_WIN.height', win.getSize()[1]);
-    } else {
+      config.set('BROWSER_WIN.width', windowSize[0]);
+      config.set('BROWSER_WIN.height', windowSize[1]);
+
+    } else if (bwInit.BROWSER_WIN.width !== windowSize[0] ||
+               bwInit.BROWSER_WIN.height !== windowSize[1]) {
       // Reset the original width and height, in case the user
       // changed view modes
-      let bw = require('./util/InitialConfig.js');
-      config.set('BROWSER_WIN.width', bw.width);
-      config.set('BROWSER_WIN.height', bw.height);
+      config.set('BROWSER_WIN.width', bwInit.BROWSER_WIN.width);
+      config.set('BROWSER_WIN.height', bwInit.BROWSER_WIN.height);
     }
   });
 
@@ -164,19 +182,6 @@ function createWindow() {
     // Dereference the window object so it gets garbage-collected
     win = null;
   });
-
-  // If the window is moved, keep track of it to maintain
-  // application position
-  // This only tracks the top right position of the window, so the center
-  // must be calculated from the current image dimensions
-  // win.on('move', () => {
-    // let newPos = win.getPosition();
-    // console.log('Moved to ' + win.getPosition()); // or win.getPosition()
-    // maybe constantly set a variable here, which can be passed into the
-    // resize function
-  //   winPos.x = newPos[0];
-  //   winPos.y = newPos[1];
-  // });
 
   // Lazy-load the window dimension calculator
   calcDim = require('./lib/CalculateDimensions.js');
@@ -220,13 +225,6 @@ ipcMain.on('resize-window', (event, resizeType, dimensions, returnPercentage) =>
   // Don't try to resize if the window is maximized
   if (!win.isFullScreen()) {
     let newDimensions = null;
-
-    // dimensions.offset = {
-    //   winBounds: win.getSize(),
-    //   winPosition: win.getPosition()
-    // };
-
-    // console.log(winPos.x + ' ' + winPos.y);
 
     // Check the options passed in, and set the new dimensions
     switch (resizeType) {

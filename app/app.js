@@ -73,6 +73,7 @@ document.addEventListener('keydown', (event) => {
       break;
 
     case 'min':
+      // TODO (defined in main.js) only minimize, or also clear
       view.minimize();
       shared.args = []; // Reset cli args
       break;

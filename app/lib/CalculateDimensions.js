@@ -70,7 +70,7 @@ function updateScreen(newScreen) {
   bounds.MAX_WIDTH =
     screenDimensions.WIDTH * global.shared.userConfig.get('SCALE_FACTOR');
   bounds.MAX_HEIGHT =
-    screenDimensions.HEIGHT * lobal.shared.userConfig.get('SCALE_FACTOR');
+    screenDimensions.HEIGHT * global.shared.userConfig.get('SCALE_FACTOR');
 }
 
 

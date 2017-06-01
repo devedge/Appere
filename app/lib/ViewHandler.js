@@ -10,8 +10,10 @@
 'use-strict';
 
 const {ipcRenderer} = require('electron');
-const sizeOf = require('image-size');
+// const sizeOf = require('image-size'); // breaks on certain valid images
+const probe = require('probe-image-size'); // working replacement, but slower
 const path = require('path');
+const fs = require('fs');
 
 // Local module imports
 const pEncode = require('./PercentEncode.js');
@@ -739,6 +741,27 @@ function setTitle(newFields) {
 
   // Set the app's window new title
   document.title = appTitle;
+}
+
+
+/**
+ * Working replacement for sizeOf, but it's noticeably slower (~1ms longer)
+ * @method sizeOf
+ * @param  {String} filepath Absolute filepath to the image
+ * @return {Object}          { width: 1000,
+ *                             height: 300,
+ *                             type: 'jpg',
+ *                             mime: 'image/jpeg',
+ *                             wUnits: 'px',
+ *                             hUnits: 'px' }
+ */
+function sizeOf(filepath) {
+  // let data = fs.createReadStream(filepath);
+  // probe(data).then(result => {
+  //   data.destroy();
+  //   return result;
+  // });
+  return probe.sync(fs.readFileSync(filepath));
 }
 
 
