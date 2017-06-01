@@ -1,19 +1,19 @@
 // The container for the application's view
 .main-app {
-  -webkit-user-select: none;
-  -webkit-app-region: drag;
+  -webkit-user-select: none; // prevent all text selection/highlight
 }
 
 // The parent element of the logo
 .home-container {
+  padding: 30px; // pad the home container with 30 px
   display: flex;
   justify-content: center;
 }
 
 // The logo, its animation, and its positioning
 .logo-effect {
+  width: 100%; // Keep the image width 100% in the viewport
   margin-top: 10vh; // keep the logo aligned 10vh from the top
-  padding: 30px;
   animation-delay: 0.7s;  // wait, so the animation runs smooth
   animation: logo-animation 1s;
   animation-timing-function: ease;
@@ -27,6 +27,7 @@
 .image-element {
   margin: auto;
   position: absolute;
+  -webkit-app-region: drag; // allow images to be dragged
 }
 
 // Fit & scale the image within the application's view

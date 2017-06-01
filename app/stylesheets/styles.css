@@ -1,14 +1,14 @@
 .main-app {
-  -webkit-user-select: none;
-  -webkit-app-region: drag; }
+  -webkit-user-select: none; }
 
 .home-container {
+  padding: 30px;
   display: flex;
   justify-content: center; }
 
 .logo-effect {
+  width: 100%;
   margin-top: 10vh;
-  padding: 30px;
   animation-delay: 0.7s;
   animation: logo-animation 1s;
   animation-timing-function: ease;
@@ -16,7 +16,8 @@
 
 .image-element {
   margin: auto;
-  position: absolute; }
+  position: absolute;
+  -webkit-app-region: drag; }
 
 .fit-img {
   top: 0px;

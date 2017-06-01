@@ -20,6 +20,9 @@
 // TODO: add code to determine current monitor
 // TODO: animations as pictures slide
 // TODO: a blur effect for the settings
+// TODO: option to set close button --> minimize & quit only on 'CTRL Q'
+// TODO: check win.center()
+// TODO: check win.blurWebView()
 
 console.time('init');
 
@@ -32,13 +35,13 @@ const {app, ipcMain, BrowserWindow} = electron; // Extract modules from electron
 const Config = require('electron-config');
 const config = new Config();
 
-// Global variables
+// Global module variables
 let calcDim = null;
 let win = null;
 
 // Try to load user configuration by checking for a configuration
 // value, and if it doesn't exist, initialize it
-if (!config.store.set) {
+if (/*!*/config.store.set) {
   config.store = require('./util/InitialConfig.js');
 }
 
@@ -48,15 +51,14 @@ global.shared = {
   userConfig: config
 };
 
-// Determine if the app should quit
+// Determine if this is a second instance of the app,
+// which should quit
 let shouldQuit = app.makeSingleInstance((commandLine, workingDir) => {
   // Since the user tried to make another instance, focus & restore
   // it and handle the new commands
   if (win) {
     // Restore if it's minimized
-    if (win.isMinimized()) {
-      win.restore();
-    }
+    if (win.isMinimized()) { win.restore(); }
 
     // Focus the window
     win.focus();
@@ -73,6 +75,16 @@ if (shouldQuit) {
   app.quit();
   return;
 }
+
+app.on('open-url', (event, url) => {
+  event.preventDefault();
+  console.log('url: ' + url);
+});
+
+app.on('open-file', (event, path) => {
+  event.preventDefault();
+  console.log('path: ' + path);
+});
 
 
 // When Electron has finished initialization, create
@@ -103,14 +115,18 @@ app.on('activate', () => {
  * @return {none}
  */
 function createWindow() {
+  // minimize the number of 'gets' for performance
+  // let bw = config.get('BROWSER_WIN');
+
   // Create the new browser window
-  // TODO: set min width and min height
   win = new BrowserWindow({
     width: config.get('BROWSER_WIN.width'),
     height: config.get('BROWSER_WIN.height'),
+    minWidth: config.get('BROWSER_WIN.minWidth'),
+    minHeight: config.get('BROWSER_WIN.minHeight'),
     backgroundColor: config.get('BROWSER_WIN.backgroundColor'),
     icon: path.join(__dirname, config.get('BROWSER_WIN.iconPath')),
-    // center: config.get('BROWSER_WIN.center'),
+    center: config.get('BROWSER_WIN.center'),
     title: config.get('BROWSER_WIN.titleName'),
     show: config.get('BROWSER_WIN.show'),
     autoHideMenuBar: config.get('BROWSER_WIN.autoHideMenuBar')
@@ -123,14 +139,6 @@ function createWindow() {
     config.get('BROWSER_WIN.indexPath')
   ));
 
-  // When the app is ready, focus it
-  // win.on('ready-to-show', () => {
-    // console.log('Window is ready');
-    // win.focus();
-    // win.show() TODO should a splash screen be added instead?
-    // TODO: send an IPC back to trigger css animation?
-  // });
-
   // Emitted when the window is closed
   win.on('closed', () => {
     // Dereference the window object so it gets garbage-collected
@@ -139,20 +147,16 @@ function createWindow() {
 
   // If the window is moved, keep track of it to maintain
   // application position
-  win.on('move', () => {
+  // win.on('move', () => {
     // console.log('Moved to ' + win.getPosition()); // or win.getPosition()
     // maybe constantly set a variable here, which can be passed into the
     // resize function
-  });
+  // });
 
-  console.timeEnd('init');
 
-  // TODO: check win.center()
-  // TODO: check win.blurWebView()
 
   // Lazy-load the window dimension calculator
   calcDim = require('./lib/CalculateDimensions.js');
-
   // Set up the screen size in the module that calculates new
   // window dimensions
   calcDim.updateScreen(electron.screen.getPrimaryDisplay().workAreaSize);
@@ -163,6 +167,11 @@ function createWindow() {
 // ------------------------------------- //
 //          IPC handler methods          //
 // ------------------------------------- //
+
+
+// Find out when the app has fully loaded
+ipcMain.on('app-loaded', () => {console.timeEnd('init');});
+
 
 // Re-focus the window
 ipcMain.on('focus-window', (event) => {

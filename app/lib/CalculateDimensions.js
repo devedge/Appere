@@ -1,5 +1,3 @@
-
-
 /**
  * Desired actions:
  * Center the image:
@@ -11,16 +9,18 @@
  *
  */
 
-// TODO: export into module
-let SCALE_FACTOR = 0.85;
+// Set the scale factor from global config
+let SCALE_FACTOR = global.shared.userConfig.get('SCALE_FACTOR');
 
+// Set the window bounds
 let bounds = {
   MAX_WIDTH: 0,
   MAX_HEIGHT: 0,
-  MIN_WIDTH: 500,
-  MIN_HEIGHT: 500
+  MIN_WIDTH: global.shared.userConfig.get('MIN_WIDTH'),
+  MIN_HEIGHT: global.shared.userConfig.get('MIN_HEIGHT')
 };
 
+// Initialize an object that represents the screen dimensions
 let screenDimensions = {
   WIDTH: 0,
   HEIGHT: 0,
@@ -40,6 +40,7 @@ function updateBounds(newBounds) {
   // Update the scale modifier if a new one is set
   if (newBounds.newScale) {
     SCALE_FACTOR = newBounds.newScale;
+    global.shared.userConfig.set('SCALE_FACTOR', newBounds.newScale);
   }
 
   // If any of the bounds are set, update them

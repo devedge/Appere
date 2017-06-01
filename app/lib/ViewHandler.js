@@ -4,12 +4,11 @@
  *
  * This is currently only used by the 'app.js' module imported in the view
  *
- * 
+ *
  */
 
 'use-strict';
 
-// Module imports
 const {ipcRenderer} = require('electron');
 const sizeOf = require('image-size');
 const path = require('path');
@@ -19,13 +18,15 @@ const pEncode = require('./PercentEncode.js');
 const FilesystemManager = require('./FilesystemManager.js');
 const validateFile = require('./ValidateFile.js');
 
+// Global shared object
+const shared = require('electron').remote.getGlobal('shared');
 
-// The filepath to the home screen background
-// const WELCOME_BACKGROUND = require('../util/ApphomePath.js');
 // Boolean that indicates whether or not the app is at the start page
-let FIT_IMG_CLASS = 'fit-img';
-let FULL_IMG_CLASS = 'full-img';
-let APP_HOME = true; // TODO: A flag to keep track of the home page for the zoom functions
+let FIT_IMG_CLASS = shared.userConfig.get('FIT_IMG_CLASS');
+let FULL_IMG_CLASS = shared.userConfig.get('FULL_IMG_CLASS');
+
+// A flag to keep track of the home page for the zoom functions
+let APP_HOME = true;
 
 // Initialize a fsManager
 let fsManager = new FilesystemManager();
@@ -52,18 +53,21 @@ let VIEWSTATE = {
   stateArray: [   // An object array that maintains state of the three images
     {
       handle: null,  // A handle to the image element
+      gifHandle: null,
       filename: '',   // The image's filename
       index: 0,       // The index into the image array
       dimensions: {}  // The dimensions {width, height} of the current image
     },
     {
       handle: null,
+      gifHandle: null,
       filename: '',
       index: 0,
       dimensions: {}
     },
     {
       handle: null,
+      gifHandle: null,
       filename: '',
       index: 0,
       dimensions: {}
@@ -211,7 +215,7 @@ view.prototype.setCurrentImage = function (filepath, callback) {
     }
   } catch (e) {
     console.log('[ERROR] - setCurrentImage(): ' + e);
-    // callback(e);
+    if (callback) { callback(e); }
   }
 };
 
@@ -242,11 +246,15 @@ view.prototype.showNext = function (callback) {
         throw 'IPC \'resize-window\' error: ' + e;
       }
 
+      // If the previous image (still referred to as 'current') was
+      // a gif, 'null' the gifHandle temporary value
+      if (vs.stateArray[vs.pointer.current].gifHandle) {
+        vs.stateArray[vs.pointer.current].handle.src = null;
+      }
+
       // Hide the current element and show the next one
       vs.stateArray[vs.pointer.current].handle.hidden = true;
       vs.stateArray[vs.pointer.next].handle.hidden = false;
-
-      // TODO: if this 'next' image is a 'gif', reload it from the start
 
       // Set the new window title
       setTitle({
@@ -256,11 +264,19 @@ view.prototype.showNext = function (callback) {
       });
 
       // Update the pointer values
+      // This is not reassignment, the pointers are being cycled
       let temp = vs.pointer.previous;
       vs.pointer.previous = vs.pointer.current;
       vs.pointer.current  = vs.pointer.next;
-      vs.pointer.next     = temp; // This is not reassignment, the pointers are
-                                  // being cycled
+      vs.pointer.next     = temp;
+
+      // If this image is a gif, it was temporarily loaded into a 'gifHandle'
+      // attribute. Now, load it in the actual 'src' value so it starts
+      // from the beginning
+      if (vs.stateArray[vs.pointer.current].gifHandle) {
+        vs.stateArray[vs.pointer.current].handle.src =
+          vs.stateArray[vs.pointer.current].gifHandle;
+      }
 
       // Preload the next image.
       // This 'next' image is now the 'current' image
@@ -272,7 +288,7 @@ view.prototype.showNext = function (callback) {
   } catch (e) {
     console.log('[ERROR] - showNext(): ' + e);
     // TODO: Remove this callback and display an error in the view instead
-    // callback(e);
+    if (callback) { callback(e); }
   }
 };
 
@@ -303,11 +319,15 @@ view.prototype.showPrev = function (callback) {
         throw 'IPC \'resize-window\' error: ' + e;
       }
 
+      // If the previous image (still referred to as 'current') was
+      // a gif, 'null' the gifHandle temporary value
+      if (vs.stateArray[vs.pointer.current].gifHandle) {
+        vs.stateArray[vs.pointer.current].handle.src = null;
+      }
+
       // Hide the current element and show the previous one
       vs.stateArray[vs.pointer.current].handle.hidden = true;
       vs.stateArray[vs.pointer.previous].handle.hidden = false;
-
-      // TODO: if this 'previous' image is a 'gif', reload it from the start
 
       // Set the new window title
       setTitle({
@@ -317,11 +337,19 @@ view.prototype.showPrev = function (callback) {
       });
 
       // Update the pointer values
+      // This is not reassignment, the pointers are being cycled
       let temp = vs.pointer.next;
       vs.pointer.next     = vs.pointer.current;
       vs.pointer.current  = vs.pointer.previous;
-      vs.pointer.previous = temp; // This is not reassignment, the pointers are
-                                  // being cycled
+      vs.pointer.previous = temp;
+
+      // If this image is a gif, it was temporarily loaded into a 'gifHandle'
+      // attribute. Now, load it in the actual 'src' value so it starts
+      // from the beginning
+      if (vs.stateArray[vs.pointer.current].gifHandle) {
+        vs.stateArray[vs.pointer.current].handle.src =
+          vs.stateArray[vs.pointer.current].gifHandle;
+      }
 
       // Preload the next image.
       // This 'previous' image is now the 'current' image
@@ -332,11 +360,11 @@ view.prototype.showPrev = function (callback) {
     }
   } catch (e) {
     console.log('[ERROR] - showPrev(): ' + e);
-    // callback(e);
+    if (callback) { callback(e); }
   }
 };
 
-// TODO
+// TODO delete
 view.prototype.delete = function () {
   // on delete,
   // remove the filename from the fsManager array
@@ -364,7 +392,7 @@ view.prototype.zoomImage = function () {
       this.currentRealZoom = vs.title.percentShrunk;
 
       // Ensure that the zoomed-in image also fills the full
-      // window spac
+      // window space
       ipcRenderer.send(
         'resize-window',
         'fill',
@@ -382,7 +410,7 @@ view.prototype.zoomImage = function () {
     }
   } catch (e) {
     console.log('[ERROR] - zoomImage(): ' + e);
-    // callback(e);
+    if (callback) { callback(e); }
   }
 };
 
@@ -419,7 +447,7 @@ view.prototype.fitImage = function () {
     }
   } catch (e) {
     console.log('[ERROR] - fitImage(): ' + e);
-    // callback(e);
+    if (callback) { callback(e); }
   }
 };
 
@@ -480,8 +508,17 @@ function loadNext(wrap, index, callback) {
             ));
 
           // Set the next image in the next 'img' tag
-          vs.stateArray[vs.pointer.next].handle.src =
-            path.join(vs.dirPath, pEncode(filename));
+          if (vs.stateArray[vs.pointer.next].filename.match(/\.gif$/)) {
+            // If the image is a 'gif', don't actually load it
+            // in the 'src' attribute. Instead, load it in a temporary
+            // value so it can be loaded at the last minute
+            vs.stateArray[vs.pointer.next].gifHandle =
+              path.join(vs.dirPath, pEncode(filename));
+          } else {
+            // Otherwise, preload the next image
+            vs.stateArray[vs.pointer.next].handle.src =
+              path.join(vs.dirPath, pEncode(filename));
+          }
         } else {
           throw 'Invalid/corrupt file: \'' + filename + '\'';
         }
@@ -489,7 +526,7 @@ function loadNext(wrap, index, callback) {
     });
   } catch (e) {
     console.log('[ERROR] - loadNext(): ' + e);
-    // callback(e);
+    if (callback) { callback(e); }
   }
 }
 
@@ -524,8 +561,17 @@ function loadPrev(wrap, index, callback) {
             ));
 
           // Set the previous image in the previous 'img' tag
-          vs.stateArray[vs.pointer.previous].handle.src =
-            path.join(vs.dirPath, pEncode(filename));
+          if (vs.stateArray[vs.pointer.previous].filename.match(/\.gif$/)) {
+            // If the image is a 'gif', don't actually load it
+            // in the 'src' attribute. Instead, load it in a temporary
+            // value so it can be loaded at the last minute
+            vs.stateArray[vs.pointer.previous].gifHandle =
+              path.join(vs.dirPath, pEncode(filename));
+          } else {
+            // Otherwise, preload the previous image
+            vs.stateArray[vs.pointer.previous].handle.src =
+              path.join(vs.dirPath, pEncode(filename));
+          }
         } else {
           throw 'Invalid/corrupt file: \'' + filename + '\'';
         }
@@ -533,7 +579,7 @@ function loadPrev(wrap, index, callback) {
     });
   } catch (e) {
     console.log('[ERROR] - loadPrev(): ' + e);
-    // callback(e);
+    if (callback) { callback(e); }
   }
 }
 

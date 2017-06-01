@@ -8,8 +8,7 @@
 'use-strict';
 
 const {ipcRenderer} = require('electron');
-const remote = require('electron').remote;
-let cliArgs = remote.getGlobal('shared').args;
+const shared = require('electron').remote.getGlobal('shared');
 
 // Local module imports
 const ViewHandler = require('./lib/ViewHandler.js');
@@ -47,7 +46,7 @@ document.ondrop = document.body.ondrop = (event) => {
       DRAG_FLAG = true;
 
       // Hook into the callback to reset the flag
-      view.setCurrentImage(event.dataTransfer.files[0].path, () => {
+      view.setCurrentImage(event.dataTransfer.files[0].path, (err) => {
         DRAG_FLAG = false; // Reset the DRAG_FLAG
       });
   }
@@ -75,6 +74,7 @@ document.addEventListener('keydown', (event) => {
 
     case 'min':
       view.minimize();
+      shared.args = []; // Reset cli args
       break;
   }
 });
@@ -101,7 +101,10 @@ ipcRenderer.on('new-file', () => {
 function setFromArgs() {
   // The first command is 'electron' and the second is the
   // main function, making the third one the (possible) file
-  if (cliArgs.length >= 3) {
-    view.setCurrentImage(cliArgs[2]);
+  if (shared.args.length >= 3) {
+    view.setCurrentImage(shared.args[2]);
   }
 }
+
+// Renderer IPC to let Main know that the app has fully loaded
+ipcRenderer.send('app-loaded');
