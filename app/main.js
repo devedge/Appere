@@ -42,6 +42,7 @@
 // TODO: Automatic updater
 // TODO: if error, clear current values and set error flag in the state array
 // TODO: maybe a uniform 'image state populate' function
+// TODO: maybe add size extraction code to the validator module
 
 console.time('init');
 
