@@ -39,11 +39,12 @@ const config = new Config();
 
 // Global module variables
 let calcDim = null;
+let winPos = { x: 0, y: 0};
 let win = null;
 
 // Try to load user configuration by checking for a configuration
 // value, and if it doesn't exist, initialize it
-if (/*!*/config.store.set) {
+if (config.store.set) { //!
   config.store = require('./util/InitialConfig.js');
 }
 
@@ -141,6 +142,23 @@ function createWindow() {
     config.get('BROWSER_WIN.indexPath')
   ));
 
+  // Emitted just before the window will be closed. This is watched so
+  // the window size can be saved
+  win.on('close', () => {
+    // If the user want to remember the window size, save it for
+    // the next start up
+    if (config.get('POSITION_STYLE') === 'RESIZE_REMEMBER') {
+      config.set('BROWSER_WIN.width', win.getSize()[0]);
+      config.set('BROWSER_WIN.height', win.getSize()[1]);
+    } else {
+      // Reset the original width and height, in case the user
+      // changed view modes
+      let bw = require('./util/InitialConfig.js');
+      config.set('BROWSER_WIN.width', bw.width);
+      config.set('BROWSER_WIN.height', bw.height);
+    }
+  });
+
   // Emitted when the window is closed
   win.on('closed', () => {
     // Dereference the window object so it gets garbage-collected
@@ -149,10 +167,15 @@ function createWindow() {
 
   // If the window is moved, keep track of it to maintain
   // application position
+  // This only tracks the top right position of the window, so the center
+  // must be calculated from the current image dimensions
   // win.on('move', () => {
+    // let newPos = win.getPosition();
     // console.log('Moved to ' + win.getPosition()); // or win.getPosition()
     // maybe constantly set a variable here, which can be passed into the
     // resize function
+  //   winPos.x = newPos[0];
+  //   winPos.y = newPos[1];
   // });
 
   // Lazy-load the window dimension calculator
@@ -193,13 +216,20 @@ ipcMain.on('minimize-window', (event) => {
 
 
 // Resize the window while the image gets set in the renderer
-ipcMain.on('resize-window', (event, type, dimensions, returnPercentCalc) => {
+ipcMain.on('resize-window', (event, resizeType, dimensions, returnPercentage) => {
   // Don't try to resize if the window is maximized
   if (!win.isFullScreen()) {
     let newDimensions = null;
 
+    // dimensions.offset = {
+    //   winBounds: win.getSize(),
+    //   winPosition: win.getPosition()
+    // };
+
+    // console.log(winPos.x + ' ' + winPos.y);
+
     // Check the options passed in, and set the new dimensions
-    switch (type) {
+    switch (resizeType) {
       case 'resize':
         newDimensions = calcDim.getCentered(dimensions);
         break;
@@ -212,7 +242,7 @@ ipcMain.on('resize-window', (event, type, dimensions, returnPercentCalc) => {
     if (newDimensions) {
       // If the caller needs the 'percentage shrunk' variable, calculate
       // it and return it
-      if (returnPercentCalc) {
+      if (returnPercentage) {
         event.sender.send(
           'percent-reduc',
           (
@@ -222,22 +252,32 @@ ipcMain.on('resize-window', (event, type, dimensions, returnPercentCalc) => {
         );
       }
 
-      // If the user wants the window to remain in the center of the screen
-      if (config.get('CENTER_WIN')) {
-        win.setBounds(
-          newDimensions,
-          config.get('ANIMATE_WIN')
-        );
+      // Determine the window/position styles
+      switch (config.get('POSITION_STYLE')) {
+        // Keep the image centered in the current screen TODO and
+        // within a percentage of the screen size
+        case 'CENTER_KEEP':
+          win.setBounds(
+            newDimensions,
+            config.get('ANIMATE_WIN')
+          );
+          break;
 
-      // If the user just wants the window to resize to fit the image
-      } else if (config.get('RESIZE_WIN')) {
-        win.setSize(
-          newDimensions.width,
-          newDimensions.height,
-          config.get('ANIMATE_WIN')
-        );
+        // Only resize the window to fit the image dimensions according
+        // to the set SCALE_FACTOR
+        case 'RESIZE_FOLLOW':
+          win.setSize(
+            newDimensions.width,
+            newDimensions.height,
+            config.get('ANIMATE_WIN')
+          );
+          break;
+
+        // Simply cycle through the images without making any changes
+        // to the window or its position
+        case 'RESIZE_REMEMBER':
+          break;
       }
     }
-
   }
 });

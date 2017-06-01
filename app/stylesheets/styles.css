@@ -33,6 +33,9 @@
   top: 0px;
   left: 0px; }
 
+.blur-foreground {
+  -webkit-filter: blur(15px); }
+
 ::-webkit-scrollbar {
   width: 0px;
   height: 0px; }

@@ -28,6 +28,10 @@
 
 // .error-container {}
 
+// .image-container {
+// }
+
+
 // The element for each image tag
 // The image should fill up the entire application view
 .image-element {
@@ -53,6 +57,11 @@
 .full-img {
   top: 0px;
   left: 0px;
+}
+
+// Blur whatever element this class is added to
+.blur-foreground {
+  -webkit-filter: blur(15px);
 }
 
 // Custom scrollbar

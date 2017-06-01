@@ -10,7 +10,8 @@
  */
 
 // Set the scale factor from global config
-let SCALE_FACTOR = global.shared.userConfig.get('SCALE_FACTOR');
+// let SCALE_FACTOR = global.shared.userConfig.get('SCALE_FACTOR');
+// TODO still have to run 'updateScreen()'
 
 // Set the window bounds
 let bounds = {
@@ -38,10 +39,10 @@ let screenDimensions = {
  */
 function updateBounds(newBounds) {
   // Update the scale modifier if a new one is set
-  if (newBounds.newScale) {
-    SCALE_FACTOR = newBounds.newScale;
-    global.shared.userConfig.set('SCALE_FACTOR', newBounds.newScale);
-  }
+  // if (newBounds.newScale) {
+  //   SCALE_FACTOR = newBounds.newScale;
+  //   global.shared.userConfig.set('SCALE_FACTOR', newBounds.newScale);
+  // }
 
   // If any of the bounds are set, update them
   bounds.MAX_WIDTH =
@@ -66,8 +67,10 @@ function updateScreen(newScreen) {
   screenDimensions.HEIGHT = newScreen.height;
   screenDimensions.X_CENTER = (newScreen.width / 2);
   screenDimensions.Y_CENTER = (newScreen.height / 2);
-  bounds.MAX_WIDTH = screenDimensions.WIDTH * SCALE_FACTOR;
-  bounds.MAX_HEIGHT = screenDimensions.HEIGHT * SCALE_FACTOR;
+  bounds.MAX_WIDTH =
+    screenDimensions.WIDTH * global.shared.userConfig.get('SCALE_FACTOR');
+  bounds.MAX_HEIGHT =
+    screenDimensions.HEIGHT * lobal.shared.userConfig.get('SCALE_FACTOR');
 }
 
 
@@ -78,8 +81,7 @@ function updateScreen(newScreen) {
  * @param  {[type]}    currentCoordinates [description]
  * @return {[type]}                       [description]
  */
-function getCentered(imageDimensions/*, currentCoordinates*/) {
-  // TODO: integrate currentCoordinates
+function getCentered(imageDimensions) {
   let newDimensions = {};
   let diffs = {
     x: bounds.MAX_WIDTH - imageDimensions.width,
@@ -145,7 +147,7 @@ function getCentered(imageDimensions/*, currentCoordinates*/) {
   validateLowerBounds(newDimensions);
 
   // Determine the new center value
-  genCoords(newDimensions/*, currentCoordinates*/);
+  generateCoordinates(newDimensions);
 
   // Round the values
   roundNewValues(newDimensions);
@@ -168,7 +170,7 @@ function getCentered(imageDimensions/*, currentCoordinates*/) {
 
 
 
-function getFilled(imageDimensions/*, currentCoordinates*/) {
+function getFilled(imageDimensions, currentCoordinates) {
   let newDimensions = imageDimensions;
 
   // Just ensure that image fits within the bounds
@@ -176,7 +178,7 @@ function getFilled(imageDimensions/*, currentCoordinates*/) {
   validateUpperBounds(newDimensions);
 
   // Generate the new coordinates
-  genCoords(newDimensions/*, currentCoordinates*/);
+  generateCoordinates(newDimensions);
 
   // Round the values
   roundNewValues(newDimensions);
@@ -199,8 +201,7 @@ function getFilled(imageDimensions/*, currentCoordinates*/) {
 
 
 // generate new coordinates
-// TODO: use currCoords
-function genCoords(newDimensions, currCoords) {
+function generateCoordinates(newDimensions) {
   newDimensions.x = screenDimensions.X_CENTER - (newDimensions.width / 2);
   newDimensions.y = screenDimensions.Y_CENTER - (newDimensions.height / 2);
 }

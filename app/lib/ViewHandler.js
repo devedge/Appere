@@ -31,11 +31,6 @@ let APP_HOME = true;
 // Initialize a fsManager
 let fsManager = new FilesystemManager();
 
-// TODO: load some global variables for things like 'wrap'
-let userSettings = {
-  wrap: true,
-  returnPercentCalc: true
-};
 
 
 // The view state object. This represents all the data
@@ -159,7 +154,7 @@ view.prototype.setCurrentImage = function (filepath, callback) {
         'resize-window',
         'resize',
         vs.stateArray[vs.pointer.current].dimensions,
-        userSettings.returnPercentCalc
+        shared.userConfig.get('RETURN_PERCENTAGE')
       );
 
       // If this is a 'gif', save the path in the 'gifHandle' attribute
@@ -205,13 +200,15 @@ view.prototype.setCurrentImage = function (filepath, callback) {
           });
 
           // Load the next image
-          loadNext(userSettings.wrap, fsManager.getCurrentIndex(), (err) => {
-            if (err) { throw err; }
+          loadNext(shared.userConfig.get('WRAP'), fsManager.getCurrentIndex(),
+            (err) => {
+              if (err) { throw err; }
           });
 
           // Load the previous image
-          loadPrev(userSettings.wrap, fsManager.getCurrentIndex(), (err) => {
-            if (err) { throw err; }
+          loadPrev(shared.userConfig.get('WRAP'), fsManager.getCurrentIndex(),
+            (err) => {
+              if (err) { throw err; }
           });
 
           // Successful callback if the user wants to take action after
@@ -249,7 +246,7 @@ view.prototype.showNext = function (callback) {
           'resize-window',
           'resize',
           vs.stateArray[vs.pointer.next].dimensions,
-          userSettings.returnPercentCalc
+          shared.userConfig.get('RETURN_PERCENTAGE')
         );
       } catch (e) {
         throw 'IPC \'resize-window\' error: ' + e;
@@ -289,9 +286,9 @@ view.prototype.showNext = function (callback) {
 
       // Preload the next image.
       // This 'next' image is now the 'current' image
-      loadNext(userSettings.wrap, vs.stateArray[vs.pointer.current].index,
-               (err) => {
-        if (err) { throw err; }
+      loadNext(shared.userConfig.get('WRAP'),
+        vs.stateArray[vs.pointer.current].index, (err) => {
+          if (err) { throw err; }
       });
     }
   } catch (e) {
@@ -322,7 +319,7 @@ view.prototype.showPrev = function (callback) {
           'resize-window',
           'resize',
           vs.stateArray[vs.pointer.previous].dimensions,
-          userSettings.returnPercentCalc
+          shared.userConfig.get('RETURN_PERCENTAGE')
         );
       } catch (e) {
         throw 'IPC \'resize-window\' error: ' + e;
@@ -362,9 +359,9 @@ view.prototype.showPrev = function (callback) {
 
       // Preload the next image.
       // This 'previous' image is now the 'current' image
-      loadPrev(userSettings.wrap, vs.stateArray[vs.pointer.current].index,
-               (err) => {
-        if (err) { throw err; }
+      loadPrev(shared.userConfig.get('WRAP'),
+        vs.stateArray[vs.pointer.current].index, (err) => {
+          if (err) { throw err; }
       });
     }
   } catch (e) {
@@ -442,7 +439,7 @@ view.prototype.fitImage = function () {
         'resize-window',
         'resize',
         vs.stateArray[vs.pointer.current].dimensions,
-        userSettings.returnPercentCalc
+        shared.userConfig.get('RETURN_PERCENTAGE')
       );
 
       // Set the title with the new zoom percentage
@@ -651,7 +648,10 @@ function resetView() {
   ipcRenderer.send(
     'resize-window',
     'resize',
-    {width: 1000, height: 700},
+    {
+      width: shared.userConfig.get('BROWSER_WIN.width'),
+      height: shared.userConfig.get('BROWSER_WIN.height')
+    },
     false
   );
 
