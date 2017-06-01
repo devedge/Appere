@@ -74,13 +74,7 @@ function updateScreen(newScreen) {
 }
 
 
-/**
- * Returns the centered object
- * @method getCentered
- * @param  {[type]}    imageDimensions    [description]
- * @param  {[type]}    currentCoordinates [description]
- * @return {[type]}                       [description]
- */
+
 function getCentered(imageDimensions) {
   let newDimensions = {};
   let diffs = {
@@ -170,7 +164,7 @@ function getCentered(imageDimensions) {
 
 
 
-function getFilled(imageDimensions, currentCoordinates) {
+function getResized(imageDimensions) {
   let newDimensions = imageDimensions;
 
   // Just ensure that image fits within the bounds
@@ -200,7 +194,7 @@ function getFilled(imageDimensions, currentCoordinates) {
 
 
 
-// generate new coordinates
+
 function generateCoordinates(newDimensions) {
   newDimensions.x = screenDimensions.X_CENTER - (newDimensions.width / 2);
   newDimensions.y = screenDimensions.Y_CENTER - (newDimensions.height / 2);
@@ -277,5 +271,5 @@ module.exports = {
   updateBounds,
   updateScreen,
   getCentered,
-  getFilled
+  getResized
 };

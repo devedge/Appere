@@ -44,6 +44,15 @@
 // TODO: maybe a uniform 'image state populate' function
 // TODO: maybe add size extraction code to the validator module
 
+// Pages/slides
+// TODO: Info page
+// TODO: Delete page
+//    TODO: delete functionality
+// TODO: Settings page
+// TODO: Animations on the home page
+// TODO: blurred background view
+//    TODO: animate image transitions
+
 console.time('init');
 
 
@@ -233,7 +242,7 @@ ipcMain.on('resize-window', (event, resizeType, dimensions, returnPercentage) =>
         newDimensions = calcDim.getCentered(dimensions);
         break;
       case 'fill':
-        newDimensions = calcDim.getFilled(dimensions);
+        newDimensions = calcDim.getResized(dimensions);
         break;
     }
 

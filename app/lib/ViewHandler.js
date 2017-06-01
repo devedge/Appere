@@ -152,12 +152,7 @@ view.prototype.setCurrentImage = function (filepath, callback) {
       // Send these new dimensions to the resize function in the
       // main process. This is done before setting the image to reduce
       // noticeable lag.
-      ipcRenderer.send(
-        'resize-window',
-        'resize',
-        vs.stateArray[vs.pointer.current].dimensions,
-        shared.userConfig.get('RETURN_PERCENTAGE')
-      );
+      resizeIPC(vs.pointer.current);
 
       // If this is a 'gif', save the path in the 'gifHandle' attribute
       if (vs.stateArray[vs.pointer.current].filename.match(/\.gif$/)) {
@@ -239,52 +234,14 @@ view.prototype.showNext = function (callback) {
   try {
     if (fsManager.isReady() && !APP_HOME) {
 
-      // Try getting the image size and resizing the window. If the image is
-      // corrupted in some way, catch the error.
-      try {
-        // Send an ipc resize message first to resize the window to scale to
-        // the image. This should smooth image resizing
-        ipcRenderer.send(
-          'resize-window',
-          'resize',
-          vs.stateArray[vs.pointer.next].dimensions,
-          shared.userConfig.get('RETURN_PERCENTAGE')
-        );
-      } catch (e) {
-        throw 'IPC \'resize-window\' error: ' + e;
-      }
+      // Resize the window
+      resizeIPC(vs.pointer.next);
 
-      // If the previous image (still referred to as 'current') was
-      // a gif, 'null' the 'src' attribute
-      if (vs.stateArray[vs.pointer.current].gifHandle) {
-        vs.stateArray[vs.pointer.current].handle.src = '';
-      }
-
-      // Hide the current element and show the next one
-      vs.stateArray[vs.pointer.current].handle.hidden = true;
-      vs.stateArray[vs.pointer.next].handle.hidden = false;
-
-      // Set the new window title
-      setTitle({
-        filename: vs.stateArray[vs.pointer.next].filename,
-        fileIndex: vs.stateArray[vs.pointer.next].index + 1,
-        totalFiles: vs.dirNum
-      });
-
-      // If this image is a gif, it was temporarily loaded into a 'gifHandle'
-      // attribute. Now, load it in the actual 'src' value so it starts
-      // from the beginning
-      if (vs.stateArray[vs.pointer.next].gifHandle) {
-        vs.stateArray[vs.pointer.next].handle.src =
-          vs.stateArray[vs.pointer.next].gifHandle;
-      }
+      // Cycle the 'next' image as the current one
+      cycleImage(vs.pointer.current, vs.pointer.next);
 
       // Update the pointer values
-      // This is not reassignment, the pointers are being cycled
-      let temp = vs.pointer.previous;
-      vs.pointer.previous = vs.pointer.current;
-      vs.pointer.current  = vs.pointer.next;
-      vs.pointer.next     = temp;
+      rotatePointersNext();
 
       // Preload the next image.
       // This 'next' image is now the 'current' image
@@ -312,52 +269,14 @@ view.prototype.showPrev = function (callback) {
   try {
     if (fsManager.isReady() && !APP_HOME) {
 
-      // Try getting the image size and resizing the window. If the image is
-      // corrupted in some way, catch the error.
-      try {
-        // Send an ipc resize message first to resize the window to scale to
-        // the image. This should smooth image resizing
-        ipcRenderer.send(
-          'resize-window',
-          'resize',
-          vs.stateArray[vs.pointer.previous].dimensions,
-          shared.userConfig.get('RETURN_PERCENTAGE')
-        );
-      } catch (e) {
-        throw 'IPC \'resize-window\' error: ' + e;
-      }
+      // Resize the window
+      resizeIPC(vs.pointer.previous);
 
-      // If the previous image (still referred to as 'current') was
-      // a gif, 'null' the 'src' attribute
-      if (vs.stateArray[vs.pointer.current].gifHandle) {
-        vs.stateArray[vs.pointer.current].handle.src = '';
-      }
-
-      // Hide the current element and show the previous one
-      vs.stateArray[vs.pointer.current].handle.hidden = true;
-      vs.stateArray[vs.pointer.previous].handle.hidden = false;
-
-      // Set the new window title
-      setTitle({
-        filename: vs.stateArray[vs.pointer.previous].filename,
-        fileIndex: vs.stateArray[vs.pointer.previous].index + 1,
-        totalFiles: vs.dirNum
-      });
-
-      // If this image is a gif, it was temporarily loaded into a 'gifHandle'
-      // attribute. Now, load it in the actual 'src' value so it starts
-      // from the beginning
-      if (vs.stateArray[vs.pointer.previous].gifHandle) {
-        vs.stateArray[vs.pointer.previous].handle.src =
-          vs.stateArray[vs.pointer.previous].gifHandle;
-      }
+      // Cycle the 'next' image as the current one
+      cycleImage(vs.pointer.current, vs.pointer.previous);
 
       // Update the pointer values
-      // This is not reassignment, the pointers are being cycled
-      let temp = vs.pointer.next;
-      vs.pointer.next     = vs.pointer.current;
-      vs.pointer.current  = vs.pointer.previous;
-      vs.pointer.previous = temp;
+      rotatePointersPrev();
 
       // Preload the next image.
       // This 'previous' image is now the 'current' image
@@ -372,13 +291,121 @@ view.prototype.showPrev = function (callback) {
   }
 };
 
+
 // TODO delete
+/**
+ * Trashes the current file currently being displayed. Then, it loads
+ * the next one in the current directory. If there are none, it
+ * redisplays the home screen.
+ * @method delete
+ * @return {[type]} [description]
+ */
 view.prototype.delete = function () {
+  // First, dim & blur image, and display confirmation page
+  // If the user confirms with (yes), continue
+  //  If fsManager.getTotalNumber() > 1
+  //      Then, set the 'next' file as the current one, and load the next file
+  //  Else, reset view and display home page
+  // Notify the fsManager to trash the file
+
+  // Check that this isn't the last image in the folder
+  if (fsManager.getTotalNumber() > 1) {
+    if (fsManager.isReady() && !APP_HOME) {
+      // resize the window
+      resizeIPC(vs.pointer.next);
+
+      // Cycle the new image in
+      cycleImage(vs.pointer.current, vs.pointer.next);
+
+      // Rotate the stateArray pointers for a 'delete'
+      // This 'next' image is now the 'current' image
+      rotatePointersDelete();
+
+      // Preload the next image.
+      loadNext(shared.userConfig.get('WRAP'),
+               vs.stateArray[vs.pointer.current].index, (err) => {
+        if (err) { throw err; }
+      });
+    }
+
+    // try {
+        /*
+        // If the previous image (still referred to as 'current') was
+        // a gif, 'null' the 'src' attribute
+        if (vs.stateArray[vs.pointer.current].gifHandle) {
+          vs.stateArray[vs.pointer.current].handle.src = '';
+        }
+
+        // Hide the current element and show the next one
+        vs.stateArray[vs.pointer.current].handle.hidden = true;
+        vs.stateArray[vs.pointer.next].handle.hidden = false;
+
+        // Set the new window title
+        setTitle({
+          filename: vs.stateArray[vs.pointer.next].filename,
+          fileIndex: vs.stateArray[vs.pointer.next].index + 1,
+          totalFiles: vs.dirNum
+        });
+
+        // If this image is a gif, it was temporarily loaded into a 'gifHandle'
+        // attribute. Now, load it in the actual 'src' value so it starts
+        // from the beginning
+        if (vs.stateArray[vs.pointer.next].gifHandle) {
+          vs.stateArray[vs.pointer.next].handle.src =
+            vs.stateArray[vs.pointer.next].gifHandle;
+        }
+        */
+
+    // } catch (e) {
+      // console.log('[ERROR] - showNext(): ' + e);
+      // TODO: Remove this callback and display an error in the view instead
+    //   if (callback) { callback(e); }
+    // }
+
+
+
+  } else {
+    // It is the last image, so reset the viewer
+    resetView();
+  }
+
+  fsManager.trashFile();
+
+
   // on delete,
   // remove the filename from the fsManager array
   // send an ipc message to move the file to the trash
   // load the next image
 };
+
+
+//vs.pointer.current, vs.pointer.next
+function cycleImage(oldPointer, newPointer) {
+
+  // If the previous image (still referred to as 'current') was
+  // a gif, 'null' the 'src' attribute
+  if (vs.stateArray[oldPointer].gifHandle) {
+    vs.stateArray[oldPointer].handle.src = '';
+  }
+
+  // Hide the old element and show the new one
+  vs.stateArray[oldPointer].handle.hidden = true;
+  vs.stateArray[newPointer].handle.hidden = false;
+
+  // Set the new window title
+  setTitle({
+    filename: vs.stateArray[newPointer].filename,
+    fileIndex: vs.stateArray[newPointer].index + 1,
+    totalFiles: vs.dirNum
+  });
+
+  // If this image is a gif, it was temporarily loaded into a 'gifHandle'
+  // attribute. Now, load it in the actual 'src' value so it starts
+  // from the beginning
+  if (vs.stateArray[newPointer].gifHandle) {
+    vs.stateArray[newPointer].handle.src = vs.stateArray[newPointer].gifHandle;
+  }
+}
 
 
 /**
@@ -390,9 +417,7 @@ view.prototype.delete = function () {
 view.prototype.zoomImage = function () {
   try {
     // If the image is already at 100%, do not zoom
-    // If the 'this.zoomed' variable is true, also do not proceed so that
-    // the 'currentRealZoom' doesn't get mistakenly set to 100
-    if ((vs.title.percentShrunk < 100 /*|| !this.zoomed*/) && !APP_HOME) {
+    if ((vs.title.percentShrunk < 100) && !APP_HOME) {
       // Set the zoomed flag
       this.zoomed = true;
 
@@ -430,8 +455,8 @@ view.prototype.zoomImage = function () {
  */
 view.prototype.fitImage = function () {
   try {
-
-    if ((/*vs.title.percentShrunk < 100 ||*/ this.zoomed) && !APP_HOME) {
+    // If the image is already zoomed (or not at app home), then proceed
+    if (this.zoomed && !APP_HOME) {
       // Reset the zoomed flag
       this.zoomed = false;
 
@@ -478,6 +503,8 @@ view.prototype.isZoomed = function () {
 view.prototype.minimize = function () {
   ipcRenderer.send('minimize-window');
 };
+
+
 
 
 // ------------------------------------------ //
@@ -597,6 +624,192 @@ function loadPrev(wrap, index, callback) {
 
 
 /**
+ * After the main process has finished calculating + resizing the
+ * window, it also emits and event with the newly scaled-down percentage
+ * @type {EventEmitter}
+ */
+ipcRenderer.on('percent-reduc', (event, percentCalc) => {
+  if (percentCalc > 100) {
+    setTitle({percentShrunk: 100});
+  } else {
+    setTitle({percentShrunk: percentCalc});
+  }
+});
+
+
+/**
+ * Clear the view after the window has been minimized
+ * to avoid jumpy animations
+ * @type {EventEmitter}
+ */
+ipcRenderer.on('minimize-done', () => { resetView(); });
+
+
+/**
+ * Send an IPC message to 'main.js' to resize the window
+ * @method resizeIPC
+ * @param  {Integer}  pointer The pointer from vs.pointers that indicates
+ * @return {none}
+ */
+function resizeIPC(pointer) {
+  // Try getting the image size and resizing the window. If the image is
+  // corrupted in some way, catch the error.
+  try {
+    // Send an ipc resize message first to resize the window to scale to
+    // the image. This should smooth image resizing
+    ipcRenderer.send(
+      'resize-window',
+      'resize',
+      vs.stateArray[pointer].dimensions,
+      shared.userConfig.get('RETURN_PERCENTAGE')
+    );
+  } catch (e) {
+    throw 'IPC \'resize-window\' error: ' + e;
+  }
+}
+
+
+/**
+ * If any of the new fields have been updated, set the new title
+ * fields. Then, update the window title. The title format is:
+ *
+ *           <filename> (z%) — <x>/<y> — Appere
+ *
+ * @method setTitle
+ * @param  {object} newFields The new title fields. They must exactly match up
+ *                            to the ones defined in the 'vs' object
+ * @param  {Boolean} showAppname Should the application name be appended?
+ */
+function setTitle(newFields, showAppname = true) {
+  // Initialize a new 'app title' string
+  let appTitle = '';
+
+  // Check if any new fields were specified
+  vs.title.filename =
+    (newFields.filename) ? newFields.filename : vs.title.filename;
+  vs.title.fileIndex =
+    (newFields.fileIndex) ? newFields.fileIndex : vs.title.fileIndex;
+  vs.title.totalFiles =
+    (newFields.totalFiles) ? newFields.totalFiles : vs.title.totalFiles;
+  vs.title.percentShrunk =
+   (newFields.percentShrunk) ? newFields.percentShrunk : vs.title.percentShrunk;
+
+  // If there's a filename, use it
+  if (vs.title.filename) {
+    appTitle = vs.title.filename;
+
+    // If the 'percentShrunk' variable is set, append it
+    if (vs.title.percentShrunk) {
+      appTitle += ' (' + vs.title.percentShrunk + '%)';
+    }
+
+    // If the file's index & total number of files is defined, append them
+    if (vs.title.fileIndex && vs.title.totalFiles) {
+      appTitle += ' — ' + vs.title.fileIndex + '/' + vs.title.totalFiles;
+    }
+
+    // Finally, check if the application's name should be appended to the end
+    if (showAppname) {
+      appTitle += ' — Appere';
+    }
+  } else {
+    // Otherwise, simply use the application's name
+    appTitle = 'Appere';
+  }
+
+  // Set the app's window new title
+  document.title = appTitle;
+}
+
+
+/**
+ * Working replacement for sizeOf, but it's noticeably slower (~1ms longer)
+ * @method sizeOf
+ * @param  {String} filepath Absolute filepath to the image
+ * @return {Object}          { width:,height:,type:'',mime:'',wUnits:'',
+ *                             hUnits:''}
+ */
+function sizeOf(filepath) {
+  return probe.sync(fs.readFileSync(filepath));
+}
+
+
+/**
+ * Do a normal rotation of the image array pointers, updating the
+ * definitions of 'current', 'next', and 'previous'. This function
+ * sets up the next image.
+ * @method rotatePointers
+ * @return {none}
+ */
+function rotatePointersNext() {
+  // Update the pointer values
+  // This is not reassignment, the pointers are being cycled
+  let temp = vs.pointer.previous;
+  vs.pointer.previous = vs.pointer.current;
+  vs.pointer.current  = vs.pointer.next;
+  vs.pointer.next     = temp;
+}
+
+
+/**
+ * Do a normal rotation of the image array pointers, updating the
+ * definitions of 'current', 'next', and 'previous'. This function
+ * sets up the previous image
+ * @method rotatePointers
+ * @return {none}
+ */
+function rotatePointersPrev() {
+  // Update the pointer values
+  // This is not reassignment, the pointers are being cycled
+  let temp = vs.pointer.next;
+  vs.pointer.next     = vs.pointer.current;
+  vs.pointer.current  = vs.pointer.previous;
+  vs.pointer.previous = temp;
+}
+
+
+/**
+ * Rotate the pointers after the current image has been deleted
+ * @method rotatePointersDelete
+ * @return {none}
+ */
+function rotatePointersDelete() {
+  // The previous one is still the previous one
+  // The next one is now the current one, and gets swapped with
+  // the deleted image which will be set
+  let temp = vs.pointer.current;
+  vs.pointer.current = vs.pointer.next;
+  vs.pointer.next = temp;
+}
+
+
+/**
+ * Function to toggle the 'hidden' attributes of the
+ * 'imgContainer' and 'logoContainer' to show the app home
+ * @method showHome
+ * @return {none}
+ */
+function showHome() {
+  vs.imgContainer.hidden = true;
+  vs.logoContainer.hidden = false;
+  APP_HOME = true;
+}
+
+
+/**
+ * Function to toggle the 'hidden' attributes of the
+ * 'imgContainer' and 'logoContainer' to show the image elements
+ * @method hideHome
+ * @return {none}
+ */
+function hideHome() {
+  vs.logoContainer.hidden = true;
+  vs.imgContainer.hidden = false;
+  APP_HOME = false;
+}
+
+
+/**
  * Reset the view by reinitializing the entire object
  * @method resetView
  */
@@ -631,10 +844,8 @@ function resetView() {
   // Reset the CSS alignment classes
   nvs.stateArray[nvs.pointer.current].handle.classList.add(FIT_IMG_CLASS);
   nvs.stateArray[nvs.pointer.current].handle.classList.remove(FULL_IMG_CLASS);
-
   nvs.stateArray[nvs.pointer.next].handle.classList.add(FIT_IMG_CLASS);
   nvs.stateArray[nvs.pointer.next].handle.classList.remove(FULL_IMG_CLASS);
-
   nvs.stateArray[nvs.pointer.previous].handle.classList.add(FIT_IMG_CLASS);
   nvs.stateArray[nvs.pointer.previous].handle.classList.remove(FULL_IMG_CLASS);
 
@@ -664,129 +875,6 @@ function resetView() {
   document.title = 'Appere';
 }
 
-
-/**
- * Function to toggle the 'hidden' attributes of the
- * 'imgContainer' and 'logoContainer' to show the app home
- * @method showHome
- * @return {none}
- */
-function showHome() {
-  vs.imgContainer.hidden = true;
-  vs.logoContainer.hidden = false;
-  APP_HOME = true;
-}
-
-
-/**
- * Function to toggle the 'hidden' attributes of the
- * 'imgContainer' and 'logoContainer' to show the image elements
- * @method hideHome
- * @return {none}
- */
-function hideHome() {
-  vs.logoContainer.hidden = true;
-  vs.imgContainer.hidden = false;
-  APP_HOME = false;
-}
-
-
-/**
- * If any of the new fields have been updated, set the new title
- * fields. Then, update the window title. The title format is:
- *
- *           <filename> (z%) — <x>/<y> — Appere
- *
- * @method setTitle
- * @param  {object} newFields The new title fields. They must exactly match up
- *                            to the ones defined in the 'vs' object
- */
-function setTitle(newFields) {
-  vs.title.filename =
-    (newFields.filename) ? newFields.filename : vs.title.filename;
-  vs.title.fileIndex =
-    (newFields.fileIndex) ? newFields.fileIndex : vs.title.fileIndex;
-  vs.title.totalFiles =
-    (newFields.totalFiles) ? newFields.totalFiles : vs.title.totalFiles;
-  vs.title.percentShrunk =
-   (newFields.percentShrunk) ? newFields.percentShrunk : vs.title.percentShrunk;
-
-  // Create a new 'app title'
-  let appTitle = '';
-
-  // If there's a filename, use it
-  if (vs.title.filename) {
-    appTitle = vs.title.filename;
-
-    // If the 'percentShrunk' variable is set, append it
-    if (vs.title.percentShrunk) {
-      appTitle += ' (' + vs.title.percentShrunk + '%)';
-    }
-
-    // If the file's index & total number of files is defined, append them
-    if (vs.title.fileIndex && vs.title.totalFiles) {
-      appTitle += ' — ' + vs.title.fileIndex + '/' + vs.title.totalFiles;
-    }
-
-    // Finally, append the application's name to the end
-    appTitle += ' — Appere';
-
-    // if (newFields.showAppname) {
-    //   TODO this
-    // }
-  } else {
-    // Otherwise, simply use the application's name
-    appTitle = 'Appere';
-  }
-
-  // Set the app's window new title
-  document.title = appTitle;
-}
-
-
-/**
- * Working replacement for sizeOf, but it's noticeably slower (~1ms longer)
- * @method sizeOf
- * @param  {String} filepath Absolute filepath to the image
- * @return {Object}          { width: 1000,
- *                             height: 300,
- *                             type: 'jpg',
- *                             mime: 'image/jpeg',
- *                             wUnits: 'px',
- *                             hUnits: 'px' }
- */
-function sizeOf(filepath) {
-  // let data = fs.createReadStream(filepath);
-  // probe(data).then(result => {
-  //   data.destroy();
-  //   return result;
-  // });
-  return probe.sync(fs.readFileSync(filepath));
-}
-
-
-/**
- * After the main process has finished calculating + resizing the
- * window, it also emits and event with the newly scaled-down percentage
- * @type {EventEmitter}
- */
-ipcRenderer.on('percent-reduc', (event, percentCalc) => {
-  if (percentCalc > 100) {
-    setTitle({percentShrunk: 100});
-  } else {
-    setTitle({percentShrunk: percentCalc});
-  }
-});
-
-
-/**
- * Clear the view after the window has been minimized
- * to avoid jumpy animations
- * @type {EventEmitter}
- */
-ipcRenderer.on('minimize-done', () => {
-  resetView();
-});
 
 
 // Export the 'view' Class
