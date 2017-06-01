@@ -53,7 +53,7 @@ let VIEWSTATE = {
   stateArray: [   // An object array that maintains state of the three images
     {
       handle: null,  // A handle to the image element
-      gifHandle: null,
+      gifHandle: null,// A temporary handle so gifs can be loaded from the start
       filename: '',   // The image's filename
       index: 0,       // The index into the image array
       dimensions: {}  // The dimensions {width, height} of the current image
@@ -162,6 +162,15 @@ view.prototype.setCurrentImage = function (filepath, callback) {
         userSettings.returnPercentCalc
       );
 
+      // If this is a 'gif', save the path in the 'gifHandle' attribute
+      if (vs.stateArray[vs.pointer.current].filename.match(/\.gif$/)) {
+        vs.stateArray[vs.pointer.current].gifHandle =
+          path.join(
+            vs.dirPath,
+            pEncode(vs.stateArray[vs.pointer.current].filename)
+          );
+      }
+
       // Then, set the image in the view. pEncode ensures that the image
       // path is safely percent-encoded so the chromium engine can resolve it.
       vs.stateArray[vs.pointer.current].handle.src =
@@ -247,9 +256,9 @@ view.prototype.showNext = function (callback) {
       }
 
       // If the previous image (still referred to as 'current') was
-      // a gif, 'null' the gifHandle temporary value
+      // a gif, 'null' the 'src' attribute
       if (vs.stateArray[vs.pointer.current].gifHandle) {
-        vs.stateArray[vs.pointer.current].handle.src = null;
+        vs.stateArray[vs.pointer.current].handle.src = '';
       }
 
       // Hide the current element and show the next one
@@ -263,20 +272,20 @@ view.prototype.showNext = function (callback) {
         totalFiles: vs.dirNum
       });
 
+      // If this image is a gif, it was temporarily loaded into a 'gifHandle'
+      // attribute. Now, load it in the actual 'src' value so it starts
+      // from the beginning
+      if (vs.stateArray[vs.pointer.next].gifHandle) {
+        vs.stateArray[vs.pointer.next].handle.src =
+          vs.stateArray[vs.pointer.next].gifHandle;
+      }
+
       // Update the pointer values
       // This is not reassignment, the pointers are being cycled
       let temp = vs.pointer.previous;
       vs.pointer.previous = vs.pointer.current;
       vs.pointer.current  = vs.pointer.next;
       vs.pointer.next     = temp;
-
-      // If this image is a gif, it was temporarily loaded into a 'gifHandle'
-      // attribute. Now, load it in the actual 'src' value so it starts
-      // from the beginning
-      if (vs.stateArray[vs.pointer.current].gifHandle) {
-        vs.stateArray[vs.pointer.current].handle.src =
-          vs.stateArray[vs.pointer.current].gifHandle;
-      }
 
       // Preload the next image.
       // This 'next' image is now the 'current' image
@@ -320,9 +329,9 @@ view.prototype.showPrev = function (callback) {
       }
 
       // If the previous image (still referred to as 'current') was
-      // a gif, 'null' the gifHandle temporary value
+      // a gif, 'null' the 'src' attribute
       if (vs.stateArray[vs.pointer.current].gifHandle) {
-        vs.stateArray[vs.pointer.current].handle.src = null;
+        vs.stateArray[vs.pointer.current].handle.src = '';
       }
 
       // Hide the current element and show the previous one
@@ -336,20 +345,20 @@ view.prototype.showPrev = function (callback) {
         totalFiles: vs.dirNum
       });
 
+      // If this image is a gif, it was temporarily loaded into a 'gifHandle'
+      // attribute. Now, load it in the actual 'src' value so it starts
+      // from the beginning
+      if (vs.stateArray[vs.pointer.previous].gifHandle) {
+        vs.stateArray[vs.pointer.previous].handle.src =
+          vs.stateArray[vs.pointer.previous].gifHandle;
+      }
+
       // Update the pointer values
       // This is not reassignment, the pointers are being cycled
       let temp = vs.pointer.next;
       vs.pointer.next     = vs.pointer.current;
       vs.pointer.current  = vs.pointer.previous;
       vs.pointer.previous = temp;
-
-      // If this image is a gif, it was temporarily loaded into a 'gifHandle'
-      // attribute. Now, load it in the actual 'src' value so it starts
-      // from the beginning
-      if (vs.stateArray[vs.pointer.current].gifHandle) {
-        vs.stateArray[vs.pointer.current].handle.src =
-          vs.stateArray[vs.pointer.current].gifHandle;
-      }
 
       // Preload the next image.
       // This 'previous' image is now the 'current' image
@@ -516,8 +525,10 @@ function loadNext(wrap, index, callback) {
               path.join(vs.dirPath, pEncode(filename));
           } else {
             // Otherwise, preload the next image
+            // Also, 'nullify' the gifHandle since it isn't a gif
             vs.stateArray[vs.pointer.next].handle.src =
               path.join(vs.dirPath, pEncode(filename));
+            vs.stateArray[vs.pointer.next].gifHandle = '';
           }
         } else {
           throw 'Invalid/corrupt file: \'' + filename + '\'';
@@ -569,8 +580,10 @@ function loadPrev(wrap, index, callback) {
               path.join(vs.dirPath, pEncode(filename));
           } else {
             // Otherwise, preload the previous image
+            // Also, 'nullify' the gifHandle since it isn't a gif
             vs.stateArray[vs.pointer.previous].handle.src =
               path.join(vs.dirPath, pEncode(filename));
+            vs.stateArray[vs.pointer.previous].gifHandle = '';
           }
         } else {
           throw 'Invalid/corrupt file: \'' + filename + '\'';

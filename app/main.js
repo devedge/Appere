@@ -15,6 +15,7 @@
 // TODO: Delete page (animate blur transition)
 // TODO: Blurred-background view (will also animate resize)
 // TODONE: global user settings
+// TODONE: Reload gifs
 // TODO: 'm' --> minimize
 // TODO: 'shift c' --> center
 // TODO: add code to determine current monitor
@@ -23,6 +24,7 @@
 // TODO: option to set close button --> minimize & quit only on 'CTRL Q'
 // TODO: check win.center()
 // TODO: check win.blurWebView()
+// TODO: Automatic updater
 
 console.time('init');
 
@@ -152,8 +154,6 @@ function createWindow() {
     // maybe constantly set a variable here, which can be passed into the
     // resize function
   // });
-
-
 
   // Lazy-load the window dimension calculator
   calcDim = require('./lib/CalculateDimensions.js');

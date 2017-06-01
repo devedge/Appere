@@ -1,6 +1,7 @@
 // The container for the application's view
 .main-app {
   -webkit-user-select: none; // prevent all text selection/highlight
+  -webkit-app-region: drag; // allow images to be dragged
 }
 
 // The parent element of the logo
@@ -12,12 +13,17 @@
 
 // The logo, its animation, and its positioning
 .logo-effect {
-  width: 100%; // Keep the image width 100% in the viewport
   margin-top: 10vh; // keep the logo aligned 10vh from the top
   animation-delay: 0.7s;  // wait, so the animation runs smooth
   animation: logo-animation 1s;
   animation-timing-function: ease;
   -webkit-app-region: no-drag; // prevent the image from being dragged
+}
+
+// This keeps the logo scaled within the window. The divs containing
+// the img are required to allow the image to scale within a flexbox at all.
+.logo-img {
+  width: 100%; // Keep the image width 100% in the viewport
 }
 
 // .error-container {}
@@ -27,7 +33,6 @@
 .image-element {
   margin: auto;
   position: absolute;
-  -webkit-app-region: drag; // allow images to be dragged
 }
 
 // Fit & scale the image within the application's view
