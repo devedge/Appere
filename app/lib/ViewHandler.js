@@ -10,8 +10,8 @@
 'use-strict';
 
 const {ipcRenderer} = require('electron');
-// const sizeOf = require('image-size'); // breaks on certain valid images
-const probe = require('probe-image-size'); // working replacement, but slower
+const sizeOf = require('image-size'); // breaks on certain valid images
+// const probe = require('probe-image-size'); // working replacement, but slower
 const path = require('path');
 const fs = require('fs');
 
@@ -82,6 +82,8 @@ let VIEWSTATE = {
 
 // The view state object used by the application
 let vs = VIEWSTATE;
+let zoomed = false;
+let currentRealZoom = 0;
 
 
 /**
@@ -91,8 +93,8 @@ let vs = VIEWSTATE;
  * @return {none}
  */
 function view() {
-  this.zoomed = false;
-  this.currentRealZoom = 0;
+  zoomed = false;
+  currentRealZoom = 0;
 }
 
 
@@ -103,6 +105,8 @@ function view() {
  * @param  {element} imgElement1 img tag 1
  * @param  {element} imgElement2 img tag 2
  * @param  {element} imgElement3 img tag 3
+ * @param  {element} imgContainer The element containing all three img tags
+ * @param  {element} logoContainer The element containing the logo
  * @return {none}
  */
 view.prototype.init = function (imgElement1, imgElement2, imgElement3,
@@ -241,12 +245,12 @@ view.prototype.showNext = function (callback) {
       cycleImage(vs.pointer.current, vs.pointer.next);
 
       // Update the pointer values
+      // This 'next' image is now the 'current' image
       rotatePointersNext();
 
       // Preload the next image.
-      // This 'next' image is now the 'current' image
       loadNext(shared.userConfig.get('WRAP'),
-        vs.stateArray[vs.pointer.current].index, (err) => {
+               vs.stateArray[vs.pointer.current].index, (err) => {
           if (err) { throw err; }
       });
     }
@@ -276,12 +280,12 @@ view.prototype.showPrev = function (callback) {
       cycleImage(vs.pointer.current, vs.pointer.previous);
 
       // Update the pointer values
+      // This 'previous' image is now the 'current' image
       rotatePointersPrev();
 
       // Preload the next image.
-      // This 'previous' image is now the 'current' image
       loadPrev(shared.userConfig.get('WRAP'),
-        vs.stateArray[vs.pointer.current].index, (err) => {
+               vs.stateArray[vs.pointer.current].index, (err) => {
           if (err) { throw err; }
       });
     }
@@ -298,7 +302,7 @@ view.prototype.showPrev = function (callback) {
  * the next one in the current directory. If there are none, it
  * redisplays the home screen.
  * @method delete
- * @return {[type]} [description]
+ * @return {none}
  */
 view.prototype.delete = function () {
   // First, dim & blur image, and display confirmation page
@@ -307,69 +311,36 @@ view.prototype.delete = function () {
   //      Then, set the 'next' file as the current one, and load the next file
   //  Else, reset view and display home page
   // Notify the fsManager to trash the file
+  if (!APP_HOME) {
 
-  // Check that this isn't the last image in the folder
-  if (fsManager.getTotalNumber() > 1) {
-    if (fsManager.isReady() && !APP_HOME) {
-      // resize the window
-      resizeIPC(vs.pointer.next);
+    // Check that this isn't the last image in the folder
+    if (fsManager.getTotalNumber() > 1) {
+      // Take no action if the manager isn't ready
+      if (fsManager.isReady()) {
+        // resize the window
+        resizeIPC(vs.pointer.next);
 
-      // Cycle the new image in
-      cycleImage(vs.pointer.current, vs.pointer.next);
+        // Cycle the new image in
+        cycleImage(vs.pointer.current, vs.pointer.next);
 
-      // Rotate the stateArray pointers for a 'delete'
-      // This 'next' image is now the 'current' image
-      rotatePointersDelete();
+        // Rotate the stateArray pointers for a 'delete'
+        // This 'next' image is now the 'current' image
+        rotatePointersDelete();
 
-      // Preload the next image.
-      loadNext(shared.userConfig.get('WRAP'),
-               vs.stateArray[vs.pointer.current].index, (err) => {
-        if (err) { throw err; }
-      });
+        // Preload the next image.
+        loadNext(shared.userConfig.get('WRAP'),
+                 vs.stateArray[vs.pointer.current].index, (err) => {
+          if (err) { throw err; }
+        });
+      }
+    } else {
+      // It is the last image, so reset the viewer
+      resetView();
     }
 
-    // try {
-        /*
-        // If the previous image (still referred to as 'current') was
-        // a gif, 'null' the 'src' attribute
-        if (vs.stateArray[vs.pointer.current].gifHandle) {
-          vs.stateArray[vs.pointer.current].handle.src = '';
-        }
-
-        // Hide the current element and show the next one
-        vs.stateArray[vs.pointer.current].handle.hidden = true;
-        vs.stateArray[vs.pointer.next].handle.hidden = false;
-
-        // Set the new window title
-        setTitle({
-          filename: vs.stateArray[vs.pointer.next].filename,
-          fileIndex: vs.stateArray[vs.pointer.next].index + 1,
-          totalFiles: vs.dirNum
-        });
-
-        // If this image is a gif, it was temporarily loaded into a 'gifHandle'
-        // attribute. Now, load it in the actual 'src' value so it starts
-        // from the beginning
-        if (vs.stateArray[vs.pointer.next].gifHandle) {
-          vs.stateArray[vs.pointer.next].handle.src =
-            vs.stateArray[vs.pointer.next].gifHandle;
-        }
-        */
-
-    // } catch (e) {
-      // console.log('[ERROR] - showNext(): ' + e);
-      // TODO: Remove this callback and display an error in the view instead
-    //   if (callback) { callback(e); }
-    // }
-
-
-
-  } else {
-    // It is the last image, so reset the viewer
-    resetView();
+    fsManager.trashFile();
   }
 
-  fsManager.trashFile();
 
 
   // on delete,
@@ -377,35 +348,6 @@ view.prototype.delete = function () {
   // send an ipc message to move the file to the trash
   // load the next image
 };
-
-
-//vs.pointer.current, vs.pointer.next
-function cycleImage(oldPointer, newPointer) {
-
-  // If the previous image (still referred to as 'current') was
-  // a gif, 'null' the 'src' attribute
-  if (vs.stateArray[oldPointer].gifHandle) {
-    vs.stateArray[oldPointer].handle.src = '';
-  }
-
-  // Hide the old element and show the new one
-  vs.stateArray[oldPointer].handle.hidden = true;
-  vs.stateArray[newPointer].handle.hidden = false;
-
-  // Set the new window title
-  setTitle({
-    filename: vs.stateArray[newPointer].filename,
-    fileIndex: vs.stateArray[newPointer].index + 1,
-    totalFiles: vs.dirNum
-  });
-
-  // If this image is a gif, it was temporarily loaded into a 'gifHandle'
-  // attribute. Now, load it in the actual 'src' value so it starts
-  // from the beginning
-  if (vs.stateArray[newPointer].gifHandle) {
-    vs.stateArray[newPointer].handle.src = vs.stateArray[newPointer].gifHandle;
-  }
-}
 
 
 /**
@@ -419,10 +361,10 @@ view.prototype.zoomImage = function () {
     // If the image is already at 100%, do not zoom
     if ((vs.title.percentShrunk < 100) && !APP_HOME) {
       // Set the zoomed flag
-      this.zoomed = true;
+      zoomed = true;
 
       // Save the actual calculated zoom of the image
-      this.currentRealZoom = vs.title.percentShrunk;
+      currentRealZoom = vs.title.percentShrunk;
 
       // Ensure that the zoomed-in image also fills the full
       // window space
@@ -456,9 +398,9 @@ view.prototype.zoomImage = function () {
 view.prototype.fitImage = function () {
   try {
     // If the image is already zoomed (or not at app home), then proceed
-    if (this.zoomed && !APP_HOME) {
+    if (zoomed && !APP_HOME) {
       // Reset the zoomed flag
-      this.zoomed = false;
+      zoomed = false;
 
       // Ensure that the zoomed-in image also fills the full
       // window space
@@ -470,7 +412,7 @@ view.prototype.fitImage = function () {
       );
 
       // Set the title with the new zoom percentage
-      setTitle({percentShrunk: this.currentRealZoom});
+      setTitle({percentShrunk: currentRealZoom});
 
       // Set the CSS class that zooms the image
       vs.stateArray[vs.pointer.current].handle.classList
@@ -491,7 +433,7 @@ view.prototype.fitImage = function () {
  * @return {Boolean} True if zoomed, false otherwise
  */
 view.prototype.isZoomed = function () {
-  return this.zoomed;
+  return zoomed;
 };
 
 
@@ -511,6 +453,44 @@ view.prototype.minimize = function () {
 //              Private functions             //
 //  Everything below is only used internally  //
 // ------------------------------------------ //
+
+
+/**
+ * Run actions that reveal the new image and disable the old one
+ * @method cycleImage
+ * @param  {Integer}   oldPointer The appropriate pointer from vs.pointers
+ * @param  {Integer}   newPointer The appropriate pointer from vs.pointers
+ * @return {none}
+ */
+function cycleImage(oldPointer, newPointer) {
+  // If the previous image created an error, hide the error now.
+  // If it creates an error here, the callee will handle it
+  hideError();
+
+  // If the previous image (still referred to as 'current') was
+  // a gif, 'null' the 'src' attribute
+  if (vs.stateArray[oldPointer].gifHandle) {
+    vs.stateArray[oldPointer].handle.src = '';
+  }
+
+  // Hide the old element and show the new one
+  vs.stateArray[oldPointer].handle.hidden = true;
+  vs.stateArray[newPointer].handle.hidden = false;
+
+  // Set the new window title
+  setTitle({
+    filename: vs.stateArray[newPointer].filename,
+    fileIndex: vs.stateArray[newPointer].index + 1,
+    totalFiles: vs.dirNum
+  });
+
+  // If this image is a gif, it was temporarily loaded into a 'gifHandle'
+  // attribute. Now, load it in the actual 'src' value so it starts
+  // from the beginning
+  if (vs.stateArray[newPointer].gifHandle) {
+    vs.stateArray[newPointer].handle.src = vs.stateArray[newPointer].gifHandle;
+  }
+}
 
 
 /**
@@ -624,8 +604,8 @@ function loadPrev(wrap, index, callback) {
 
 
 /**
- * After the main process has finished calculating + resizing the
- * window, it also emits and event with the newly scaled-down percentage
+ * Updates the title with the new percentage, calculated by the
+ * main process after resizing the window.
  * @type {EventEmitter}
  */
 ipcRenderer.on('percent-reduc', (event, percentCalc) => {
@@ -638,7 +618,7 @@ ipcRenderer.on('percent-reduc', (event, percentCalc) => {
 
 
 /**
- * Clear the view after the window has been minimized
+ * Clears the view after the window has been minimized
  * to avoid jumpy animations
  * @type {EventEmitter}
  */
@@ -729,9 +709,9 @@ function setTitle(newFields, showAppname = true) {
  * @return {Object}          { width:,height:,type:'',mime:'',wUnits:'',
  *                             hUnits:''}
  */
-function sizeOf(filepath) {
-  return probe.sync(fs.readFileSync(filepath));
-}
+// function sizeOf(filepath) {
+//   return probe.sync(fs.readFileSync(filepath));
+// }
 
 
 /**
@@ -808,12 +788,37 @@ function hideHome() {
   APP_HOME = false;
 }
 
+// --> PLAY OF THE GAME
+//  --> ERROR                                              Hex animation
+//   --> AS <function name>
+//                  <error message>
+//                  ^      ^      ^
+//                  |      |      |
+
+
+function showError(err, message, sourceFunction) {
+  vs.imgContainer.hidden = true;
+  // vs.errorContainer.hidden = false;
+
+  // Then, set the values in the error container with the message
+
+}
+
+
+function hideError() {
+
+}
+
+
 
 /**
  * Reset the view by reinitializing the entire object
  * @method resetView
  */
 function resetView() {
+  zoomed = false;
+  currentRealZoom = 0;
+
   // Create a new view state, but preserve the 'init' conditions
   nvs = VIEWSTATE;
 

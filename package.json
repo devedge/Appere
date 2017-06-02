@@ -35,7 +35,7 @@
     "nodejs"
   ],
   "author": "devedge",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/devedge/Appere/issues"
   },

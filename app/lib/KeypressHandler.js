@@ -8,7 +8,7 @@
 // Valid keys to watch
 const KEYS = require('../util/ValidKeys.js');
 
-
+// TODO: switch-case statement
 /**
  * A method that determines the proper action to take based on
  * application context. It returns a string that is conditionally
