@@ -1,14 +1,10 @@
+@import "error";
+
 // The container for the application's view
 .main-app {
   -webkit-user-select: none; // prevent all text selection/highlight
   -webkit-app-region: drag; // allow images to be dragged
 }
-
-@font-face {
-  font-family: "ErrorFont";
-  src: url("fonts/error_tilted.ttf");
-}
-
 
 // The parent element of the logo
 .home-container {
@@ -31,28 +27,6 @@
 .logo-img {
   width: 100%; // Keep the image width 100% in the viewport
 }
-
-/*.error-container {
-  font-family: "ErrorFont";
-  line-height: 4.5em;
-  color: #4c4c4c;
-}
-.err {
-  padding-left: 0.2em;
-  font-size: 7em;
-  color: #EF1A29;
-}
-.head {
-  font-size: 3.5em;
-}
-.func {
-  padding-left: 1.6em;
-  font-size: 2.8em;
-}
-.func-name {
-  font-size: 0.6em;
-  padding-left: 1em;
-}*/
 
 // .image-container {
 // }
@@ -109,3 +83,5 @@
     opacity: 1;
   }
 }
+
+// --------------------------

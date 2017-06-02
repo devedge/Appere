@@ -1,0 +1,7 @@
+// Custom scrollbar
+::-webkit-scrollbar {
+  // Hide the scrollbar, since there isn't any way to overlay
+  // the scrollbar over the image while hiding the track
+  width: 0px;
+  height: 0px;
+}

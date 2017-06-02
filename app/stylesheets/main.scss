@@ -1,0 +1,23 @@
+// The container for the application's view
+.main-app {
+  -webkit-user-select: none; // prevent all text selection/highlight
+  -webkit-app-region: drag; // allow images to be dragged
+}
+
+// Add this class to any hidden animations, to keep them from
+// consuming resources
+.paused {
+  animation-play-state: paused;
+}
+
+body {
+  background-color: #eff0f1;
+}
+
+// This imports all the scss dependencies in order
+@import "scrollbar";
+@import "home";
+@import "error"; // imports hex loader too
+@import "image";
+// @import "info";
+// @import "settings";
