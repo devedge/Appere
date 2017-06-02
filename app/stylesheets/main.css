@@ -1,12 +1,10 @@
-.main-app {
+.global {
+  background-color: #eff0f1;
   -webkit-user-select: none;
   -webkit-app-region: drag; }
 
 .paused {
   animation-play-state: paused; }
-
-body {
-  background-color: #eff0f1; }
 
 ::-webkit-scrollbar {
   width: 0px;

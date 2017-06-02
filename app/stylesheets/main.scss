@@ -1,5 +1,8 @@
 // The container for the application's view
-.main-app {
+// .main-app {
+// }
+.global {
+  background-color: #eff0f1;
   -webkit-user-select: none; // prevent all text selection/highlight
   -webkit-app-region: drag; // allow images to be dragged
 }
@@ -10,9 +13,6 @@
   animation-play-state: paused;
 }
 
-body {
-  background-color: #eff0f1;
-}
 
 // This imports all the scss dependencies in order
 @import "scrollbar";
