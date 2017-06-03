@@ -43,6 +43,7 @@
 // TODO: if error, clear current values and set error flag in the state array
 // TODO: maybe a uniform 'image state populate' function
 // TODO: maybe add size extraction code to the validator module
+// TODONE: use the 'probe-image-size' only if 'sizeOf' crashes
 
 // Pages/slides
 // TODO: Info page

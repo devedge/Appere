@@ -3,6 +3,9 @@
   -webkit-user-select: none;
   -webkit-app-region: drag; }
 
+.cursor {
+  cursor: default; }
+
 .paused {
   animation-play-state: paused; }
 
@@ -18,14 +21,14 @@
 .logo-effect {
   margin-top: 10vh;
   animation-delay: 0.7s;
-  animation: logo-animation 1s;
+  animation: logo-fade-up 1s;
   animation-timing-function: ease;
   -webkit-app-region: no-drag; }
 
 .logo-img {
   width: 100%; }
 
-@keyframes logo-animation {
+@keyframes logo-fade-up {
   0% {
     opacity: 0;
     transform: translate(0, 10px); }

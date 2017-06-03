@@ -9,7 +9,7 @@
 .logo-effect {
   margin-top: 10vh; // keep the logo aligned 10vh from the top
   animation-delay: 0.7s;  // wait, so the animation runs smooth
-  animation: logo-animation 1s;
+  animation: logo-fade-up 1s;
   animation-timing-function: ease;
   -webkit-app-region: no-drag; // prevent the image from being dragged
 }
@@ -22,7 +22,7 @@
 
 // Fade-in and scroll-up animation for the logo. This is the
 // reverse of the background highlight animation, which slides up.
-@keyframes logo-animation {
+@keyframes logo-fade-up {
   0% {
     opacity: 0;
     transform: translate(0, 10px);

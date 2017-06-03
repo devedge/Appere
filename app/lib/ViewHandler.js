@@ -10,8 +10,8 @@
 'use-strict';
 
 const {ipcRenderer} = require('electron');
-const sizeOf = require('image-size'); // breaks on certain valid images
-// const probe = require('probe-image-size'); // working replacement, but slower
+const realSizeOf = require('image-size'); // breaks on certain valid images
+const probe = require('probe-image-size'); // working replacement, but slower
 const path = require('path');
 const fs = require('fs');
 
@@ -703,15 +703,23 @@ function setTitle(newFields, showAppname = true) {
 
 
 /**
- * Working replacement for sizeOf, but it's noticeably slower (~1ms longer)
+ * The image-size package occasionally fails on valid files, so
+ * fallback on the 'probe-image-size' module. However, it's noticeably
+ * slower (~1ms) longer because it has to syncronously read the entire
+ * file.
  * @method sizeOf
  * @param  {String} filepath Absolute filepath to the image
  * @return {Object}          { width:,height:,type:'',mime:'',wUnits:'',
  *                             hUnits:''}
  */
-// function sizeOf(filepath) {
-//   return probe.sync(fs.readFileSync(filepath));
-// }
+function sizeOf(filepath) {
+  try {
+    return realSizeOf(filepath);
+  } catch (e) {
+    console.log('[WARN] - sizeOf() - The regular function crashed: ' + e);
+    return probe.sync(fs.readFileSync(filepath));
+  }
+}
 
 
 /**

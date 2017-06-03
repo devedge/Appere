@@ -34,7 +34,7 @@ $base-pos: 1000px;
 .error-line {
   font-size: 7em;
   color: $error-color;
-  text-shadow: 0px 0px 2.5px #58514F; //#CD460C;
+  text-shadow: 0px 0px 2.5px #58514F;
   @include slide($message-duration, 150ms, error-slide);
 }
 

@@ -7,6 +7,11 @@
   -webkit-app-region: drag; // allow images to be dragged
 }
 
+// Property that hides the 'text' I-bar cursor that shows up over text
+.cursor {
+  cursor: default;
+}
+
 // Add this class to any hidden animations, to keep them from
 // consuming resources
 .paused {

@@ -1,0 +1,95 @@
+$width:5rem;
+$color:#ffe73e;
+$delay:100ms;
+
+@mixin pseudo($width,$height:$width,$radius:$width,$background:transparent) { // creates a pseudo element and requires width, then sets the height and radius if you don't pass them (defaults to a circle)
+  background:$background;
+  border-radius:$radius;
+  content:"";
+  height:$height;
+  width:$width;
+}
+
+* {
+  box-sizing:content-box;
+  position:relative;
+}
+body {
+  background:#222;
+  font-size:10px;
+}
+.hex-wrapper {
+  align-items:center;
+  display:flex;
+  justify-content:center;
+  margin:$width*2 auto 0;
+  width:60%;
+}
+.hexagon {
+  animation:hex-fade-in 1000ms linear infinite alternate;
+  background-color:$color;
+  height:$width*.6;
+  margin:$width auto;
+  position:absolute;
+  transform:scale(0);
+  width:$width;
+}
+.hex-one {
+  animation-delay:$delay;
+  margin-left:-$width*.52;
+  margin-top:$width*.06;
+}
+.hex-two {
+  animation-delay:$delay*2;
+  margin-left:$width*.52;
+  margin-top:$width*.06;
+}
+.hex-three {
+  animation-delay:$delay*3;
+  margin-left:$width*1.04;
+}
+.hex-four {
+  animation-delay:$delay*4;
+  margin-left:$width*.52;
+  margin-top:$width*1.94;
+}
+.hex-five {
+  animation-delay:$delay*5;
+  margin-left:-$width*.52;
+  margin-top:$width*1.94;
+}
+.hex-six {
+  animation-delay:$delay*6;
+  margin-left:-$width*1.04;
+}
+.hex-seven {
+  animation-delay:$delay*7;
+  margin-left:0;
+}
+
+.hexagon:before,
+.hexagon:after {
+  @include pseudo(0,auto);
+  border-left:$width*.5 solid transparent;
+  border-right:$width*.5 solid transparent;
+  position:absolute;
+}
+
+.hexagon:before {
+  bottom: 100%;
+  border-bottom:$width*.3 solid $color;
+}
+
+.hexagon:after {
+  border-top:$width*.3 solid $color;
+  top: 100%;
+}
+
+@keyframes hex-fade-in {
+  0%, 25% {
+    transform:scale(0);
+  }
+  50%, 100% {
+    transform:scale(1);
+  }
+}
