@@ -7,8 +7,8 @@
 
 // Valid keys to watch
 const KEYS = require('../util/ValidKeys.js');
+const keycode = require('keycode');
 
-// TODO: switch-case statement
 /**
  * A method that determines the proper action to take based on
  * application context. It returns a string that is conditionally
@@ -19,35 +19,36 @@ const KEYS = require('../util/ValidKeys.js');
  * @return {String}              The action string
  */
 function getKeyAction(event, isZoomed) {
-  let key = event.keyCode;
+  // The action to take/return. If this is set, then the default action
+  // will be prevented and this value will be returned.
   let action = null;
+  let kc = keycode(event.keyCode);
 
-  // Check for zoom options
+  // If the shift modifier was used
   if (event.shiftKey) {
-    if (key === KEYS.ZOOM_IN) {
-      action = 'zoom-in';
-    } else if (key === KEYS.ZOOM_OUT) {
-      action = 'zoom-out';
+
+    // Check the keypress actions that can be taken
+    switch (kc) {
+      case regexCheck(kc, KEYS.ZOOM_IN):
+        action = 'zoom-in';
+        break;
+      case regexCheck(kc, KEYS.ZOOM_OUT):
+        action = 'zoom-out';
+        break;
     }
-
   } else {
-    // Check for other regular usage options
-
-    // 'Left' or 'Up' goes to the previous image, if it's not zoomed
-    if (key === KEYS.LEFT || key === KEYS.UP) {
-      if (!isZoomed) {
-        action = 'prev';
-      }
-
-    // 'Left', 'Down', or 'Space' goes to the next image if it isn't zoomed
-    } else if (key === KEYS.RIGHT || key === KEYS.DOWN || key === KEYS.SPACE) {
-      if (!isZoomed) {
-        action = 'next';
-      }
-
-    // The 'ESC' key minimizes the window
-    } else if (key === KEYS.ESC) {
-      action = 'min';
+    // If the 'shift' modifier wasn't used, check the keys pressed
+    // to determine what action to take
+    switch (kc) {
+      case regexCheck(kc, KEYS.NEXT):
+        if (!isZoomed) { action = 'next'; }
+        break;
+      case regexCheck(kc, KEYS.PREVIOUS):
+        if (!isZoomed) { action = 'prev'; }
+        break;
+      case regexCheck(kc, KEYS.MINIMIZE):
+        action = 'min';
+        break;
     }
   }
 
@@ -56,6 +57,19 @@ function getKeyAction(event, isZoomed) {
     event.preventDefault();
     return action;
   }
+}
+
+
+/**
+ * Quick function that determines if a string matched with a certain
+ * regex exists.
+ * @method regexCheck
+ * @param  {String}   str   The string to compare
+ * @param  {Regex}    regex The regex
+ * @return {String}         The matched string, or 'undefined'
+ */
+function regexCheck(str, regex) {
+  return (str.match(regex) || {})[0];
 }
 
 
