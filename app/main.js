@@ -44,6 +44,11 @@
 // TODO: maybe a uniform 'image state populate' function
 // TODO: maybe add size extraction code to the validator module
 // TODONE: use the 'probe-image-size' only if 'sizeOf' crashes
+// TODO: logger
+// TODO: (note), on settings, blur page, reset window size for the settings
+//        view, and change image style so it fills the whole screen
+// TODO eventually a small custom menubar
+
 
 // Pages/slides
 // TODO: Info page
@@ -53,6 +58,16 @@
 // TODO: Animations on the home page
 // TODO: blurred background view
 //    TODO: animate image transitions
+
+// Immediate action items:
+// TODO: handle errors in a uniform way
+// TODO: validate and determine file info in a uniform way
+// TODO: Display a small informational error message at the top of the window
+//        if something failed to happen (eg., the trash functionality failed)
+// TODO: Add build scripts, test scripts, and compilation scripts for things
+//        like SCSS
+// TODONE: find a module to properly handle keypresses
+
 
 console.time('init');
 
@@ -157,7 +172,7 @@ function createWindow() {
     icon: path.join(__dirname, config.get('BROWSER_WIN.iconPath')),
     center: config.get('BROWSER_WIN.center'),
     title: config.get('BROWSER_WIN.titleName'),
-    show: config.get('BROWSER_WIN.show'),
+    show: false, //config.get('BROWSER_WIN.show'),
     autoHideMenuBar: config.get('BROWSER_WIN.autoHideMenuBar')
   });
 
@@ -167,6 +182,17 @@ function createWindow() {
     __dirname,
     config.get('BROWSER_WIN.indexPath')
   ));
+
+  // Display the image only when it's ready, so animations are
+  // fluid and smooth
+  win.once('ready-to-show', () => {
+    console.log('ready-to-show Triggered');
+    win.show();
+  });
+
+  // TODO Hide the menubar after load, so pressing the 'alt' key will
+  // still show it.
+  // win.setAutoHideMenuBar(config.get('BROWSER_WIN.autoHideMenuBar'));
 
   // Emitted just before the window will be closed. This is watched so
   // the window size can be saved
