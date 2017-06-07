@@ -1,11 +1,13 @@
-// The container for the application's view
-// .main-app {
-// }
+// Global app-wide properties
 .global {
   background-color: #eff0f1;
   -webkit-user-select: none; // prevent all text selection/highlight
   -webkit-app-region: drag; // allow images to be dragged
 }
+
+// The container for the application's view
+// .main-app {
+// }
 
 // Property that hides the 'text' I-bar cursor that shows up over text
 .cursor {
@@ -14,12 +16,13 @@
 
 // Add this class to any hidden animations, to keep them from
 // consuming resources
-.paused {
-  animation-play-state: paused;
-}
+// .paused {
+//   animation-play-state: paused;
+// }
 
 
 // This imports all the scss dependencies in order
+// @import url(node_modules/gemini-scrollbar/gemini-scrollbar.css);
 @import "scrollbar";
 @import "home";
 @import "error"; // imports hex loader too

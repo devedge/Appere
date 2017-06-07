@@ -1,13 +1,18 @@
+$diameter: 800px;
+$drift-amount: 20px;
+
 // The parent element of the logo
 .home-container {
-  padding: 30px; // pad the home container with 30 px
+  // padding: 30px; // pad the home container with 30 px
   display: flex;
   justify-content: center;
 }
 
 // The logo, its animation, and its positioning
 .logo-effect {
-  margin-top: 10vh; // keep the logo aligned 10vh from the top
+  z-index: 1;
+  // position: absolute;
+  margin-top: 15vh; // keep the logo aligned 10vh from the top
   animation-delay: 0.7s;  // wait, so the animation runs smooth
   animation: logo-fade-up 1s;
   animation-timing-function: ease;
@@ -18,6 +23,19 @@
 // the img are required to allow the image to scale within a flexbox at all.
 .logo-img {
   width: 100%; // Keep the image width 100% in the viewport
+}
+
+// To add mild depth, use a heavily burred-out point light
+.point-light {
+  z-index: -1;
+  position: absolute;
+  margin-top: 15vh;
+  background-color: #FFFFFF;
+  width: $diameter / 2;
+	height: $diameter / 2;
+  border-radius: $diameter;
+  filter: blur(70px) opacity(0.85);
+  // animation: point-light-drift 2s infinite ease-in-out alternate;
 }
 
 // Fade-in and scroll-up animation for the logo. This is the
@@ -31,3 +49,10 @@
     opacity: 1;
   }
 }
+
+// @keyframes point-light-drift {
+//   from {
+//     transform: translateY($drift-amount); }
+//   to {
+//     transform: translateY(-$drift-amount); }
+// }
