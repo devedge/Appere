@@ -1,10 +1,21 @@
 /**
  * The module that handles the image view. It uses a 'view' object to keep
- * track of the application's current state.
+ * track of the application's current state. All the exported methods are
+ * wrapped in try-catch blocks so they can be generically handled in the
+ * error message view.
  *
- * This is currently only used by the 'app.js' module imported in the view
+ * This is only required by app.js
  *
- *
+ * This exports the 'view' class, which contains the following methods:
+ *    init()
+ *    setCurrentImage()
+ *    showNext()
+ *    showPrev()
+ *    deleteCurrent()
+ *    zoomImage()
+ *    fitImage()
+ *    isZoomed()
+ *    minimize()
  */
 
 'use-strict';
@@ -41,15 +52,15 @@ let fsManager = new FilesystemManager();
 // its state.
 let VIEWSTATE = {
   dirPath: '', // The absolute path to the current directory
-  dirNum: 0,   // The number of items in the current directory
-  pointer: {   // A rolling index of pointers to the list of images
+  dirNum: 0,   // The number of images in the current directory
+  pointer: {   // A rolling index of pointers to the images in the stateArray
     current: 0,
     next: 1,
     previous: 2
   },
   stateArray: [   // An object array that maintains state of the three images
     {
-      handle: null,  // A handle to the image element
+      handle: null,   // A handle to the image element
       gifHandle: null,// A temporary handle so gifs can be loaded from the start
       filename: '',   // The image's filename
       index: 0,       // The index into the image array
@@ -71,13 +82,13 @@ let VIEWSTATE = {
     }
   ],
   title: {          // An object that maintains state of the window title
-    filename: '',
-    fileIndex: 0,
+    filename: '',   // These attributes are duplicated here so the title
+    fileIndex: 0,   //    can be re-generated without re-querying the stateArray
     totalFiles: 0,
     percentShrunk: ''
   },
-  imgContainer: null,
-  logoContainer: null
+  imgContainer: null,  // The parent of the three image elements
+  logoContainer: null  // The app home, containing the logo
 };
 
 // The view state object used by the application
@@ -180,11 +191,8 @@ view.prototype.setCurrentImage = function (filepath, callback) {
 
       // Finally, generate the list of valid images in the current directory.
       // Then, a user can iterate between the previous/next images
-      fsManager.init(vs.dirPath, vs.stateArray[vs.pointer.current].filename,
-        (err) => {
-          if (err) {
-            throw err;
-          }
+      fsManager.init(vs.dirPath, vs.stateArray[vs.pointer.current].filename, (err) => {
+          if (err) { throw err; }
 
           // Set the total number of images in the current directory
           vs.dirNum = fsManager.getTotalNumber();
@@ -201,16 +209,10 @@ view.prototype.setCurrentImage = function (filepath, callback) {
           });
 
           // Load the next image
-          loadNext(shared.userConfig.get('WRAP'), fsManager.getCurrentIndex(),
-            (err) => {
-              if (err) { throw err; }
-          });
+          loadNext(shared.userConfig.get('WRAP'), fsManager.getCurrentIndex());
 
           // Load the previous image
-          loadPrev(shared.userConfig.get('WRAP'), fsManager.getCurrentIndex(),
-            (err) => {
-              if (err) { throw err; }
-          });
+          loadPrev(shared.userConfig.get('WRAP'), fsManager.getCurrentIndex());
 
           // Successful callback if the user wants to take action after
           // this function has finished
@@ -218,10 +220,16 @@ view.prototype.setCurrentImage = function (filepath, callback) {
       });
 
     } else {
+      logError('validateFile', 'Invalid/corrupt file', filepath);
       throw 'Invalid/corrupt file: \'' + filepath + '\'';
     }
   } catch (e) {
-    console.log('[ERROR] - setCurrentImage(): ' + e);
+    // Error strategy: callback with errors all the way to the top,
+    // but throw and catch them here so the error page can be
+    // properly displayed.
+
+    // console.log('[ERROR] - setCurrentImage(): ' + e);
+    logError('setCurrentImage', 'fatal error caught', e);
     if (callback) { callback(e); }
   }
 };
@@ -249,13 +257,11 @@ view.prototype.showNext = function (callback) {
       rotatePointersNext();
 
       // Preload the next image.
-      loadNext(shared.userConfig.get('WRAP'),
-               vs.stateArray[vs.pointer.current].index, (err) => {
-          if (err) { throw err; }
-      });
+      loadNext(shared.userConfig.get('WRAP'), vs.stateArray[vs.pointer.current].index);
     }
   } catch (e) {
-    console.log('[ERROR] - showNext(): ' + e);
+    // console.log('[ERROR] - showNext(): ' + e);
+    logError('showNext', 'fatal error caught', e);
     // TODO: Remove this callback and display an error in the view instead
     if (callback) { callback(e); }
   }
@@ -284,27 +290,25 @@ view.prototype.showPrev = function (callback) {
       rotatePointersPrev();
 
       // Preload the next image.
-      loadPrev(shared.userConfig.get('WRAP'),
-               vs.stateArray[vs.pointer.current].index, (err) => {
-          if (err) { throw err; }
-      });
+      loadPrev(shared.userConfig.get('WRAP'), vs.stateArray[vs.pointer.current].index);
     }
   } catch (e) {
-    console.log('[ERROR] - showPrev(): ' + e);
+    // console.log('[ERROR] - showPrev(): ' + e);
+    logError('showPrev', 'fatal error caught', e);
     if (callback) { callback(e); }
   }
 };
 
 
-// TODO delete
+// TODO deleteCurrent
 /**
  * Trashes the current file currently being displayed. Then, it loads
  * the next one in the current directory. If there are none, it
  * redisplays the home screen.
- * @method delete
+ * @method deleteCurrent
  * @return {none}
  */
-view.prototype.delete = function () {
+view.prototype.deleteCurrent = function () {
   // First, dim & blur image, and display confirmation page
   // If the user confirms with (yes), continue
   //  If fsManager.getTotalNumber() > 1
@@ -328,10 +332,7 @@ view.prototype.delete = function () {
         rotatePointersDelete();
 
         // Preload the next image.
-        loadNext(shared.userConfig.get('WRAP'),
-                 vs.stateArray[vs.pointer.current].index, (err) => {
-          if (err) { throw err; }
-        });
+        loadNext(shared.userConfig.get('WRAP'), vs.stateArray[vs.pointer.current].index);
       }
     } else {
       // It is the last image, so reset the viewer
@@ -384,7 +385,8 @@ view.prototype.zoomImage = function () {
         .add(FULL_IMG_CLASS);
     }
   } catch (e) {
-    console.log('[ERROR] - zoomImage(): ' + e);
+    logError('zoomImage', 'fatal error caught', e);
+    // console.log('[ERROR] - zoomImage(): ' + e);
     if (callback) { callback(e); }
   }
 };
@@ -421,7 +423,8 @@ view.prototype.fitImage = function () {
         .add(FIT_IMG_CLASS);
     }
   } catch (e) {
-    console.log('[ERROR] - fitImage(): ' + e);
+    logError('fitImage', 'fatal error caught', e);
+    // console.log('[ERROR] - fitImage(): ' + e);
     if (callback) { callback(e); }
   }
 };
@@ -498,10 +501,9 @@ function cycleImage(oldPointer, newPointer) {
  * @method loadNext
  * @param  {Boolean}  wrap     Wrap around to the start?
  * @param  {Integer}  index    The absolute index of the current image
- * @param  {Function} callback A callback of (err) only if there's an error
  * @return {none}
  */
-function loadNext(wrap, index, callback) {
+function loadNext(wrap, index) {
   // Try to load the next image
   try {
     // Preload the next image into the next hidden 'img' tag
@@ -511,39 +513,19 @@ function loadNext(wrap, index, callback) {
         // Validate the file
         if (validateFile.isValid(path.join(vs.dirPath, filename))) {
 
-          // Set the next object's name and index
-          vs.stateArray[vs.pointer.next].filename = filename;
-          vs.stateArray[vs.pointer.next].index = newIndex;
+          setNewImage(vs.pointer.next, filename, newIndex);
 
-          // Get the dimensions of the 'next' image
-          vs.stateArray[vs.pointer.next].dimensions =
-            sizeOf(path.join(
-              vs.dirPath,
-              vs.stateArray[vs.pointer.next].filename
-            ));
-
-          // Set the next image in the next 'img' tag
-          if (vs.stateArray[vs.pointer.next].filename.match(/\.gif$/)) {
-            // If the image is a 'gif', don't actually load it
-            // in the 'src' attribute. Instead, load it in a temporary
-            // value so it can be loaded at the last minute
-            vs.stateArray[vs.pointer.next].gifHandle =
-              path.join(vs.dirPath, pEncode(filename));
-          } else {
-            // Otherwise, preload the next image
-            // Also, 'nullify' the gifHandle since it isn't a gif
-            vs.stateArray[vs.pointer.next].handle.src =
-              path.join(vs.dirPath, pEncode(filename));
-            vs.stateArray[vs.pointer.next].gifHandle = '';
-          }
         } else {
+          logError('validateFile', 'Invalid/corrupt file', filename);
           throw 'Invalid/corrupt file: \'' + filename + '\'';
         }
       }
     });
   } catch (e) {
-    console.log('[ERROR] - loadNext(): ' + e);
-    if (callback) { callback(e); }
+    logError('loadNext', 'fatal error caught for ' + filename, e);
+    // console.log('[ERROR] - loadNext() with \"' + filename + '\": ' + e);
+    throw e;
+    // if (callback) { callback(e); }
   }
 }
 
@@ -553,10 +535,9 @@ function loadNext(wrap, index, callback) {
  * @method loadPrev
  * @param  {Boolean}  wrap     Wrap around to the end?
  * @param  {Integer}  index    The absolute index of the current image
- * @param  {Function} callback A callback of (err) only if there's an error
  * @return {none}
  */
-function loadPrev(wrap, index, callback) {
+function loadPrev(wrap, index) {
   // Try to load the previous image
   try {
     // Preload the previous image into the previous hidden 'img' tag
@@ -566,39 +547,49 @@ function loadPrev(wrap, index, callback) {
         // Validate the file
         if (validateFile.isValid(path.join(vs.dirPath, filename))) {
 
-          // Set the previous object's name and index
-          vs.stateArray[vs.pointer.previous].filename = filename;
-          vs.stateArray[vs.pointer.previous].index = newIndex;
+          setNewImage(vs.pointer.previous, filename, newIndex);
 
-          // Get the dimensions of the 'previous' image
-          vs.stateArray[vs.pointer.previous].dimensions =
-            sizeOf(path.join(
-              vs.dirPath,
-              vs.stateArray[vs.pointer.previous].filename
-            ));
-
-          // Set the previous image in the previous 'img' tag
-          if (vs.stateArray[vs.pointer.previous].filename.match(/\.gif$/)) {
-            // If the image is a 'gif', don't actually load it
-            // in the 'src' attribute. Instead, load it in a temporary
-            // value so it can be loaded at the last minute
-            vs.stateArray[vs.pointer.previous].gifHandle =
-              path.join(vs.dirPath, pEncode(filename));
-          } else {
-            // Otherwise, preload the previous image
-            // Also, 'nullify' the gifHandle since it isn't a gif
-            vs.stateArray[vs.pointer.previous].handle.src =
-              path.join(vs.dirPath, pEncode(filename));
-            vs.stateArray[vs.pointer.previous].gifHandle = '';
-          }
         } else {
+          logError('validateFile', 'Invalid/corrupt file', filename);
           throw 'Invalid/corrupt file: \'' + filename + '\'';
         }
       }
     });
   } catch (e) {
-    console.log('[ERROR] - loadPrev(): ' + e);
-    if (callback) { callback(e); }
+    logError('loadPrev', 'fatal error caught for ' + filename, e);
+    // console.log('[ERROR] - loadPrev() with \"' + filename + '\": ' + e);
+    throw e;
+    // if (callback) { callback(e); }
+  }
+}
+
+
+
+function setNewImage(newPointer, filename, newIndex) {
+  // Set the new object's name and index
+  vs.stateArray[newPointer].filename = filename;
+  vs.stateArray[newPointer].index = newIndex;
+
+  // Get the dimensions of the 'new' image
+  vs.stateArray[newPointer].dimensions =
+    sizeOf(path.join(
+      vs.dirPath,
+      vs.stateArray[newPointer].filename
+    ));
+
+  // Set the new image in the new 'img' tag
+  if (vs.stateArray[newPointer].filename.match(/\.gif$/)) {
+    // If the image is a 'gif', don't actually load it
+    // in the 'src' attribute. Instead, load it in a temporary
+    // value so it can be loaded at the last minute
+    vs.stateArray[newPointer].gifHandle =
+      path.join(vs.dirPath, pEncode(filename));
+  } else {
+    // Otherwise, preload the new image
+    // Also, 'nullify' the gifHandle since it isn't a gif
+    vs.stateArray[newPointer].handle.src =
+      path.join(vs.dirPath, pEncode(filename));
+    vs.stateArray[newPointer].gifHandle = '';
   }
 }
 
@@ -644,6 +635,7 @@ function resizeIPC(pointer) {
       shared.userConfig.get('RETURN_PERCENTAGE')
     );
   } catch (e) {
+    logError('resizeIPC', 'fatal error caught', e);
     throw 'IPC \'resize-window\' error: ' + e;
   }
 }
@@ -716,7 +708,8 @@ function sizeOf(filepath) {
   try {
     return realSizeOf(filepath);
   } catch (e) {
-    console.log('[WARN] - sizeOf() - The regular function crashed: ' + e);
+    logError('sizeOf', 'fatal error caught for ' + filepath, e);
+    // console.log('[WARN] - sizeOf() - The regular function crashed: ' + e);
     return probe.sync(fs.readFileSync(filepath));
   }
 }
@@ -817,6 +810,12 @@ function hideError() {
 
 }
 
+
+function logError(functionName, errorMessage, specifics) {
+  console.log('[ERROR] (' + functionName + '): ' +
+    errorMessage + ' - ' +
+    specifics);
+}
 
 
 /**

@@ -37,22 +37,6 @@ view.init(
 setFromArgs();
 
 
-// If an image is dragged onto the window, display it
-document.ondrop = document.body.ondrop = (event) => {
-  event.preventDefault();
-
-  // To prevent duplicate calls during drag-and-drop, check DRAG_FLAG
-  if (!DRAG_FLAG && event.dataTransfer.files[0]) {
-      DRAG_FLAG = true;
-
-      // Hook into the callback to reset the flag
-      view.setCurrentImage(event.dataTransfer.files[0].path, (err) => {
-        DRAG_FLAG = false; // Reset the DRAG_FLAG
-      });
-  }
-};
-
-
 // Key listener logic
 document.addEventListener('keydown', (event) => {
   switch (keyAction.get(event, view.isZoomed())) {
@@ -79,6 +63,22 @@ document.addEventListener('keydown', (event) => {
       break;
   }
 });
+
+
+// If an image is dragged onto the window, display it
+document.ondrop = document.body.ondrop = (event) => {
+  event.preventDefault();
+
+  // To prevent duplicate calls during drag-and-drop, check DRAG_FLAG
+  if (!DRAG_FLAG && event.dataTransfer.files[0]) {
+      DRAG_FLAG = true;
+
+      // Hook into the callback to reset the flag
+      view.setCurrentImage(event.dataTransfer.files[0].path, (err) => {
+        DRAG_FLAG = false; // Reset the DRAG_FLAG
+      });
+  }
+};
 
 
 // If anything is dragged over the display window, prevent

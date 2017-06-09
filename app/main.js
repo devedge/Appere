@@ -83,7 +83,7 @@ const config = new Config();
 
 // Global module variables
 let calcDim = null;
-let winPos = { x: 0, y: 0};
+// let winPos = { x: 0, y: 0};
 let win = null;
 
 // Try to load user configuration by checking for a configuration
@@ -183,10 +183,9 @@ function createWindow() {
     config.get('BROWSER_WIN.indexPath')
   ));
 
-  // Display the image only when it's ready, so animations are
+  // Display the window only when it's ready, so animations are
   // fluid and smooth
   win.once('ready-to-show', () => {
-    console.log('ready-to-show Triggered');
     win.show();
   });
 
