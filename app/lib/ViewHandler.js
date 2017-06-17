@@ -64,21 +64,24 @@ let VIEWSTATE = {
       gifHandle: null,// A temporary handle so gifs can be loaded from the start
       filename: '',   // The image's filename
       index: 0,       // The index into the image array
-      dimensions: {}  // The dimensions {width, height} of the current image
+      dimensions: {}, // The dimensions {width, height} of the current image
+      err: null //{message: '', function: ''}
     },
     {
       handle: null,
       gifHandle: null,
       filename: '',
       index: 0,
-      dimensions: {}
+      dimensions: {},
+      err: null //{message: '', function: ''}
     },
     {
       handle: null,
       gifHandle: null,
       filename: '',
       index: 0,
-      dimensions: {}
+      dimensions: {},
+      err: null //{message: '', function: ''}
     }
   ],
   title: {          // An object that maintains state of the window title
@@ -144,96 +147,95 @@ view.prototype.init = function (imgElement1, imgElement2, imgElement3,
  */
 view.prototype.setCurrentImage = function (filepath, callback) {
   try {
+
     // Check that the file exists and is a valid image
-    if (validateFile.isValid(filepath)) {
+    let retMsg = validateFile.check(filepath);
+    // If an error message is returned, call the error
+    // function & return early to quit execution
+    if (retMsg.err) {
+      // call error function
+      // retMsg.message
+      return;
+    }
 
-      // Reset the app's view
-      resetView();
+    // Reset the app's view
+    resetView();
 
-      // Determine the new directory & basename
-      vs.dirPath = path.dirname(filepath);
-      vs.stateArray[vs.pointer.current].filename = path.basename(filepath);
+    // Determine the new directory & basename
+    vs.dirPath = path.dirname(filepath);
+    vs.stateArray[vs.pointer.current].filename = path.basename(filepath);
 
-      // Focus the window to the foreground
-      ipcRenderer.send('focus-window');
+    // Focus the window to the foreground
+    ipcRenderer.send('focus-window');
 
-      // Set the size of the current image
-      vs.stateArray[vs.pointer.current].dimensions =
-        sizeOf(path.join(
-          vs.dirPath,
-          vs.stateArray[vs.pointer.current].filename
-        ));
+    // Set the size of the current image
+    vs.stateArray[vs.pointer.current].dimensions =
+      sizeOf(path.join(
+        vs.dirPath,
+        vs.stateArray[vs.pointer.current].filename
+      ));
 
-      // Send these new dimensions to the resize function in the
-      // main process. This is done before setting the image to reduce
-      // noticeable lag.
-      resizeIPC(vs.pointer.current);
+    // Send these new dimensions to the resize function in the
+    // main process. This is done before setting the image to reduce
+    // noticeable lag.
+    resizeIPC(vs.pointer.current);
 
-      // If this is a 'gif', save the path in the 'gifHandle' attribute
-      if (vs.stateArray[vs.pointer.current].filename.match(/\.gif$/)) {
-        vs.stateArray[vs.pointer.current].gifHandle =
-          path.join(
-            vs.dirPath,
-            pEncode(vs.stateArray[vs.pointer.current].filename)
-          );
-      }
-
-      // Then, set the image in the view. pEncode ensures that the image
-      // path is safely percent-encoded so the chromium engine can resolve it.
-      vs.stateArray[vs.pointer.current].handle.src =
+    // If this is a 'gif', save the path in the 'gifHandle' attribute
+    if (vs.stateArray[vs.pointer.current].filename.match(/\.gif$/)) {
+      vs.stateArray[vs.pointer.current].gifHandle =
         path.join(
           vs.dirPath,
           pEncode(vs.stateArray[vs.pointer.current].filename)
         );
-
-      // Hide the home page of the application
-      hideHome();
-
-      // Finally, generate the list of valid images in the current directory.
-      // Then, a user can iterate between the previous/next images
-      fsManager.init(vs.dirPath, vs.stateArray[vs.pointer.current].filename, (err) => {
-          if (err) { throw err; }
-
-          // Set the total number of images in the current directory
-          vs.dirNum = fsManager.getTotalNumber();
-
-          // Set the current image's index in that array
-          vs.stateArray[vs.pointer.current].index =
-              fsManager.getCurrentIndex();
-
-          // Set the window title
-          setTitle({
-            filename: vs.stateArray[vs.pointer.current].filename,
-            fileIndex: fsManager.getCurrentIndex() + 1,
-            totalFiles: vs.dirNum
-          });
-
-          // Load the next image
-          loadNext(shared.userConfig.get('WRAP'), fsManager.getCurrentIndex());
-
-          // Load the previous image
-          loadPrev(shared.userConfig.get('WRAP'), fsManager.getCurrentIndex());
-
-          // Successful callback if the user wants to take action after
-          // this function has finished
-          if (callback) { callback(null); }
-      });
-
-    } else {
-      logError('validateFile', 'Invalid/corrupt file', filepath);
-      throw 'Invalid/corrupt file: \'' + filepath + '\'';
     }
-  } catch (e) {
-    // Error strategy: callback with errors all the way to the top,
-    // but throw and catch them here so the error page can be
-    // properly displayed.
 
-    // console.log('[ERROR] - setCurrentImage(): ' + e);
-    logError('setCurrentImage', 'fatal error caught', e);
+    // Then, set the image in the view. pEncode ensures that the image
+    // path is safely percent-encoded so the chromium engine can resolve it.
+    vs.stateArray[vs.pointer.current].handle.src =
+      path.join(
+        vs.dirPath,
+        pEncode(vs.stateArray[vs.pointer.current].filename)
+      );
+
+    // Hide the home page of the application
+    hideHome();
+
+    // Finally, generate the list of valid images in the current directory.
+    // Then, a user can iterate between the previous/next images
+    fsManager.init(vs.dirPath, vs.stateArray[vs.pointer.current].filename, (err) => {
+        // Fatal error occured, and the viewer cannot continue
+        if (err) { throw err; }
+
+        // Set the total number of images in the current directory
+        vs.dirNum = fsManager.getTotalNumber();
+
+        // Set the current image's index in that array
+        vs.stateArray[vs.pointer.current].index =
+            fsManager.getCurrentIndex();
+
+        // Set the window title
+        setTitle({
+          filename: vs.stateArray[vs.pointer.current].filename,
+          fileIndex: fsManager.getCurrentIndex() + 1,
+          totalFiles: vs.dirNum
+        });
+
+        // Load the next image
+        loadNext(shared.userConfig.get('WRAP'), fsManager.getCurrentIndex());
+
+        // Load the previous image
+        loadPrev(shared.userConfig.get('WRAP'), fsManager.getCurrentIndex());
+
+        // Successful callback if the user wants to take action after
+        // this function has finished
+        if (callback) { callback(null); }
+    });
+
+  } catch (e) {
+    // error here
     if (callback) { callback(e); }
   }
 };
-
 
 /**
  * Displays the next image in the viewer. Calls back with (err) if
@@ -242,7 +244,7 @@ view.prototype.setCurrentImage = function (filepath, callback) {
  * @param  {Function} callback A callback containing (err) if error
  * @return {none}
  */
-view.prototype.showNext = function (callback) {
+view.prototype.showNext = function () { //callback
   try {
     if (fsManager.isReady() && !APP_HOME) {
 
@@ -260,10 +262,8 @@ view.prototype.showNext = function (callback) {
       loadNext(shared.userConfig.get('WRAP'), vs.stateArray[vs.pointer.current].index);
     }
   } catch (e) {
-    // console.log('[ERROR] - showNext(): ' + e);
-    logError('showNext', 'fatal error caught', e);
-    // TODO: Remove this callback and display an error in the view instead
-    if (callback) { callback(e); }
+    // If an error happens here, set the current image as an error
+    // if (callback) { callback(e); }
   }
 };
 
@@ -275,7 +275,7 @@ view.prototype.showNext = function (callback) {
  * @param  {Function} callback A callback containing (err) if error
  * @return {none}
  */
-view.prototype.showPrev = function (callback) {
+view.prototype.showPrev = function () { //callback
   try {
     if (fsManager.isReady() && !APP_HOME) {
 
@@ -293,9 +293,9 @@ view.prototype.showPrev = function (callback) {
       loadPrev(shared.userConfig.get('WRAP'), vs.stateArray[vs.pointer.current].index);
     }
   } catch (e) {
-    // console.log('[ERROR] - showPrev(): ' + e);
-    logError('showPrev', 'fatal error caught', e);
-    if (callback) { callback(e); }
+    // If an error happens here, set the current image as an error
+    // logError('showPrev', 'fatal error caught', e);
+    // if (callback) { callback(e); }
   }
 };
 
@@ -450,6 +450,8 @@ view.prototype.minimize = function () {
 };
 
 
+// Export the 'view' Class
+module.exports = view;
 
 
 // ------------------------------------------ //
@@ -466,9 +468,22 @@ view.prototype.minimize = function () {
  * @return {none}
  */
 function cycleImage(oldPointer, newPointer) {
+
   // If the previous image created an error, hide the error now.
   // If it creates an error here, the callee will handle it
-  hideError();
+  if (vs.stateArray[oldPointer].err) {
+    hideError();
+  }
+
+  // If an error
+  if (vs.stateArray[newPointer].err) {
+    showError(
+      vs.stateArray[newPointer].err.message,
+      vs.stateArray[newPointer].err.function
+    );
+    return; // quit early
+  }
+
 
   // If the previous image (still referred to as 'current') was
   // a gif, 'null' the 'src' attribute
@@ -505,28 +520,43 @@ function cycleImage(oldPointer, newPointer) {
  */
 function loadNext(wrap, index) {
   // Try to load the next image
-  try {
-    // Preload the next image into the next hidden 'img' tag
-    fsManager.getNextFromIDX(wrap, index, (ready, filename, newIndex) => {
-      // If the 'init' function is ready, then proceed
-      if (ready) {
-        // Validate the file
-        if (validateFile.isValid(path.join(vs.dirPath, filename))) {
+  // try {
 
-          setNewImage(vs.pointer.next, filename, newIndex);
+  // Preload the next image into the next hidden 'img' tag
+  fsManager.getNextFromIDX(wrap, index, (ready, filename, newIndex) => {
+    // If the 'init' function is ready, then proceed
+    if (ready) {
 
-        } else {
-          logError('validateFile', 'Invalid/corrupt file', filename);
-          throw 'Invalid/corrupt file: \'' + filename + '\'';
-        }
+      // Validate the file
+      let retMsg = validateFile.check(path.join(vs.dirPath, filename));
+      if (retMsg.err) {
+        // error flag gets set here, and checked in cycleImage
+        vs.stateArray[vs.pointer.next].err = {
+          message: retMsg.err,
+          function: 'validateFile'
+        };
+
+        return; // return early
+      } else {
+        setNewImage(vs.pointer.next, filename, newIndex);
       }
-    });
-  } catch (e) {
-    logError('loadNext', 'fatal error caught for ' + filename, e);
+      // Validate the file
+      // if (validateFile.isValid(path.join(vs.dirPath, filename))) {
+
+
+      // } else {
+        // logError('validateFile', 'Invalid/corrupt file', filename);
+        // throw 'Invalid/corrupt file: \'' + filename + '\'';
+      // }
+    }
+  });
+
+  // } catch (e) {
+    // logError('loadNext', 'fatal error caught for ' + filename, e);
     // console.log('[ERROR] - loadNext() with \"' + filename + '\": ' + e);
-    throw e;
+    // throw e;
     // if (callback) { callback(e); }
-  }
+  // }
 }
 
 
@@ -539,36 +569,58 @@ function loadNext(wrap, index) {
  */
 function loadPrev(wrap, index) {
   // Try to load the previous image
-  try {
+  // try {
     // Preload the previous image into the previous hidden 'img' tag
-    fsManager.getPrevFromIDX(wrap, index, (ready, filename, newIndex) => {
-      // If the 'init' function is ready, then proceed
-      if (ready) {
-        // Validate the file
-        if (validateFile.isValid(path.join(vs.dirPath, filename))) {
+  fsManager.getPrevFromIDX(wrap, index, (ready, filename, newIndex) => {
+    // If the 'init' function is ready, then proceed
+    if (ready) {
+      // Validate the file
+      let retMsg = validateFile.check(path.join(vs.dirPath, filename));
+      if (retMsg.err) {
+        // error flag gets set here, and checked in cycleImage
+        vs.stateArray[vs.pointer.previous].err = {
+          message: retMsg.err,
+          function: 'validateFile'
+        };
 
-          setNewImage(vs.pointer.previous, filename, newIndex);
-
-        } else {
-          logError('validateFile', 'Invalid/corrupt file', filename);
-          throw 'Invalid/corrupt file: \'' + filename + '\'';
-        }
+        return; // return early
+      } else {
+        setNewImage(vs.pointer.previous, filename, newIndex);
       }
-    });
-  } catch (e) {
-    logError('loadPrev', 'fatal error caught for ' + filename, e);
+
+      // if (validateFile.isValid(path.join(vs.dirPath, filename))) {
+
+
+      // } else {
+        // logError('validateFile', 'Invalid/corrupt file', filename);
+        // throw 'Invalid/corrupt file: \'' + filename + '\'';
+      // }
+    }
+  });
+  // } catch (e) {
+    // logError('loadPrev', 'fatal error caught for ' + filename, e);
     // console.log('[ERROR] - loadPrev() with \"' + filename + '\": ' + e);
-    throw e;
+    // throw e;
     // if (callback) { callback(e); }
-  }
+  // }
 }
 
 
-
+/**
+ * Handle setting the image in 'newPointer' from the filename and
+ * index into the image array
+ * @method setNewImage
+ * @param  {Integer}    newPointer The state array pointer to the image to set
+ * @param  {String}     filename   The file name
+ * @param  {Integer}    newIndex   The index of the filename into the image array
+ */
 function setNewImage(newPointer, filename, newIndex) {
   // Set the new object's name and index
   vs.stateArray[newPointer].filename = filename;
   vs.stateArray[newPointer].index = newIndex;
+
+  // Clear any error flags
+  vs.stateArray[newPointer].err = null;
 
   // Get the dimensions of the 'new' image
   vs.stateArray[newPointer].dimensions =
@@ -595,121 +647,18 @@ function setNewImage(newPointer, filename, newIndex) {
 
 
 /**
- * Updates the title with the new percentage, calculated by the
- * main process after resizing the window.
- * @type {EventEmitter}
- */
-ipcRenderer.on('percent-reduc', (event, percentCalc) => {
-  if (percentCalc > 100) {
-    setTitle({percentShrunk: 100});
-  } else {
-    setTitle({percentShrunk: percentCalc});
-  }
-});
-
-
-/**
- * Clears the view after the window has been minimized
- * to avoid jumpy animations
- * @type {EventEmitter}
- */
-ipcRenderer.on('minimize-done', () => { resetView(); });
-
-
-/**
- * Send an IPC message to 'main.js' to resize the window
- * @method resizeIPC
- * @param  {Integer}  pointer The pointer from vs.pointers that indicates
- * @return {none}
- */
-function resizeIPC(pointer) {
-  // Try getting the image size and resizing the window. If the image is
-  // corrupted in some way, catch the error.
-  try {
-    // Send an ipc resize message first to resize the window to scale to
-    // the image. This should smooth image resizing
-    ipcRenderer.send(
-      'resize-window',
-      'resize',
-      vs.stateArray[pointer].dimensions,
-      shared.userConfig.get('RETURN_PERCENTAGE')
-    );
-  } catch (e) {
-    logError('resizeIPC', 'fatal error caught', e);
-    throw 'IPC \'resize-window\' error: ' + e;
-  }
-}
-
-
-/**
- * If any of the new fields have been updated, set the new title
- * fields. Then, update the window title. The title format is:
- *
- *           <filename> (z%) — <x>/<y> — Appere
- *
- * @method setTitle
- * @param  {object} newFields The new title fields. They must exactly match up
- *                            to the ones defined in the 'vs' object
- * @param  {Boolean} showAppname Should the application name be appended?
- */
-function setTitle(newFields, showAppname = true) {
-  // Initialize a new 'app title' string
-  let appTitle = '';
-
-  // Check if any new fields were specified
-  vs.title.filename =
-    (newFields.filename) ? newFields.filename : vs.title.filename;
-  vs.title.fileIndex =
-    (newFields.fileIndex) ? newFields.fileIndex : vs.title.fileIndex;
-  vs.title.totalFiles =
-    (newFields.totalFiles) ? newFields.totalFiles : vs.title.totalFiles;
-  vs.title.percentShrunk =
-   (newFields.percentShrunk) ? newFields.percentShrunk : vs.title.percentShrunk;
-
-  // If there's a filename, use it
-  if (vs.title.filename) {
-    appTitle = vs.title.filename;
-
-    // If the 'percentShrunk' variable is set, append it
-    if (vs.title.percentShrunk) {
-      appTitle += ' (' + vs.title.percentShrunk + '%)';
-    }
-
-    // If the file's index & total number of files is defined, append them
-    if (vs.title.fileIndex && vs.title.totalFiles) {
-      appTitle += ' — ' + vs.title.fileIndex + '/' + vs.title.totalFiles;
-    }
-
-    // Finally, check if the application's name should be appended to the end
-    if (showAppname) {
-      appTitle += ' — Appere';
-    }
-  } else {
-    // Otherwise, simply use the application's name
-    appTitle = 'Appere';
-  }
-
-  // Set the app's window new title
-  document.title = appTitle;
-}
-
-
-/**
  * The image-size package occasionally fails on valid files, so
  * fallback on the 'probe-image-size' module. However, it's noticeably
  * slower (~1ms) longer because it has to syncronously read the entire
  * file.
  * @method sizeOf
  * @param  {String} filepath Absolute filepath to the image
- * @return {Object}          { width:,height:,type:'',mime:'',wUnits:'',
- *                             hUnits:''}
+ * @return {Object}          { width:,height:,type:'',mime:'',wUnits:'', hUnits:''}
  */
 function sizeOf(filepath) {
   try {
     return realSizeOf(filepath);
   } catch (e) {
-    logError('sizeOf', 'fatal error caught for ' + filepath, e);
-    // console.log('[WARN] - sizeOf() - The regular function crashed: ' + e);
     return probe.sync(fs.readFileSync(filepath));
   }
 }
@@ -764,57 +713,113 @@ function rotatePointersDelete() {
 }
 
 
-/**
- * Function to toggle the 'hidden' attributes of the
- * 'imgContainer' and 'logoContainer' to show the app home
- * @method showHome
- * @return {none}
- */
-function showHome() {
-  vs.imgContainer.hidden = true;
-  vs.logoContainer.hidden = false;
-  APP_HOME = true;
-}
 
+// ------------------------------------ //
+//              IPC Methods             //
+// ------------------------------------ //
 
 /**
- * Function to toggle the 'hidden' attributes of the
- * 'imgContainer' and 'logoContainer' to show the image elements
- * @method hideHome
+ * Updates the title with the new percentage, calculated by the
+ * main process after resizing the window.
+ * @type {EventEmitter}
+ */
+ipcRenderer.on('percent-reduc', (event, percentCalc) => {
+  if (percentCalc > 100) {
+    setTitle({percentShrunk: 100});
+  } else {
+    setTitle({percentShrunk: percentCalc});
+  }
+});
+
+
+/**
+ * Clears the view after the window has been minimized
+ * to avoid jumpy animations
+ * @type {EventEmitter}
+ */
+ipcRenderer.on('minimize-done', () => { resetView(); });
+
+
+/**
+ * Send an IPC message to 'main.js' to resize the window
+ * @method resizeIPC
+ * @param  {Integer}  pointer The pointer from vs.pointers that indicates
  * @return {none}
  */
-function hideHome() {
-  vs.logoContainer.hidden = true;
-  vs.imgContainer.hidden = false;
-  APP_HOME = false;
-}
-
-// --> PLAY OF THE GAME
-//  --> ERROR                                              Hex animation
-//   --> AS <function name>
-//                  <error message>
-//                  ^      ^      ^
-//                  |      |      |
-
-
-function showError(err, message, sourceFunction) {
-  vs.imgContainer.hidden = true;
-  // vs.errorContainer.hidden = false;
-
-  // Then, set the values in the error container with the message
-
+function resizeIPC(pointer) {
+  // Try getting the image size and resizing the window. If the image is
+  // corrupted in some way, catch the error.
+  try {
+    // Send an ipc resize message first to resize the window to scale to
+    // the image. This should smooth image resizing
+    ipcRenderer.send(
+      'resize-window',
+      'resize',
+      vs.stateArray[pointer].dimensions,
+      shared.userConfig.get('RETURN_PERCENTAGE')
+    );
+  } catch (e) {
+    logError('resizeIPC', 'fatal error caught', e);
+    throw 'IPC \'resize-window\' error: ' + e;
+  }
 }
 
 
-function hideError() {
+// --------------------------------------------------- //
+//              Cleanup and Window Methods             //
+// --------------------------------------------------- //
 
-}
 
+/**
+ * If any of the new fields have been updated, set the new title
+ * fields. Then, update the window title. The title format is:
+ *
+ *           <filename> (z%) — <x>/<y> — Appere
+ *
+ * @method setTitle
+ * @param  {object} newFields The new title fields. They must exactly match up
+ *                            to the ones defined in the 'vs' object
+ * @param  {Boolean} showAppname Should the application name be appended?
+ */
+function setTitle(newFields, showAppname = true) {
+  // Initialize a new 'app title' string
+  let appTitle = '';
 
-function logError(functionName, errorMessage, specifics) {
-  console.log('[ERROR] (' + functionName + '): ' +
-    errorMessage + ' - ' +
-    specifics);
+  // Check if any new fields were specified
+  vs.title.filename =
+    (newFields.filename) ? newFields.filename : vs.title.filename;
+  vs.title.fileIndex =
+    (newFields.fileIndex) ? newFields.fileIndex : vs.title.fileIndex;
+  vs.title.totalFiles =
+    (newFields.totalFiles) ? newFields.totalFiles : vs.title.totalFiles;
+  vs.title.percentShrunk =
+   (newFields.percentShrunk) ? newFields.percentShrunk : vs.title.percentShrunk;
+
+  // If there's a filename, use it
+  if (vs.title.filename) {
+    appTitle = vs.title.filename;
+
+    // If the 'percentShrunk' variable is set, append it
+    if (vs.title.percentShrunk) {
+      appTitle += ' (' + vs.title.percentShrunk + '%)';
+    }
+
+    // If the file's index & total number of files is defined, append them
+    if (vs.title.fileIndex && vs.title.totalFiles) {
+      appTitle += ' — ' + vs.title.fileIndex + '/' + vs.title.totalFiles;
+    }
+
+    // Finally, check if the application's name should be appended to the end
+    if (showAppname) {
+      appTitle += ' — Appere';
+    }
+  } else {
+    // Otherwise, simply use the application's name
+    appTitle = 'Appere';
+  }
+
+  // Set the app's window new title
+  document.title = appTitle;
 }
 
 
@@ -889,5 +894,63 @@ function resetView() {
 
 
 
-// Export the 'view' Class
-module.exports = view;
+
+// ------------------------------------------ //
+//              CSS State Methods             //
+// ------------------------------------------ //
+
+
+
+
+/**
+ * Function to toggle the 'hidden' attributes of the
+ * 'imgContainer' and 'logoContainer' to show the app home
+ * @method showHome
+ * @return {none}
+ */
+function showHome() {
+  vs.imgContainer.hidden = true;
+  vs.logoContainer.hidden = false;
+  APP_HOME = true;
+}
+
+
+/**
+ * Function to toggle the 'hidden' attributes of the
+ * 'imgContainer' and 'logoContainer' to show the image elements
+ * @method hideHome
+ * @return {none}
+ */
+function hideHome() {
+  vs.logoContainer.hidden = true;
+  vs.imgContainer.hidden = false;
+  APP_HOME = false;
+}
+
+// --> PLAY OF THE GAME
+//  --> ERROR                                              Hex animation
+//   --> AS <function name>
+//                  <error message>
+//                  ^      ^      ^
+//                  |      |      |
+
+
+function showError(errMessage, sourceFunction) {
+  vs.imgContainer.hidden = true;
+  // vs.errorContainer.hidden = false;
+
+  // Then, set the values in the error container with the message
+
+}
+
+
+function hideError() {
+
+}
+
+
+function logError(functionName, errorMessage, specifics) {
+  console.log('[ERROR] (' + functionName + '): ' +
+    errorMessage + ' - ' +
+    specifics);
+}
