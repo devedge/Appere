@@ -49,6 +49,12 @@ function getKeyAction(event, isZoomed) {
       case regexCheck(kc, KEYS.MINIMIZE):
         action = 'min';
         break;
+      case 'q':
+        action = 'q';
+        break;
+      case 'w':
+        action = 'w';
+        break;
     }
   }
 

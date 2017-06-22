@@ -13,9 +13,10 @@ const shared = require('electron').remote.getGlobal('shared');
 // Local module imports
 const ViewHandler = require('./lib/ViewHandler.js');
 const keyAction = require('./lib/KeypressHandler.js');
+const CSSHandler = require('./lib/StylesheetsHandler.js');
 
 // Flag to handle repeat drag-and-drops
-let DRAG_FLAG = false;
+// let DRAG_FLAG = false;
 
 // Create new ViewHandler object
 let view = new ViewHandler();
@@ -61,29 +62,48 @@ document.addEventListener('keydown', (event) => {
       view.minimize();
       shared.args = []; // Reset cli args
       break;
+
+    case 'q':
+      CSSHandler.blurEnable();
+      break;
+
+    case 'w':
+      CSSHandler.blurDisable();
+      break;
   }
 });
 
 
 // If an image is dragged onto the window, display it
-document.ondrop = document.body.ondrop = (event) => {
+document.ondrop = /*document.body.ondrop =*/ (event) => {
   event.preventDefault();
 
-  // To prevent duplicate calls during drag-and-drop, check DRAG_FLAG
-  if (!DRAG_FLAG && event.dataTransfer.files[0]) {
-      DRAG_FLAG = true;
-
-      // Hook into the callback to reset the flag
-      view.setCurrentImage(event.dataTransfer.files[0].path, (err) => {
-        DRAG_FLAG = false; // Reset the DRAG_FLAG
-      });
+  if (event.dataTransfer.files[0]) {
+    view.setCurrentImage(event.dataTransfer.files[0].path);
   }
+  // To prevent duplicate calls during drag-and-drop, check DRAG_FLAG
+  // if (!DRAG_FLAG && event.dataTransfer.files[0]) {
+  //     DRAG_FLAG = true;
+  //
+  //     // Hook into the callback to reset the flag
+  //     view.setCurrentImage(event.dataTransfer.files[0].path, () => {
+  //       DRAG_FLAG = false; // Reset the DRAG_FLAG
+  //     });
+  // }
 };
 
 
 // If anything is dragged over the display window, prevent
 // default behavior
 document.ondragover = (event) => { event.preventDefault(); };
+
+
+// Handle drag-out events from:
+// https://electron.atom.io/docs/all/#dragging-files-out-of-the-window
+// document.ondragstart = (event) => {
+//   event.preventDefault();
+//   ipcRenderer.send('ondragstart', )
+// }
 
 
 // This event gets emitted if a new instance of the app was

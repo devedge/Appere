@@ -30,6 +30,9 @@
  *
  */
 
+const bodyTag = document.getElementById('bodyTag');
+const imageContainerTag = document.getElementById('image-container');
+
 
 /**
  * A function to facilitate swapping two diffent classes for an element
@@ -39,25 +42,38 @@
  * @return {none}
  */
 function swapClasses(element, removedClass, addedClass) {
-
+  element.classList.remove(removedClass);
+  element.classList.add(addedClass);
 }
 
 
 function blurEnable() {
-
+  swapClasses(bodyTag, 'background-light', 'background-dim');
+  swapClasses(imageContainerTag, 'fg-blur-out', 'fg-blur-in');
+  // TODO also resize the image to fill the window
 }
 
 function blurDisable() {
+  swapClasses(bodyTag, 'background-dim', 'background-light');
+  swapClasses(imageContainerTag, 'fg-blur-in', 'fg-blur-out');
+  // TODO also resize the image to fill the window
+}
+
+function showHome() {
 
 }
 
-function bgDim() {
+function hideHome() {
 
 }
 
-function bgLight() {
-
-}
+// function bgDim() {
+//   swapClasses(bodyTag, 'background-light', 'background-dim');
+// }
+//
+// function bgLight() {
+//   swapClasses(bodyTag, 'background-dim', 'background-light');
+// }
 
 
 

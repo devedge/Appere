@@ -1,3 +1,4 @@
+
 /**
  * The main module that starts the electron application. This loads the
  * home page, which in turn starts the renderer process: app.js
@@ -235,6 +236,14 @@ function createWindow() {
 
 // Find out when the app has fully loaded
 ipcMain.on('app-loaded', () => {console.timeEnd('init');});
+
+
+// ipcMain.on('ondragstart', (event, filePath) => {
+//   event.sender.startDrag({
+//     file: filePath//,
+//     // icon: 'path/to/icon.png'
+//   });
+// });
 
 
 // Re-focus the window
