@@ -1,6 +1,13 @@
+// body {
+//   margin: 0;
+// }
+//
+// html, body, .global, .image-container {
+//   height: 100vh;
+// }
+
 // Global app-wide properties
 .global {
-  background-color: #eff0f1;
   -webkit-user-select: none; // prevent all text selection/highlight
   -webkit-app-region: drag; // allow images to be dragged
 }
@@ -27,5 +34,36 @@
 @import "home";
 @import "error"; // imports hex loader too
 @import "image";
+
 // @import "info";
 // @import "settings";
+
+// The light, default app background
+.background-light {
+  background-color: #eff0f1;
+}
+
+// The darker app background to darken the blurred effect
+.background-dim {
+  background-color: #545454;
+}
+
+.fg-blur-in {
+  animation: blur-in 0.4s;
+  animation-timing-function: ease-in;
+  animation-fill-mode: forwards;
+}
+
+.fg-blur-out {
+  animation: blur-out 0.2s;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+}
+
+@keyframes blur-in {
+  to { filter: blur(20px) opacity(0.8) brightness(0.7); }
+}
+
+@keyframes blur-out {
+  from { filter: blur(20px) opacity(0.8) brightness(0.7); }
+}

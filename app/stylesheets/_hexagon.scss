@@ -1,6 +1,6 @@
-$width:5rem;
-$color:#ffe73e;
-$delay:100ms;
+$width: 3.5rem;
+$color: #de2936;
+$delay: 100ms;
 
 @mixin pseudo($width,$height:$width,$radius:$width,$background:transparent) { // creates a pseudo element and requires width, then sets the height and radius if you don't pass them (defaults to a circle)
   background:$background;
@@ -10,19 +10,12 @@ $delay:100ms;
   width:$width;
 }
 
-* {
-  box-sizing:content-box;
-  position:relative;
-}
-body {
-  background:#222;
-  font-size:10px;
-}
 .hex-wrapper {
   align-items:center;
   display:flex;
   justify-content:center;
-  margin:$width*2 auto 0;
+  // margin:$width*1.5;
+  // margin:$width*2 auto 0;
   width:60%;
 }
 .hexagon {

@@ -1,0 +1,144 @@
+// Variables used in this module
+// length of the entire animation cycle
+$message-duration: 4s;
+
+$font-username: 7em;
+
+$error-color: #ef1a29;
+$header-footer-color: #4c4c4c;
+
+// $starting-pos: 20px;  // the starting position on the screen
+// $starting-multiplier: 1.5; // the starting increment multiplier offset of each element
+// $ending-multiplier: 2.5;
+
+// $track-length: 130px; // the length of the transition after 'starting-pos'
+$base-multiplier: 1000px; // the off-screen multiplier
+
+
+// animation offsets
+// starting pos    |>
+// track length 1  ------------------ + 20
+// track length 2   ---------------------- + 20
+// track length 3      --------------------------
+
+// $sp2: 30px;
+// $sp3: 60px;
+
+$starting-point: 10px;
+$track: 130px;
+$track-offset: 20;
+$track-multiplier: 1;
+
+$starting-pos-1: $starting-point;
+$track-length-1: $track * $track-multiplier;
+
+$starting-pos-2: $starting-point * 1.5;
+$track-length-2: ($track + $track-offset) * $track-multiplier;
+
+$starting-pos-3: $starting-point * 2.5;
+$track-length-3: ($track + ($track-offset * 3)) * $track-multiplier;
+
+
+
+
+
+// Load the error font
+@font-face {
+  font-family: "ErrorFont";
+  src: url("fonts/bignoodletoo.ttf");
+}
+
+// Sliding animation
+@mixin slide($duration, $delay, $type) {
+  animation: $type $duration infinite;
+  animation-delay: $delay;
+  animation-timing-function: linear;
+}
+
+
+
+.sliding-message-container {
+  // margin: auto;
+  margin-top: 5vh;
+  margin-left: 5vh;
+  font-family: "ErrorFont";
+  line-height: 4.5em; // spacing between lines
+}
+
+.header-line {
+  font-size: 3em;
+  color: $header-footer-color;
+  @include slide($message-duration, 0ms, header-slide);
+}
+
+.error-line {
+  font-size: 7em;
+  color: $error-color;
+  text-shadow: 0px 0px 2.5px #58514F;
+  @include slide($message-duration, 150ms, error-slide);
+}
+
+.function-line {
+  font-size: 2.5em;
+  color: $header-footer-color;
+  @include slide($message-duration, 300ms, func-slide);
+}
+
+// Animation for the first line of text
+@keyframes header-slide {
+  0% {
+    transform: translate($base-multiplier * -1, 0px);
+    opacity: 0;
+  }
+  7% {
+    transform: translate($starting-pos-1, 0px);
+  }
+  20% { opacity: 0.9; }
+  90% {
+    transform: translate($starting-pos-1 + $track-length-1, 0px);
+    opacity: 1;
+  }
+  92%, 100% {
+    transform: translate($base-multiplier * 1.5, 0px);
+    opacity: 0;
+  }
+}
+
+// Animation for the 'ERROR' text
+@keyframes error-slide {
+  0% {
+    transform: translate($base-multiplier * -1, 0px);
+    opacity: 0;
+  }
+  7% {
+    transform: translate($starting-pos-2, 0px);
+  }
+  20% { opacity: 1; }
+  85% {
+    transform: translate($starting-pos-2 + $track-length-2, 0px);
+    opacity: 0.9;
+  }
+  86%, 100% {
+    transform: translate($base-multiplier * 5, 0px);
+    opacity: 0;
+  }
+}
+
+@keyframes func-slide {
+  0% {
+    transform: translate($base-multiplier * -1.5, 0px);
+    opacity: 0;
+  }
+  7% {
+    transform: translate($starting-pos-3, 0px);
+  }
+  20% { opacity: 0.9; }
+  80% {
+    transform: translate($starting-pos-3 + $track-length-3, 0px);
+    opacity: 1;
+  }
+  81%, 100% {
+    transform: translate($base-multiplier * 5, 0px);
+    opacity: 0;
+  }
+}

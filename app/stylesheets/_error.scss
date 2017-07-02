@@ -1,114 +1,15 @@
-// Variables used in this module
-$error-color: #ef1a29;
-$error-msg-color: #4c4c4c;
-$message-duration: 4s; // length of the entire animation cycle
-
-$base-pos: 1000px;
-
-// Load the error font
-@font-face {
-  font-family: "ErrorFont";
-  src: url("fonts/bignoodletoo.ttf");
-}
-
-// Sliding animation
-@mixin slide($duration, $delay, $type) {
-  animation: $type $duration infinite;
-  animation-delay: $delay;
-  animation-timing-function: linear;
-}
 
 .error-container {
-  font-family: "ErrorFont";
-  -webkit-app-region: no-drag;
-  line-height: 4.5em; // spacing between lines
-  text-shadow: 0px 0px 2.5px white;
+  overflow: hidden; // prevent the sliding text from creating a scrollbar
+  display: flex;
+  justify-content: space-between;
+  // flex-direction: row;
 }
 
-.header-line {
-  font-size: 3em;
-  color: $error-msg-color;
-  @include slide($message-duration, 0ms, header-slide);
+.hexagon-containter {
+  margin-top: 1vh;
+  margin-right: 15vw;
 }
 
-.error-line {
-  font-size: 7em;
-  color: $error-color;
-  text-shadow: 0px 0px 2.5px #58514F;
-  @include slide($message-duration, 150ms, error-slide);
-}
-
-.func-line {
-  font-size: 2.5em;
-  color: $error-msg-color;
-  @include slide($message-duration, 300ms, func-slide);
-}
-
-// .func {
-//
-//   padding-left: 1.6em;
-//   font-size: 2.8em;
-// }
-// .func-name {
-//   font-size: 0.6em;
-//   padding-left: 1em;
-// }
-
-// Animation for the first line of text
-@keyframes header-slide {
-  0% {
-    transform: translate($base-pos * -1, 0px);
-    opacity: 0;
-  }
-  7% {
-    transform: translate(20px, 0px);
-  }
-  20% { opacity: 0.9; }
-  90% {
-    transform: translate(150px, 0px);
-    opacity: 1;
-  }
-  92%, 100% {
-    transform: translate($base-pos * 1.5, 0px);
-    opacity: 0;
-  }
-}
-
-// Animation for the 'ERROR' text
-@keyframes error-slide {
-  0% {
-    transform: translate($base-pos * -1, 0px);
-    opacity: 0;
-  }
-  7% {
-    transform: translate(30px, 0px);
-  }
-  20% { opacity: 1; }
-  85% {
-    transform: translate(180px, 0px);
-    opacity: 0.9;
-  }
-  86%, 100% {
-    transform: translate($base-pos * 5, 0px);
-    opacity: 0;
-  }
-}
-
-@keyframes func-slide {
-  0% {
-    transform: translate($base-pos * -1.5, 0px);
-    opacity: 0;
-  }
-  7% {
-    transform: translate(60px, 0px);
-  }
-  20% { opacity: 0.9; }
-  80% {
-    transform: translate(230px, 0px);
-    opacity: 1;
-  }
-  81%, 100% {
-    transform: translate($base-pos * 5, 0px);
-    opacity: 0;
-  }
-}
+@import "slidingtext";
+@import "hexagon";

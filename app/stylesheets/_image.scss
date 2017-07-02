@@ -1,6 +1,7 @@
 // The element for each image tag
 // The image should fill up the entire application view
 .image-element {
+  // display: block;
   margin: auto;
   position: absolute;
 }
@@ -23,4 +24,11 @@
 .full-img {
   top: 0px;
   left: 0px;
+}
+
+// TODO transition animation
+.stretch-img {
+  object-fit: cover;
+  min-width: 100%;
+  min-height: 100%;
 }

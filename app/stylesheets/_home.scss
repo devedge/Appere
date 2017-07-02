@@ -12,10 +12,10 @@ $drift-amount: 20px;
 .logo-effect {
   z-index: 1;
   // position: absolute;
-  margin-top: 15vh; // keep the logo aligned 10vh from the top
+  margin-top: 12vh; // keep the logo aligned 10vh from the top
   animation-delay: 0.7s;  // wait, so the animation runs smooth
   animation: logo-fade-up 1s;
-  animation-timing-function: ease;
+  animation-timing-function: ease; // already default, remove?
   -webkit-app-region: no-drag; // prevent the image from being dragged
 }
 
@@ -30,12 +30,17 @@ $drift-amount: 20px;
   z-index: -1;
   position: absolute;
   margin-top: 15vh;
-  background-color: #FFFFFF;
+
+  // Circle
   width: $diameter / 2;
 	height: $diameter / 2;
   border-radius: $diameter;
-  filter: blur(70px) opacity(0.85);
-  // animation: point-light-drift 2s infinite ease-in-out alternate;
+  background-color: white;
+  filter: blur(70px) opacity(0.85); // blur & reduce opacity to turn into light
+
+  // Soft fade after logo
+  animation-delay: 0.7s;
+  animation: home-fade-in 3s;
 }
 
 // Fade-in and scroll-up animation for the logo. This is the
@@ -50,9 +55,8 @@ $drift-amount: 20px;
   }
 }
 
-// @keyframes point-light-drift {
-//   from {
-//     transform: translateY($drift-amount); }
-//   to {
-//     transform: translateY(-$drift-amount); }
-// }
+// Fade-in animation for the point light
+@keyframes home-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
