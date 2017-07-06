@@ -153,8 +153,10 @@ view.prototype.setCurrentImage = function (filepath, callback) {
     // If an error message is returned, call the error
     // function & return early to quit execution
     if (retMsg.err) {
+      console.log(retMsg);
       // call error function
       // retMsg.message
+      // if (callback) { callback(); }
       return;
     }
 
@@ -228,14 +230,15 @@ view.prototype.setCurrentImage = function (filepath, callback) {
 
         // Successful callback if the user wants to take action after
         // this function has finished
-        if (callback) { callback(null); }
+        // if (callback) { callback(); }
     });
-
   } catch (e) {
     // error here
-    if (callback) { callback(e); }
+    // probably reset the view here too
+    // if (callback) { callback(); }
   }
 };
+
 
 /**
  * Displays the next image in the viewer. Calls back with (err) if
@@ -387,7 +390,7 @@ view.prototype.zoomImage = function () {
   } catch (e) {
     logError('zoomImage', 'fatal error caught', e);
     // console.log('[ERROR] - zoomImage(): ' + e);
-    if (callback) { callback(e); }
+    // if (callback) { callback(e); }
   }
 };
 
@@ -417,15 +420,13 @@ view.prototype.fitImage = function () {
       setTitle({percentShrunk: currentRealZoom});
 
       // Set the CSS class that zooms the image
-      vs.stateArray[vs.pointer.current].handle.classList
-        .remove(FULL_IMG_CLASS);
-      vs.stateArray[vs.pointer.current].handle.classList
-        .add(FIT_IMG_CLASS);
+      vs.stateArray[vs.pointer.current].handle.classList.remove(FULL_IMG_CLASS);
+      vs.stateArray[vs.pointer.current].handle.classList.add(FIT_IMG_CLASS);
     }
   } catch (e) {
     logError('fitImage', 'fatal error caught', e);
     // console.log('[ERROR] - fitImage(): ' + e);
-    if (callback) { callback(e); }
+    // if (callback) { callback(e); }
   }
 };
 
@@ -469,13 +470,21 @@ module.exports = view;
  */
 function cycleImage(oldPointer, newPointer) {
 
-  // If the previous image created an error, hide the error now.
-  // If it creates an error here, the callee will handle it
+  // If the previous image created an error, hide the error now
   if (vs.stateArray[oldPointer].err) {
     hideError();
   }
+  // If the previous image (still referred to as 'current') was
+  // a gif, 'null' the 'src' attribute
+  if (vs.stateArray[oldPointer].gifHandle) {
+    vs.stateArray[oldPointer].handle.src = '';
+  }
+  // Hide the previous element
+  vs.stateArray[oldPointer].handle.hidden = true;
 
-  // If an error
+
+  // If an error occured while setting the new image,
+  // show the error page instead and return early
   if (vs.stateArray[newPointer].err) {
     showError(
       vs.stateArray[newPointer].err.message,
@@ -485,14 +494,7 @@ function cycleImage(oldPointer, newPointer) {
   }
 
 
-  // If the previous image (still referred to as 'current') was
-  // a gif, 'null' the 'src' attribute
-  if (vs.stateArray[oldPointer].gifHandle) {
-    vs.stateArray[oldPointer].handle.src = '';
-  }
-
-  // Hide the old element and show the new one
-  vs.stateArray[oldPointer].handle.hidden = true;
+  // Show the new element
   vs.stateArray[newPointer].handle.hidden = false;
 
   // Set the new window title
@@ -519,9 +521,6 @@ function cycleImage(oldPointer, newPointer) {
  * @return {none}
  */
 function loadNext(wrap, index) {
-  // Try to load the next image
-  // try {
-
   // Preload the next image into the next hidden 'img' tag
   fsManager.getNextFromIDX(wrap, index, (ready, filename, newIndex) => {
     // If the 'init' function is ready, then proceed
@@ -540,23 +539,8 @@ function loadNext(wrap, index) {
       } else {
         setNewImage(vs.pointer.next, filename, newIndex);
       }
-      // Validate the file
-      // if (validateFile.isValid(path.join(vs.dirPath, filename))) {
-
-
-      // } else {
-        // logError('validateFile', 'Invalid/corrupt file', filename);
-        // throw 'Invalid/corrupt file: \'' + filename + '\'';
-      // }
     }
   });
-
-  // } catch (e) {
-    // logError('loadNext', 'fatal error caught for ' + filename, e);
-    // console.log('[ERROR] - loadNext() with \"' + filename + '\": ' + e);
-    // throw e;
-    // if (callback) { callback(e); }
-  // }
 }
 
 
@@ -568,12 +552,11 @@ function loadNext(wrap, index) {
  * @return {none}
  */
 function loadPrev(wrap, index) {
-  // Try to load the previous image
-  // try {
-    // Preload the previous image into the previous hidden 'img' tag
+  // Preload the previous image into the previous hidden 'img' tag
   fsManager.getPrevFromIDX(wrap, index, (ready, filename, newIndex) => {
     // If the 'init' function is ready, then proceed
     if (ready) {
+
       // Validate the file
       let retMsg = validateFile.check(path.join(vs.dirPath, filename));
       if (retMsg.err) {
@@ -587,22 +570,8 @@ function loadPrev(wrap, index) {
       } else {
         setNewImage(vs.pointer.previous, filename, newIndex);
       }
-
-      // if (validateFile.isValid(path.join(vs.dirPath, filename))) {
-
-
-      // } else {
-        // logError('validateFile', 'Invalid/corrupt file', filename);
-        // throw 'Invalid/corrupt file: \'' + filename + '\'';
-      // }
     }
   });
-  // } catch (e) {
-    // logError('loadPrev', 'fatal error caught for ' + filename, e);
-    // console.log('[ERROR] - loadPrev() with \"' + filename + '\": ' + e);
-    // throw e;
-    // if (callback) { callback(e); }
-  // }
 }
 
 
@@ -707,9 +676,9 @@ function rotatePointersDelete() {
   // The previous one is still the previous one
   // The next one is now the current one, and gets swapped with
   // the deleted image which will be set
-  let temp = vs.pointer.current;
+  let temp           = vs.pointer.current;
   vs.pointer.current = vs.pointer.next;
-  vs.pointer.next = temp;
+  vs.pointer.next    = temp;
 }
 
 
@@ -793,7 +762,7 @@ function setTitle(newFields, showAppname = true) {
   vs.title.totalFiles =
     (newFields.totalFiles) ? newFields.totalFiles : vs.title.totalFiles;
   vs.title.percentShrunk =
-   (newFields.percentShrunk) ? newFields.percentShrunk : vs.title.percentShrunk;
+    (newFields.percentShrunk) ? newFields.percentShrunk : vs.title.percentShrunk;
 
   // If there's a filename, use it
   if (vs.title.filename) {

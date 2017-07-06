@@ -31,8 +31,12 @@
  */
 
 const bodyTag = document.getElementById('bodyTag');
-const imageContainerTag = document.getElementById('image-container');
+const logoTag =  document.getElementById('logo');
+const pointlightTag = document.getElementById('point-light');
+const imagecontainerTag = document.getElementById('image-container');
 
+// variables indicating css state
+let APP_HOME;
 
 /**
  * A function to facilitate swapping two diffent classes for an element
@@ -46,34 +50,37 @@ function swapClasses(element, removedClass, addedClass) {
   element.classList.add(addedClass);
 }
 
-
 function blurEnable() {
   swapClasses(bodyTag, 'background-light', 'background-dim');
-  swapClasses(imageContainerTag, 'fg-blur-out', 'fg-blur-in');
+  swapClasses(imagecontainerTag, 'fg-blur-out', 'fg-blur-in');
   // TODO also resize the image to fill the window
 }
 
 function blurDisable() {
   swapClasses(bodyTag, 'background-dim', 'background-light');
-  swapClasses(imageContainerTag, 'fg-blur-in', 'fg-blur-out');
+  swapClasses(imagecontainerTag, 'fg-blur-in', 'fg-blur-out');
   // TODO also resize the image to fill the window
+
+  // Wait until the 'blur-out' animation is done, then remove the class
+  setTimeout(() => {
+    imagecontainerTag.classList.remove('fg-blur-out');
+  }, 300);
 }
 
 function showHome() {
-
+  blurDisable();
+  imagecontainerTag.hidden = true;
+  pointlightTag.hidden = false;
+  logoTag.hidden = false;
 }
 
 function hideHome() {
-
+  logoTag.hidden = true;
+  pointlightTag.hidden = true;
+  imagecontainerTag.hidden = false;
 }
 
-// function bgDim() {
-//   swapClasses(bodyTag, 'background-light', 'background-dim');
-// }
-//
-// function bgLight() {
-//   swapClasses(bodyTag, 'background-dim', 'background-light');
-// }
+
 
 
 

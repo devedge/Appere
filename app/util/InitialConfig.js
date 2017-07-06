@@ -14,7 +14,7 @@ module.exports = {
     iconPath: 'img/icons/appere256.png',
     center: true,
     titleName: 'Appere',
-    show: true,
+    show: false,
     autoHideMenuBar: true,
     indexPath: 'index.html'
   },
