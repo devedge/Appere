@@ -4,6 +4,8 @@
  */
 const keycode = require('keycode');
 
+// TODO implement zoom logic here
+// TODO 'space' escapes zoom?
 
 /**
  * Method to determine what action to take, based on the keys pressed.
@@ -30,7 +32,7 @@ function getAction(event, isZoomed) {
 
   } else {
 
-    // Regular usage if no shift is pressed
+    // Regular usage if shift isn't pressed
     switch (kc) {
       case 'right': case 'down': case 'space': // Next image
         if (!isZoomed) { action = 'next'; }
@@ -40,7 +42,7 @@ function getAction(event, isZoomed) {
         if (!isZoomed) { action = 'prev'; }
         break;
 
-      case 'esc': case 'm': // Minimize window
+      case 'esc': case 'm': // Minimize window TODO: call this clear
         action = 'min';
         break;
 
@@ -50,6 +52,14 @@ function getAction(event, isZoomed) {
 
       case 'w': // Toggle the blur
         action = 'w';
+        break;
+
+      case '1': case 'numpad 1': // Zoom in
+        action = 'zoom-in';
+        break;
+
+      case '0': case 'numpad 0': // Zoom out
+        action = 'zoom-out';
         break;
     }
   }

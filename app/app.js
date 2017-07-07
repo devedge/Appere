@@ -13,7 +13,7 @@ const shared = require('electron').remote.getGlobal('shared');
 // Local module imports
 const ViewHandler = require('./lib/ViewHandler.js');
 const keyAction = require('./lib/KeypressHandler.js');
-const CSSHandler = require('./lib/StylesheetsHandler.js');
+const cssManager = require('./lib/CSSManager.js');
 
 // Flag to handle repeat drag-and-drops
 // let DRAG_FLAG = false;
@@ -40,7 +40,7 @@ setFromArgs();
 
 // Key listener logic
 document.addEventListener('keydown', (event) => {
-  switch (keyAction.get(event, view.isZoomed())) {
+  switch (keyAction.getAction(event, view.isZoomed())) {
     case 'next':
       view.showNext();
       break;
@@ -64,34 +64,24 @@ document.addEventListener('keydown', (event) => {
       break;
 
     case 'q':
-      CSSHandler.blurEnable();
+      cssManager.blurEnable();
       break;
 
     case 'w':
-      CSSHandler.blurDisable();
+      cssManager.blurDisable();
       break;
   }
 });
 
 
 // If an image is dragged onto the window, display it
-document.ondrop = /*document.body.ondrop =*/ (event) => {
+document.ondrop = (event) => {
   event.preventDefault();
 
   if (event.dataTransfer.files[0]) {
     view.setCurrentImage(event.dataTransfer.files[0].path);
   }
-  // To prevent duplicate calls during drag-and-drop, check DRAG_FLAG
-  // if (!DRAG_FLAG && event.dataTransfer.files[0]) {
-  //     DRAG_FLAG = true;
-  //
-  //     // Hook into the callback to reset the flag
-  //     view.setCurrentImage(event.dataTransfer.files[0].path, () => {
-  //       DRAG_FLAG = false; // Reset the DRAG_FLAG
-  //     });
-  // }
 };
-
 
 // If anything is dragged over the display window, prevent
 // default behavior
@@ -106,14 +96,6 @@ document.ondragover = (event) => { event.preventDefault(); };
 // }
 
 
-// This event gets emitted if a new instance of the app was
-// opened. This triggers the function that sets the current
-// image & directory from the selected image.
-ipcRenderer.on('new-file', () => {
-  setFromArgs();
-});
-
-
 /**
  * Sets the image in the display from the command line
  * arguments. Only the first file is used to set the image.
@@ -126,6 +108,14 @@ function setFromArgs() {
     view.setCurrentImage(shared.args[2]);
   }
 }
+
+
+// This event gets emitted if a new instance of the app was
+// opened. This triggers the function that sets the current
+// image & directory from the selected image.
+ipcRenderer.on('new-file', () => {
+  setFromArgs();
+});
 
 // Renderer IPC to let Main know that the app has fully loaded
 ipcRenderer.send('app-loaded');
