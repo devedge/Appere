@@ -1,13 +1,20 @@
-
-const sort = require('alphanum-sort');
-const trash = require('trash');
 const path = require('path');
 const fs = require('fs');
+
+// For sorting image array
+const sort = require('alphanum-sort');
+
+// For trashing files
+const trash = require('trash');
 
 // validateFile imports
 const readChunk = require('read-chunk');
 const fileType = require('file-type');
 const SUPPORTED_TYPES = require('../util/SupportedFiletypes.js');
+
+// sizeOf imports
+const imageSize = require('image-size');
+const probe = require('probe-image-size');
 
 
 class FSManager {
@@ -176,34 +183,76 @@ class FSManager {
   }
 
 
-  noLongerExists(currentIndex) {
-    // called on a file that no longer exists, so it can be removed
-    // from IMAGE_LIST
+  // noLongerExists(currentIndex) {
+  //   // called on a file that no longer exists, so it can be removed
+  //   // from IMAGE_LIST
+  //
+  //   this.IMAGE_LIST.splice(currentIndex, 1);
+  // }
 
+  /**
+   * Trashes the file at the 'currentIndex' provided.
+   * This function removes it from the image list and uses the 'trash'
+   * module to move it to the system's trash
+   *
+   * @method trashFile
+   * @param  {Int}      currentIndex Index of the file to trash
+   * @param  {Function} callback     Callback when done. More functionality may be added
+   */
+  trashFile(currentIndex, callback) {
+    // Remove the file from the IMAGE_LIST
+    // NOTE: is the CURRENT_INDEX still the same?
     this.IMAGE_LIST.splice(currentIndex, 1);
-  }
 
-  remove(currentIndex, callback) {
-
+    // Use the trash module
     trash(path.join(this.CURRENT_DIR, this.IMAGE_LIST[currentIndex])).then(() => {
       callback();
     });
   }
 
-  validateFile(inputFP) {
+  /**
+   * The absolute filepath to check. This function checks if the
+   * file exists, if it's a file, and if the extension is valid.
+   *
+   * @method isFileValid
+   * @param  {String}    inputFP Absolute filepath
+   * @return {Boolean}           True if valid, false otherwise
+   */
+  isFileValid(inputFP) {
     // if the image no longer exists, just return the next one & update array
     // if there is an error, return the error
+    // TODO implement this in getNext/Prev
 
+    // does the file exist?
     if (fs.existsSync(inputFP)) {
+      if (fs.lstatSync(inputFP).isFile()) { // is this a file?
+        // read the filetype
+        let FILETYPE_RESULT = fileType(readChunk.sync(inputFP, 0, 262));
 
-    } else {
-      // quietly remove
+        // is the value non-null and supported?
+        if (FILETYPE_RESULT && FILETYPE_RESULT.ext.match(SUPPORTED_TYPES)) {
+          return true;
+        }
+      }
     }
+    return false;
   }
 
-
-  sizeOf() {
-
+  /**
+   * Return the size of an image.
+   * The 'image-size' module occasionally fails, so fallback on
+   * the 'probe-image-size' module, which is slower due to
+   * synchronous file reads.
+   * @method sizeOf
+   * @param  {String} filepath Absolute filepath to the image
+   * @return {Object} { width:Int,height:Int,type:'',mime:'',wUnits:'', hUnits:''}
+   */
+  sizeOf(inputFP) {
+    try {
+      return imageSize(inputFP);
+    } catch (e) {
+      return probe.sync(fs.readFileSync(inputFP));
+    }
   }
 
   /** Resets the global variables */
