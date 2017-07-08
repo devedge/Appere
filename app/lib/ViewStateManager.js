@@ -62,16 +62,28 @@ class ViewHandler {
 
   /**
    * Zoom in. Only zoom in if the image is currently not zoomed out,
-   * the application is not at the home, or the image is already at
+   * the application is not at the home, or the image is not already at
    * 100% size.
    * @method zoomIn
    */
   zoomIn() {
     if (!this.ZOOMEDIN && !this.HOME) {
-      if (true) {
+      if (vs.title.percentdisplayed < 100) {
         this.ZOOMEDIN = true;
 
+        // Save the current zoom level
+        this.CURRENT_ZOOM = vs.title.percentdisplayed;
+
+        // Resize the window
+        resizeWindow(vs.istate[vs.pointer.curr].dimensions, 'zoom-in');
+
+        // Set the zoom amount to 100%
+        setTitle({percentdisplayed: 100});
+
+        // Zoom in the image
+        css.zoomInImg(vs.istate[vs.pointer.curr].handle);
       } else {
+        // image is already displayed at 100%
         // message about image already at 100%?
       }
     }
@@ -85,6 +97,15 @@ class ViewHandler {
   zoomOut() {
     if (this.ZOOMEDIN && !this.HOME) {
       this.ZOOMEDIN = false;
+
+      // Resize the window
+      resizeWindow(vs.istate[vs.pointer.curr].dimensions, 'zoom-out');
+
+      // Reset the original percent in the title
+      setTitle({percentdisplayed: this.CURRENT_ZOOM});
+
+      // Fit the image to the display
+      css.zoomOutImg(vs.istate[vs.pointer.curr].handle);
     }
   }
 
@@ -99,7 +120,7 @@ class ViewHandler {
 
   /** Sends an IPC message to minimize the window */
   minimize() {
-    // can also call this.resetState()
+    ipcRenderer.send('minimize-window');
   }
 
   infoToggle(state) {
@@ -107,7 +128,7 @@ class ViewHandler {
   }
 
   deleteToggle(state) {
-
+    // state on/off? or one-call?
   }
 
   settingsToggle(state) {
@@ -124,6 +145,34 @@ class ViewHandler {
 // Export the class
 module.exports = ViewHandler;
 
+
+
+
+
+
+/**
+ * Function wrapper around the 'resize-window' ipc message
+ * @method resizeWindow
+ * @param  {Object}     dimensions Object containing 'width' and 'height'
+ * @param  {String}     action     Currently 'resize', 'zoom-in', or 'zoom-out'
+ */
+function resizeWindow(dimensions, action) {
+  switch (action) {
+    case 'zoom-in':
+      ipcRenderer.send('resize-window', 'fill', dimensions, false);
+      break;
+
+    case 'zoom-out':
+      ipcRenderer.send('resize-window', 'resize', dimensions, false);
+      break;
+
+    case 'resize':
+      ipcRenderer.send('resize-window', action, dimensions,
+        shared.userConfig.get('RETURN_PERCENTAGE') // remove?
+      );
+      break;
+  }
+}
 
 
 /**
