@@ -84,7 +84,6 @@ const config = new Config();
 
 // Global module variables
 let calcDim = null;
-// let winPos = { x: 0, y: 0};
 let win = null;
 
 // Try to load user configuration by checking for a configuration
@@ -98,6 +97,8 @@ global.shared = {
   args: process.argv,
   userConfig: config
 };
+
+console.log(process.argv);
 
 // Determine if this is a second instance of the app,
 // which should quit
@@ -125,14 +126,14 @@ if (shouldQuit) {
 }
 
 // TODO: figure this out
-app.on('open-url', (event, url) => {
-  event.preventDefault();
-  console.log('url: ' + url);
-});
-app.on('open-file', (event, path) => {
-  event.preventDefault();
-  console.log('path: ' + path);
-});
+// app.on('open-url', (event, url) => {
+//   event.preventDefault();
+//   console.log('url: ' + url);
+// });
+// app.on('open-file', (event, path) => {
+//   event.preventDefault();
+//   console.log('path: ' + path);
+// });
 
 
 // When Electron has finished initialization, create
@@ -170,11 +171,11 @@ function createWindow() {
     minWidth: config.get('BROWSER_WIN.minWidth'),
     minHeight: config.get('BROWSER_WIN.minHeight'),
     backgroundColor: config.get('BROWSER_WIN.backgroundColor'),
-    icon: path.join(__dirname, config.get('BROWSER_WIN.iconPath')),
+    icon: path.join(__dirname, 'img/icons/512x512.png'),//config.get('BROWSER_WIN.iconPath')
     center: config.get('BROWSER_WIN.center'),
     title: config.get('BROWSER_WIN.titleName'),
     show: false, //config.get('BROWSER_WIN.show'),
-    autoHideMenuBar: config.get('BROWSER_WIN.autoHideMenuBar')
+    autoHideMenuBar: true//autoHideMenuBar: config.get('BROWSER_WIN.autoHideMenuBar')
   });
 
   // Then, load the app's page
@@ -260,7 +261,7 @@ ipcMain.on('minimize-window', (event) => {
 
     // Wait for a quarter of a second before resetting the window
     setTimeout(() => {
-        event.sender.send('minimize-done');
+      event.sender.send('minimize-done');
     }, 250);
 });
 

@@ -1,4 +1,5 @@
 node_modules/
-images/
 .sass-cache/
+dist/
+build/
 unused/

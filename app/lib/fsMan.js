@@ -1,3 +1,9 @@
+/**
+ * FilesystemManager module
+ * Class to handle all filesystem functions required by this app.
+ *
+ */
+
 const path = require('path');
 const fs = require('fs');
 
@@ -7,7 +13,7 @@ const sort = require('alphanum-sort');
 // For trashing files
 const trash = require('trash');
 
-// validateFile imports
+// isFileValid imports
 const readChunk = require('read-chunk');
 const fileType = require('file-type');
 const SUPPORTED_TYPES = require('../util/SupportedFiletypes.js');
@@ -25,7 +31,16 @@ class FSManager {
     this.CURRENT_INDEX = 0;
   }
 
-
+  /**
+   * Initialization function for a new directory.
+   * This function finds all the other valid image files in
+   * the directory of the given image.
+   * TODO find 'directory' from 'filename' using 'path'?
+   * @method init
+   * @param  {String}   directory The current directory of the given file
+   * @param  {String}   filename  The filename of the current file
+   * @param  {Function} callback  A callback, with (err) if error happened
+   */
   init(directory, filename, callback) {
     // Don't re-run on the same folder
     if (directory !== this.CURRENT_DIR) {
@@ -182,27 +197,20 @@ class FSManager {
     }
   }
 
-
-  // noLongerExists(currentIndex) {
-  //   // called on a file that no longer exists, so it can be removed
-  //   // from IMAGE_LIST
-  //
-  //   this.IMAGE_LIST.splice(currentIndex, 1);
-  // }
-
   /**
    * Trashes the file at the 'currentIndex' provided.
    * This function removes it from the image list and uses the 'trash'
-   * module to move it to the system's trash
-   *
+   * module to move it to the system's trash.
    * @method trashFile
    * @param  {Int}      currentIndex Index of the file to trash
    * @param  {Function} callback     Callback when done. More functionality may be added
    */
   trashFile(currentIndex, callback) {
     // Remove the file from the IMAGE_LIST
-    // NOTE: is the CURRENT_INDEX still the same?
     this.IMAGE_LIST.splice(currentIndex, 1);
+    // NOTE: is the CURRENT_INDEX still the same?
+    // NOTE: it's still the responsibility of the caller to select the
+    //       next image
 
     // Use the trash module
     trash(path.join(this.CURRENT_DIR, this.IMAGE_LIST[currentIndex])).then(() => {
@@ -213,7 +221,6 @@ class FSManager {
   /**
    * The absolute filepath to check. This function checks if the
    * file exists, if it's a file, and if the extension is valid.
-   *
    * @method isFileValid
    * @param  {String}    inputFP Absolute filepath
    * @return {Boolean}           True if valid, false otherwise
