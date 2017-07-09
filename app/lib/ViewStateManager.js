@@ -25,13 +25,51 @@ class ViewHandler {
     css.showHome();
   }
 
-  setCurrentImage(filepath, callback) {
+  setCurrentImage(filepath) { // no callback
     try {
       if (fsm.isFileValid(filepath)) {
         this.HOME = false;
 
+        // Reset the app's view
+        this.resetState();
+
+        // Set the new file's info
+        vs.dirPath = path.dirname(filepath);
+        vs.istate[vs.pointer.curr].filename = path.basename(filepath);
+        vs.istate[vs.pointer.curr].dimensions = fsm.sizeOf(filepath);
+
+        // Focus the window to the foreground, and resize it
+        ipcRenderer.send('focus-window');
+        resizeWindow(vs.istate[vs.pointer.curr].dimensions, 'resize');
+
+        // gif check, TODO: function for this? Incorporate 'set' also?
+        if (vs.istate[vs.pointer.curr].filename.match(/\.gif$/)) {
+          vs.istate[vs.pointer.curr].gifhandle = filepath;
+        }
+        // set image in viewer
+        vs.istate[vs.pointer.curr].handle.src = filepath;
+
+        css.hideHome(); // Hide the app home
+
+        // init fsm
+        fsm.init(filepath, (err) => {
+          if (err) { throw err; } // Should avoid?
+
+          // Set total number & index
+          vs.dirNum = fms.getTotalNumber();
+          vs.istate[vs.pointer.curr].index = fsm.getCurrentIndex();
+
+          setTitle({
+            filename: vs.istate[vs.pointer.curr].filename,
+            fileindex: fsm.getCurrentIndex() + 1,
+            totalfiles: vs.dirNum
+          });
+          // load next
+          // load prev
+
+        });
       } else {
-        // quick error message
+        // quick error message, file isn't a supported image
       }
     } catch (e) {
       // display generic error
@@ -39,7 +77,7 @@ class ViewHandler {
   }
 
   /** Show the next image in the viewer */
-  showNext() {
+  showNext() { // If called, automatically reset zoom?
     if (fsm.isReady() && !this.HOME) {
       try {
 
@@ -50,9 +88,16 @@ class ViewHandler {
   }
 
   /** Show the previous image in the viewer */
-  showPrev() {
+  showPrev() { // If called, automatically reset zoom?
     if (fsm.isReady() && !this.HOME) {
       try {
+        resizeWindow();
+
+        cycleImage();
+
+        rotatePointersNext();
+
+        // load next one
 
       } catch (e) {
         // display generic error
@@ -205,6 +250,41 @@ function setTitle(options) {
   document.title = newTitle;
 }
 
+
 // Use a ternerary operation to update a value only if
 // 'n' exists
 function updateDiff(c, n) { c = n ? n : c; }
+
+
+/**
+ * Do a normal rotation of the image array pointers, updating the
+ * definitions of 'current', 'next', and 'previous'. This function
+ * sets up the next image.
+ * @method rotatePointers
+ * @return {none}
+ */
+function rotatePointersNext() {
+  // Update the pointer values
+  // This is not reassignment, the pointers are being cycled
+  let temp = vs.pointer.previous;
+  vs.pointer.previous = vs.pointer.current;
+  vs.pointer.current  = vs.pointer.next;
+  vs.pointer.next     = temp;
+}
+
+
+/**
+ * Do a normal rotation of the image array pointers, updating the
+ * definitions of 'current', 'next', and 'previous'. This function
+ * sets up the previous image
+ * @method rotatePointers
+ * @return {none}
+ */
+function rotatePointersPrev() {
+  // Update the pointer values
+  // This is not reassignment, the pointers are being cycled
+  let temp = vs.pointer.next;
+  vs.pointer.next     = vs.pointer.current;
+  vs.pointer.current  = vs.pointer.previous;
+  vs.pointer.previous = temp;
+}

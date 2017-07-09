@@ -10,6 +10,11 @@ class CSSStateManager {
     this.imgContainer = document.getElementById('image-container');
   }
 
+  swapClasses(element, remove, add) {
+    element.classList.remove(remove);
+    element.classList.add(add);
+  }
+
   showHome() {
     this.imgContainer.hidden = true;
     this.pointLight.hidden = false;
@@ -22,14 +27,16 @@ class CSSStateManager {
     this.imgContainer.hidden = false;
   }
 
+  zoomOutImg(element) {
+    this.swapClasses(element, 'FULL_IMG_CLASS', 'FIT_IMG_CLASS');
+  }
+
+  zoomInImg(element) {
+    this.swapClasses(element, 'FIT_IMG_CLASS', 'FULL_IMG_CLASS');
+  }
+
 
 }
 
 // Export CSSStateManager class
 module.exports = CSSStateManager;
-
-
-function swapClasses(el, remove, add) {
-  el.classList.remove(remove);
-  el.classList.add(add);
-}

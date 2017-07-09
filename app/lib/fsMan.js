@@ -35,13 +35,15 @@ class FSManager {
    * Initialization function for a new directory.
    * This function finds all the other valid image files in
    * the directory of the given image.
-   * TODO find 'directory' from 'filename' using 'path'?
    * @method init
    * @param  {String}   directory The current directory of the given file
    * @param  {String}   filename  The filename of the current file
    * @param  {Function} callback  A callback, with (err) if error happened
    */
-  init(directory, filename, callback) {
+  init(filepath, callback) {
+    let filename = path.dirname(filepath);
+    let directory = path.basename(filepath);
+
     // Don't re-run on the same folder
     if (directory !== this.CURRENT_DIR) {
       // Reset globals

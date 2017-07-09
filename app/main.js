@@ -267,13 +267,13 @@ ipcMain.on('minimize-window', (event) => {
 
 
 // Resize the window while the image gets set in the renderer
-ipcMain.on('resize-window', (event, resizeType, dimensions, returnPercentage) => {
+ipcMain.on('resize-window', (event, resizeAction, dimensions, returnPercentage) => {
   // Don't try to resize if the window is maximized
   if (!win.isFullScreen()) {
     let newDimensions = null;
 
     // Check the options passed in, and set the new dimensions
-    switch (resizeType) {
+    switch (resizeAction) {
       case 'resize':
         newDimensions = calcDim.getCentered(dimensions);
         break;
