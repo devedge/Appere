@@ -1,26 +1,19 @@
 {
   "name": "appere",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "A simple, minimalist image viewer",
+  "author": "devedge",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/devedge/Appere/issues"
+  },
+  "homepage": "https://github.com/devedge/Appere#readme",
   "main": "app/main.js",
-  "directories": {
-    "doc": "docs"
-  },
-  "dependencies": {
-    "alphanum-sort": "^1.0.2",
-    "chokidar": "^1.6.1",
-    "electron-config": "^0.2.1",
-    "file-type": "^4.1.0",
-    "frep": "^0.2.3",
-    "image-size": "^0.5.1",
-    "probe-image-size": "^3.0.0",
-    "read-chunk": "^2.0.0"
-  },
-  "devDependencies": {
-    "electron": "^1.4.16"
-  },
   "scripts": {
     "start": "electron app/main.js",
+    "packageupdate": "ncu -u",
+    "pack": "electron-packager ./ Appere --platform=linux --arch=x64 --out=dist/pack/ --icon=./build/512x512.png",
+    "build": "build --config=config.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -34,10 +27,21 @@
     "javascript",
     "nodejs"
   ],
-  "author": "devedge",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/devedge/Appere/issues"
+  "dependencies": {
+    "alphanum-sort": "^1.0.2",
+    "chokidar": "^1.7.0",
+    "electron-config": "^1.0.0",
+    "file-type": "^5.2.0",
+    "frep": "^0.2.3",
+    "image-size": "^0.5.5",
+    "keycode": "^2.1.9",
+    "probe-image-size": "^3.1.0",
+    "read-chunk": "^2.0.0",
+    "trash": "^4.0.1"
   },
-  "homepage": "https://github.com/devedge/Appere#readme"
+  "devDependencies": {
+    "electron": "^1.6.11",
+    "electron-builder": "^19.7.1",
+    "electron-packager": "^8.7.1"
+  }
 }
