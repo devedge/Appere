@@ -40,7 +40,7 @@ class ViewHandler {
 
         // Focus the window to the foreground, and resize it
         ipcRenderer.send('focus-window');
-        resizeWindow(vs.istate[vs.pointer.curr].dimensions, 'resize');
+        resizeWindow(vs.pointer.curr, 'resize');
 
         // gif check, TODO: function for this? Incorporate 'set' also?
         if (vs.istate[vs.pointer.curr].filename.match(/\.gif$/)) {
@@ -69,7 +69,7 @@ class ViewHandler {
 
         });
       } else {
-        // quick error message, file isn't a supported image
+        // quick error message, file isn't a supported image or doesn't exist
       }
     } catch (e) {
       // display generic error
@@ -81,6 +81,17 @@ class ViewHandler {
     if (fsm.isReady() && !this.HOME) {
       try {
 
+        // Resize the window for the 'next' image
+        resizeWindow(vs.pointer.next, 'resize');
+
+        // Cycle the 'next' image in to replace the 'current' one
+        cycleImage(vs.pointer.current, vs.pointer.next);
+
+        // Update the pointer values so 'next' is now 'current'
+        rotatePointersNext();
+
+        // Preload the next image
+
       } catch (e) {
         // display generic error
       }
@@ -91,7 +102,8 @@ class ViewHandler {
   showPrev() { // If called, automatically reset zoom?
     if (fsm.isReady() && !this.HOME) {
       try {
-        resizeWindow();
+
+        resizeWindow(vs.pointer.prev, 'resize');
 
         cycleImage();
 
@@ -120,7 +132,7 @@ class ViewHandler {
         this.CURRENT_ZOOM = vs.title.percentdisplayed;
 
         // Resize the window
-        resizeWindow(vs.istate[vs.pointer.curr].dimensions, 'zoom-in');
+        resizeWindow(vs.pointer.curr, 'zoom-in');
 
         // Set the zoom amount to 100%
         setTitle({percentdisplayed: 100});
@@ -144,7 +156,7 @@ class ViewHandler {
       this.ZOOMEDIN = false;
 
       // Resize the window
-      resizeWindow(vs.istate[vs.pointer.curr].dimensions, 'zoom-out');
+      resizeWindow(vs.pointer.curr, 'zoom-out');
 
       // Reset the original percent in the title
       setTitle({percentdisplayed: this.CURRENT_ZOOM});
@@ -191,27 +203,52 @@ class ViewHandler {
 module.exports = ViewHandler;
 
 
+function loadNext(wrap, index) {
+  fsm.getNext(wrap, index, (ready, filename, newIndex) => {
 
+  });
+}
+
+
+
+function setNewImage(newPointer, filename, newIndex) {
+  // Set the new object's name and index
+  vs.istate[newPointer].filename = filename;
+  vs.istate[newPointer].index = newIndex;
+
+  // clear error flags?
+
+  // Get the dimensions of the new image
+  vs.istate[newPointer].dimensions = fms.sizeOf();
+}
 
 
 
 /**
  * Function wrapper around the 'resize-window' ipc message
  * @method resizeWindow
- * @param  {Object}     dimensions Object containing 'width' and 'height'
- * @param  {String}     action     Currently 'resize', 'zoom-in', or 'zoom-out'
+ * @param  {Object}     pntr    Pointer to the dimensions in the istate array
+ * @param  {String}     action  Currently 'resize', 'zoom-in', or 'zoom-out'
  */
-function resizeWindow(dimensions, action) {
+function resizeWindow(pntr, action) {
+  // Get the dimenstions from the pointer
+  let dimensions = vs.istate[pntr].dimensions;
+
+  // Determine what to do based on the action passed in
   switch (action) {
     case 'zoom-in':
+      // Tell 'main' to resize for zooming in
       ipcRenderer.send('resize-window', 'fill', dimensions, false);
       break;
 
     case 'zoom-out':
+      // Tell 'main' to resize for zooming out
       ipcRenderer.send('resize-window', 'resize', dimensions, false);
       break;
 
     case 'resize':
+      // Tell 'main' to resize the window to the image,
+      // or according to user preferences
       ipcRenderer.send('resize-window', action, dimensions,
         shared.userConfig.get('RETURN_PERCENTAGE') // remove?
       );
@@ -258,7 +295,7 @@ function updateDiff(c, n) { c = n ? n : c; }
 
 /**
  * Do a normal rotation of the image array pointers, updating the
- * definitions of 'current', 'next', and 'previous'. This function
+ * definitions of 'curr', 'next', and 'prev'. This function
  * sets up the next image.
  * @method rotatePointers
  * @return {none}
@@ -266,17 +303,17 @@ function updateDiff(c, n) { c = n ? n : c; }
 function rotatePointersNext() {
   // Update the pointer values
   // This is not reassignment, the pointers are being cycled
-  let temp = vs.pointer.previous;
-  vs.pointer.previous = vs.pointer.current;
-  vs.pointer.current  = vs.pointer.next;
-  vs.pointer.next     = temp;
+  let temp = vs.pointer.prev;
+  vs.pointer.prev = vs.pointer.curr;
+  vs.pointer.curr = vs.pointer.next;
+  vs.pointer.next = temp;
 }
 
 
 /**
  * Do a normal rotation of the image array pointers, updating the
- * definitions of 'current', 'next', and 'previous'. This function
- * sets up the previous image
+ * definitions of 'curr', 'next', and 'prev'. This function
+ * sets up the prev image
  * @method rotatePointers
  * @return {none}
  */
@@ -284,7 +321,7 @@ function rotatePointersPrev() {
   // Update the pointer values
   // This is not reassignment, the pointers are being cycled
   let temp = vs.pointer.next;
-  vs.pointer.next     = vs.pointer.current;
-  vs.pointer.current  = vs.pointer.previous;
-  vs.pointer.previous = temp;
+  vs.pointer.next = vs.pointer.curr;
+  vs.pointer.curr = vs.pointer.prev;
+  vs.pointer.prev = temp;
 }

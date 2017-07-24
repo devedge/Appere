@@ -27,10 +27,20 @@ class CSSStateManager {
     this.imgContainer.hidden = false;
   }
 
+  /**
+   * Apply a css class that zooms the current image
+   * @method zoomOutImg
+   * @param  {Element}   element The image element
+   */
   zoomOutImg(element) {
     this.swapClasses(element, 'FULL_IMG_CLASS', 'FIT_IMG_CLASS');
   }
 
+  /**
+  * Apply a css class that zooms the current image
+   * @method zoomInImg
+   * @param  {Element}  element The image element
+   */
   zoomInImg(element) {
     this.swapClasses(element, 'FIT_IMG_CLASS', 'FULL_IMG_CLASS');
   }
