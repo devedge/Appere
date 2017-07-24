@@ -1,0 +1,25 @@
+{
+  "appId": "com.devedge.Appere",
+  "productName": "Appere",
+  "fileAssociations": [
+    {"ext": "jpg"},
+    {"ext": "jpeg"},
+    {"ext": "jpe"},
+    {"ext": "jfif"},
+    {"ext": "jif"},
+    {"ext": "gif"},
+    {"ext": "png"},
+    {"ext": "bmp"},
+    {"ext": "ico"}
+  ],
+  "linux": {
+    "executableName": "Appere",
+    "icon": "./app/img/icons/",
+    "synopsis": "A simple, minimalist image viewer",
+    "category": "Graphics",
+    "desktop": {
+      "Exec": "Appere %f",
+      "Terminal": "true"
+    }
+  }
+}
