@@ -152,6 +152,8 @@ class FSManager {
         // Callback with the next filename
         callback(true, this.IMAGE_LIST[currentIndex], currentIndex);
       }
+
+      // Callback
     } else {
       // The image list hasn't been generated yet, so callback with no value
       callback(false, null, 0);

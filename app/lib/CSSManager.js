@@ -36,7 +36,7 @@ const pointlightTag = document.getElementById('point-light');
 const imagecontainerTag = document.getElementById('image-container');
 
 // variables indicating css state
-let APP_HOME;
+// let APP_HOME;
 
 /**
  * A function to facilitate swapping two diffent classes for an element
