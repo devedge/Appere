@@ -41,8 +41,8 @@ class FSManager {
    * @param  {Function} callback  A callback, with (err) if error happened
    */
   init(filepath, callback) {
-    let filename = path.dirname(filepath);
-    let directory = path.basename(filepath);
+    let filename = path.basename(filepath);
+    let directory = path.dirname(filepath);
 
     // Don't re-run on the same folder
     if (directory !== this.CURRENT_DIR) {
@@ -130,7 +130,50 @@ class FSManager {
    *
    *    (false, null, 0)
    */
-  getNext(wrap, currentIndex, callback) {
+
+  /**
+   * Gets the next image in the array, from 'currentIndex'
+   * @method getNext
+   * @param  {Boolean} wrap         True, if wrap around
+   * @param  {Int}     currentIndex The current image index
+   * @return {Object}               {filename, newIndex} if there is something
+   *                                to return
+   */
+  getNext(wrap, currentIndex) {
+    if (this.READY) {
+      // if the new index will be greater than the array length
+      if (currentIndex + 1 > this.IMAGE_LIST.length - 1) {
+        if (wrap) {
+          currentIndex = 0; // cycle back to the start
+        } else {
+          return;           // no wrap, so do nothing
+        }
+      } else {
+        currentIndex += 1;  // otherwise, increment the index
+      }
+
+      let fullp = path.join(this.CURRENT_DIR, this.IMAGE_LIST[currentIndex]);
+      if (!fs.existsSync(fullp)) {
+        // if the file no longer exists, remove it from the array and
+        // call getNext again
+        this.IMAGE_LIST.splice(currentIndex, 1);
+        this.getNext(wrap, currentIndex);
+        console.log('did it ever get to no file found?');
+      } else {
+        // return the filename and the new index
+        return {
+          filename: this.IMAGE_LIST[currentIndex],
+          newIndex: currentIndex
+        };
+      }
+    }
+
+    // console.log('Ready: ' + this.READY);
+    // get the next image from the image list
+    // if wrap, return a wrapped lookup
+    // if the returned image doesn't exist, 'split' the array and
+    // recursively call this function
+    /*
     if (this.READY) {
       // If the current image is the last one
       if (currentIndex + 1 > this.IMAGE_LIST.length - 1) {
@@ -157,7 +200,7 @@ class FSManager {
     } else {
       // The image list hasn't been generated yet, so callback with no value
       callback(false, null, 0);
-    }
+    }*/
   }
 
   /**
@@ -173,7 +216,44 @@ class FSManager {
    *
    *    (false, null, 0)
    */
-  getPrev(wrap, currentIndex, callback) {
+  /**
+   * Gets the previous image in the array, from 'currentIndex'
+   * @method getPrev
+   * @param  {Boolean} wrap         True, if wrap around
+   * @param  {Int}     currentIndex The current image index
+   * @return {Object}               {filename, newIndex} if there is something
+   *                                to return
+   */
+  getPrev(wrap, currentIndex) {
+    if (this.READY) {
+      // if the current image is the first one
+      if (currentIndex - 1 < 0) {
+        if (wrap) {
+          currentIndex = this.IMAGE_LIST.length - 1;
+        } else {
+          return; // no wrap, so do nothing
+        }
+      } else {
+        currentIndex -= 1; // otherwise, decrement the index
+      }
+
+      let fullp = path.join(this.CURRENT_DIR, this.IMAGE_LIST[currentIndex]);
+      if (!fs.existsSync(fullp)) {
+        // if the file no longer exists, remove it from the array and
+        // call getNext again on the previous one
+        this.IMAGE_LIST.splice(currentIndex, 1);
+        this.getNext(wrap, currentIndex - 1);
+        console.log('did it ever get to no file found?');
+      } else {
+        // return the filename and the new index
+        return {
+          filename: this.IMAGE_LIST[currentIndex],
+          newIndex: currentIndex
+        };
+      }
+    }
+
+    /*
     if (this.READY) {
       // If the current image is the first one
       if (currentIndex - 1 < 0) {
@@ -198,7 +278,7 @@ class FSManager {
     } else {
       // The image list hasn't been generated yet, so callback with no value
       callback(false, null, 0);
-    }
+    }*/
   }
 
   /**
@@ -234,6 +314,8 @@ class FSManager {
     // if there is an error, return the error
     // TODO implement this in getNext/Prev
 
+    let errmsg = '';
+
     // does the file exist?
     if (fs.existsSync(inputFP)) {
       if (fs.lstatSync(inputFP).isFile()) { // is this a file?
@@ -242,11 +324,21 @@ class FSManager {
 
         // is the value non-null and supported?
         if (FILETYPE_RESULT && FILETYPE_RESULT.ext.match(SUPPORTED_TYPES)) {
-          return true;
+          return {status: true, message: errmsg};
+        } else {
+          errmsg = 'File "' + inputFP + '" isn\'t a supported filetype';
         }
+      } else {
+        errmsg = '"' + inputFP + '" isn\'t a file';
       }
+    } else {
+      errmsg = 'File "' + inputFP + '" doesn\'t exist';
     }
-    return false;
+
+    return {
+      status: false,
+      message: errmsg
+    };
   }
 
   /**

@@ -5,8 +5,9 @@ const {ipcRenderer} = require('electron');
 const shared = require('electron').remote.getGlobal('shared'); // Global shared object
 const path = require('path');
 
-const CSSStateManager = require('./CSSStateManager.js');
-const FilesystemManager = require('./FilesystemManager.js');
+const CSSStateManager = require('./cssStateManager.js');
+// const FilesystemManager = require('./FilesystemManager.js');
+const FilesystemManager = require('./fsMan.js');
 const ViewState = require('./viewStateTemplate.js');
 const pEncode = require('./PercentEncode.js');
 
@@ -18,18 +19,20 @@ let vs = ViewState;
 class ViewHandler {
   constructor() {
     // create a new cssStateManager?
-    this.HOME = true;
-    this.ZOOMEDIN = false;
-    this.CURRENT_ZOOM = 0;
+    this.resetState();
 
-    css.showHome();
+    // this.HOME = true;
+    // this.ZOOMEDIN = false;
+    // this.CURRENT_ZOOM = 0;
+    // initElements();
+    // css.showHome();
   }
 
-  setCurrentImage(filepath) { // no callback
+  /** Set the current image in the viewer, and initialize in its directory */
+  setCurrentImage(filepath) {
     try {
-      if (fsm.isFileValid(filepath)) {
-        this.HOME = false;
-
+      let res = fsm.isFileValid(filepath);
+      if (res.status) {
         // Reset the app's view
         this.resetState();
 
@@ -47,16 +50,17 @@ class ViewHandler {
           vs.istate[vs.pointer.curr].gifhandle = filepath;
         }
         // set image in viewer
-        vs.istate[vs.pointer.curr].handle.src = filepath;
+        vs.istate[vs.pointer.curr].handle.src = pEncode(filepath);
 
         css.hideHome(); // Hide the app home
+        this.HOME = false;
 
-        // init fsm
+        // init FileSystemManager
         fsm.init(filepath, (err) => {
           if (err) { throw err; } // Should avoid?
 
           // Set total number & index
-          vs.dirNum = fms.getTotalNumber();
+          vs.dirNum = fsm.getTotalNumber();
           vs.istate[vs.pointer.curr].index = fsm.getCurrentIndex();
 
           setTitle({
@@ -64,12 +68,14 @@ class ViewHandler {
             fileindex: fsm.getCurrentIndex() + 1,
             totalfiles: vs.dirNum
           });
-          // load next
-          // load prev
 
+          // Preload the next images
+          loadNext(shared.userConfig.get('WRAP')); //, fsm.getCurrentIndex());
+          loadPrev(shared.userConfig.get('WRAP')); //, fsm.getCurrentIndex());
         });
       } else {
         // quick error message, file isn't a supported image or doesn't exist
+        console.log(res.message);
       }
     } catch (e) {
       // display generic error
@@ -77,10 +83,9 @@ class ViewHandler {
   }
 
   /** Show the next image in the viewer */
-  showNext() { // If called, automatically reset zoom?
+  showNext() { // If called, automatically reset zoom? TODO
     if (fsm.isReady() && !this.HOME) {
       try {
-
         // Resize the window for the 'next' image
         resizeWindow(vs.pointer.next, 'resize');
 
@@ -91,29 +96,35 @@ class ViewHandler {
         rotatePointersNext();
 
         // Preload the next image
-
+        loadNext(shared.userConfig.get('WRAP'));
       } catch (e) {
         // display generic error
       }
+    } else {
+      console.log('showNext ' + this.HOME);
     }
   }
 
   /** Show the previous image in the viewer */
-  showPrev() { // If called, automatically reset zoom?
+  showPrev() { // If called, automatically reset zoom? TODO
     if (fsm.isReady() && !this.HOME) {
       try {
-
+        // Resize the window for the 'prev' image
         resizeWindow(vs.pointer.prev, 'resize');
 
-        cycleImage();
+        // Cycle the 'prev' image in to replace the 'current' one
+        cycleImage(vs.pointer.current, vs.pointer.prev);
 
-        rotatePointersNext();
+        // Update the pointer values so 'prev' is now 'current'
+        rotatePointersPrev();
 
-        // load next one
-
+        // Preload the previous image
+        loadPrev(shared.userConfig.get('WRAP'));
       } catch (e) {
         // display generic error
       }
+    } else {
+      console.log('showPrev ' + this.HOME);
     }
   }
 
@@ -196,6 +207,8 @@ class ViewHandler {
     this.HOME = true;
     this.ZOOMEDIN = false;
     this.CURRENT_ZOOM = 0;
+    initElements();
+    css.showHome();
   }
 }
 
@@ -203,25 +216,135 @@ class ViewHandler {
 module.exports = ViewHandler;
 
 
-function loadNext(wrap, index) {
-  fsm.getNext(wrap, index, (ready, filename, newIndex) => {
-
-  });
+/**
+ * Load the next image into the 'next' image element
+ * @method loadNext
+ * @param  {Boolean} wrap  Wrap around in the current directory
+ */
+// * @param  {Int}     index The current image's index
+function loadNext(wrap) {
+  let res = fsm.getNext(wrap, vs.istate[vs.pointer.curr].index);
+  if (res) {
+    let validatemsg = fsm.isFileValid(path.join(vs.dirPath, res.filename));
+    if (!validatemsg.status) {
+      // vs.istate[vs.pointer.next].err = {
+      //   message: validatemsg.message,
+      //   function: 'fsm.isFileValid'
+      // };
+      console.log('loadNext file isn\'t valid');
+    } else {
+      setNewImage(vs.pointer.next, res.filename, res.newIndex);
+    }
+  }
 }
 
 
+/**
+ * Load the next image into the 'next' image element
+ * @method loadPrev
+ * @param  {Boolean} wrap  Wrap around in the current directory
+ */
+// * @param  {Int}     index The current image's index
+function loadPrev(wrap) {
+  let res = fsm.getPrev(wrap, vs.istate[vs.pointer.curr].index);
+  if (res) {
+    let validatemsg = fsm.isFileValid(path.join(vs.dirPath, res.filename));
+    if (!validatemsg.status) {
+      // vs.istate[vs.pointer.prev].err = {
+      //   message: validatemsg.message,
+      //   function: 'fsm.isFileValid'
+      // };
+      console.log('loadPrev file isn\'t valid');
+    } else {
+      setNewImage(vs.pointer.prev, res.filename, res.newIndex);
+    }
+  }
+}
 
-function setNewImage(newPointer, filename, newIndex) {
+
+/**
+ * Cycle the image at 'oldPointer' for the one at 'newPointer'
+ * @method cycleImage
+ * @param  {Int}      oldPointer The 'current' pointer
+ * @param  {Int}      newPointer The 'new' image pointer
+ */
+function cycleImage(oldPointer, newPointer) {
+  // If the previous image created an error, hide the error now
+  // if (vs.istate[oldPointer].err) {
+  //   hideError();
+  // }
+
+  // If the previous image (still referred to as 'current') was
+  // a gif, 'null' the 'src' attribute
+  if (vs.istate[oldPointer].gifhandle) {
+    vs.istate[oldPointer].handle.src = '';
+  }
+  // Hide the previous element
+  vs.istate[oldPointer].handle.hidden = true;
+
+  // If an error occured while setting the new image,
+  // show the error page instead and return early
+  // if (vs.istate[newPointer].err) {
+  //   showError(
+  //     vs.istate[newPointer].err.message,
+  //     vs.istate[newPointer].err.function
+  //   );
+  //   return; // quit early
+  // }
+
+  // Show the new element
+  vs.istate[newPointer].handle.hidden = false;
+
+  // Set the new window title
+  setTitle({
+    filename: vs.istate[newPointer].filename,
+    fileindex: vs.istate[newPointer].index + 1,
+    totalfiles: vs.dirNum
+  });
+
+  // If this image is a gif, it was temporarily loaded into a 'gifhandle'
+  // attribute. Now, load it in the actual 'src' value so it starts
+  // from the beginning
+  if (vs.istate[newPointer].gifhandle) {
+    vs.istate[newPointer].handle.src = vs.istate[newPointer].gifhandle;
+  }
+}
+
+
+/**
+ * Set the image at 'pointer' to the one specified by 'filename'
+ * and 'newIndex'
+ * @method setNewImage
+ * @param  {Int}       pointer    The pointer to update
+ * @param  {String}    filename   The filename of the new image
+ * @param  {Int}       newIndex   The index of the new image
+ */
+function setNewImage(pointer, filename, newIndex) {
   // Set the new object's name and index
-  vs.istate[newPointer].filename = filename;
-  vs.istate[newPointer].index = newIndex;
+  vs.istate[pointer].filename = filename;
+  vs.istate[pointer].index = newIndex;
 
   // clear error flags?
+  // vs.istate[pointer].err = null;
 
   // Get the dimensions of the new image
-  vs.istate[newPointer].dimensions = fms.sizeOf();
-}
+  vs.istate[pointer].dimensions = fsm.sizeOf(
+    path.join(vs.dirPath, filename)
+  );
 
+  // Set the new image in the the new 'img' tag
+  if (filename.match(/\.gif$/)) {
+    // If the image is a 'gif', don't actually load it
+    // in the 'src' attribute. Instead, load it in a temporary
+    // value so it can be loaded at the last minute
+    vs.istate[pointer].gifhandle = pEncode(path.join(vs.dirPath, filename));
+  } else {
+    // Otherwise, preload the new image
+    // Also, 'nullify' the gifhandle since it isn't a gif
+    vs.istate[pointer].handle.src = pEncode(path.join(vs.dirPath, filename));
+    vs.istate[pointer].gifhandle = '';
+  }
+}
 
 
 /**
@@ -266,10 +389,10 @@ function resizeWindow(pntr, action) {
 function setTitle(options) {
   let newTitle = '';
 
-  updateDiff(vs.title.filename, options.filename);
-  updateDiff(vs.title.fileindex, options.fileindex);
-  updateDiff(vs.title.totalfiles, options.totalfiles);
-  updateDiff(vs.title.percentdisplayed, options.percentdisplayed);
+  if (options.filename) { vs.title.filename = options.filename; }
+  if (options.fileindex) { vs.title.fileindex = options.fileindex; }
+  if (options.totalfiles) { vs.title.totalfiles = options.totalfiles; }
+  if (options.percentdisplayed) { vs.title.percentdisplayed = options.percentdisplayed; }
 
   if (vs.title.filename) {
     newTitle = vs.title.filename;
@@ -290,7 +413,15 @@ function setTitle(options) {
 
 // Use a ternerary operation to update a value only if
 // 'n' exists
-function updateDiff(c, n) { c = n ? n : c; }
+// function updateDiff(c, n) { c = n ? n : c; }
+
+
+/** Init grabbing the image elements */
+function initElements() {
+  vs.istate[vs.pointer.curr].handle = document.getElementById('image-element-1');
+  vs.istate[vs.pointer.prev].handle = document.getElementById('image-element-2');
+  vs.istate[vs.pointer.next].handle = document.getElementById('image-element-3');
+}
 
 
 /**

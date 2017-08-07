@@ -40,9 +40,6 @@ var replacements = [{
     pattern: ',',
     replacement: '%2C'
   }, {
-    pattern: '/',
-    replacement: '%2F'
-  }, {
     pattern: '?',
     replacement: '%3F'
   }, {
@@ -54,8 +51,16 @@ var replacements = [{
   }, {
     pattern: ']',
     replacement: '%5D'
+  }, {
+    pattern: ' ',
+    replacement: '%20'
   }
 ];
+
+// {
+//   pattern: '/',
+//   replacement: '%2F'
+// },
 
 
 // Return a percent encoded version of the string
