@@ -1,13 +1,15 @@
-// TODO: this is the new ViewHandler
-
+/**
+ * ViewStateManager module
+ * The class that manages the entire application view & state
+ *
+ */
 
 const {ipcRenderer} = require('electron');
 const shared = require('electron').remote.getGlobal('shared'); // Global shared object
 const path = require('path');
 
-const CSSStateManager = require('./cssStateManager.js');
-// const FilesystemManager = require('./FilesystemManager.js');
-const FilesystemManager = require('./fsMan.js');
+const CSSStateManager = require('./CSSStateManager.js');
+const FilesystemManager = require('./FilesystemManager.js');
 const ViewState = require('./viewStateTemplate.js');
 const pEncode = require('./PercentEncode.js');
 
@@ -18,14 +20,7 @@ let vs = ViewState;
 
 class ViewHandler {
   constructor() {
-    // create a new cssStateManager?
     this.resetState();
-
-    // this.HOME = true;
-    // this.ZOOMEDIN = false;
-    // this.CURRENT_ZOOM = 0;
-    // initElements();
-    // css.showHome();
   }
 
   /** Set the current image in the viewer, and initialize in its directory */
@@ -86,11 +81,14 @@ class ViewHandler {
   showNext() { // If called, automatically reset zoom? TODO
     if (fsm.isReady() && !this.HOME) {
       try {
+        this.ZOOMEDIN = false;
+        css.zoomOutImg(vs.istate[vs.pointer.curr].handle);
+
         // Resize the window for the 'next' image
         resizeWindow(vs.pointer.next, 'resize');
 
         // Cycle the 'next' image in to replace the 'current' one
-        cycleImage(vs.pointer.current, vs.pointer.next);
+        cycleImage(vs.pointer.curr, vs.pointer.next);
 
         // Update the pointer values so 'next' is now 'current'
         rotatePointersNext();
@@ -99,9 +97,8 @@ class ViewHandler {
         loadNext(shared.userConfig.get('WRAP'));
       } catch (e) {
         // display generic error
+        console.log(e);
       }
-    } else {
-      console.log('showNext ' + this.HOME);
     }
   }
 
@@ -109,11 +106,14 @@ class ViewHandler {
   showPrev() { // If called, automatically reset zoom? TODO
     if (fsm.isReady() && !this.HOME) {
       try {
+        this.ZOOMEDIN = false;
+        css.zoomOutImg(vs.istate[vs.pointer.curr].handle);
+
         // Resize the window for the 'prev' image
         resizeWindow(vs.pointer.prev, 'resize');
 
         // Cycle the 'prev' image in to replace the 'current' one
-        cycleImage(vs.pointer.current, vs.pointer.prev);
+        cycleImage(vs.pointer.curr, vs.pointer.prev);
 
         // Update the pointer values so 'prev' is now 'current'
         rotatePointersPrev();
@@ -122,9 +122,8 @@ class ViewHandler {
         loadPrev(shared.userConfig.get('WRAP'));
       } catch (e) {
         // display generic error
+        console.log(e);
       }
-    } else {
-      console.log('showPrev ' + this.HOME);
     }
   }
 
@@ -178,7 +177,7 @@ class ViewHandler {
   }
 
   /**
-   * Is this image zoomed in?
+   * Is the current image zoomed in?
    * @method isZoomed
    * @return {Boolean} True if zoomed in, false otherwise
    */
@@ -189,6 +188,11 @@ class ViewHandler {
   /** Sends an IPC message to minimize the window */
   minimize() {
     ipcRenderer.send('minimize-window');
+    ipcRenderer.on('minimize-done', () => {
+      // Clears the view after the window has been minimized
+      // to avoid jumpy animations
+      this.resetState();
+    });
   }
 
   infoToggle(state) {
@@ -203,10 +207,21 @@ class ViewHandler {
     // state = on/off
   }
 
+  /** reset the entire application state */
   resetState() {
     this.HOME = true;
     this.ZOOMEDIN = false;
     this.CURRENT_ZOOM = 0;
+    vs = ViewState;
+    document.title = 'Appere';
+
+    ipcRenderer.send('resize-window', 'resize',
+      {width: shared.userConfig.get('BROWSER_WIN.width'),
+        height: shared.userConfig.get('BROWSER_WIN.height')},
+      false
+    );
+
+    fsm.reset();
     initElements();
     css.showHome();
   }
@@ -221,7 +236,6 @@ module.exports = ViewHandler;
  * @method loadNext
  * @param  {Boolean} wrap  Wrap around in the current directory
  */
-// * @param  {Int}     index The current image's index
 function loadNext(wrap) {
   let res = fsm.getNext(wrap, vs.istate[vs.pointer.curr].index);
   if (res) {
@@ -244,7 +258,6 @@ function loadNext(wrap) {
  * @method loadPrev
  * @param  {Boolean} wrap  Wrap around in the current directory
  */
-// * @param  {Int}     index The current image's index
 function loadPrev(wrap) {
   let res = fsm.getPrev(wrap, vs.istate[vs.pointer.curr].index);
   if (res) {
@@ -279,6 +292,7 @@ function cycleImage(oldPointer, newPointer) {
   if (vs.istate[oldPointer].gifhandle) {
     vs.istate[oldPointer].handle.src = '';
   }
+
   // Hide the previous element
   vs.istate[oldPointer].handle.hidden = true;
 
@@ -323,25 +337,24 @@ function setNewImage(pointer, filename, newIndex) {
   // Set the new object's name and index
   vs.istate[pointer].filename = filename;
   vs.istate[pointer].index = newIndex;
+  let fullpath = path.join(vs.dirPath, filename);
 
   // clear error flags?
   // vs.istate[pointer].err = null;
 
   // Get the dimensions of the new image
-  vs.istate[pointer].dimensions = fsm.sizeOf(
-    path.join(vs.dirPath, filename)
-  );
+  vs.istate[pointer].dimensions = fsm.sizeOf(fullpath);
 
   // Set the new image in the the new 'img' tag
   if (filename.match(/\.gif$/)) {
     // If the image is a 'gif', don't actually load it
     // in the 'src' attribute. Instead, load it in a temporary
     // value so it can be loaded at the last minute
-    vs.istate[pointer].gifhandle = pEncode(path.join(vs.dirPath, filename));
+    vs.istate[pointer].gifhandle = pEncode(fullpath);
   } else {
     // Otherwise, preload the new image
     // Also, 'nullify' the gifhandle since it isn't a gif
-    vs.istate[pointer].handle.src = pEncode(path.join(vs.dirPath, filename));
+    vs.istate[pointer].handle.src = pEncode(fullpath);
     vs.istate[pointer].gifhandle = '';
   }
 }
@@ -411,16 +424,17 @@ function setTitle(options) {
 }
 
 
-// Use a ternerary operation to update a value only if
-// 'n' exists
-// function updateDiff(c, n) { c = n ? n : c; }
-
-
 /** Init grabbing the image elements */
 function initElements() {
   vs.istate[vs.pointer.curr].handle = document.getElementById('image-element-1');
   vs.istate[vs.pointer.prev].handle = document.getElementById('image-element-2');
   vs.istate[vs.pointer.next].handle = document.getElementById('image-element-3');
+  css.resetElement(vs.istate[vs.pointer.curr].handle);
+  css.resetElement(vs.istate[vs.pointer.prev].handle);
+  css.resetElement(vs.istate[vs.pointer.next].handle);
+  vs.istate[vs.pointer.curr].handle.hidden = false;
+  vs.istate[vs.pointer.prev].handle.hidden = true;
+  vs.istate[vs.pointer.next].handle.hidden = true;
 }
 
 
@@ -456,3 +470,16 @@ function rotatePointersPrev() {
   vs.pointer.curr = vs.pointer.prev;
   vs.pointer.prev = temp;
 }
+
+
+/**
+ * Updates the title with the new percentage, calculated by the
+ * main process after resizing the window.
+ */
+ipcRenderer.on('percent-reduc', (event, pcntcalc) => {
+  if (pcntcalc > 100) {
+    setTitle({percentdisplayed: 100});
+  } else {
+    setTitle({percentdisplayed: pcntcalc});
+  }
+});

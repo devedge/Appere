@@ -37,7 +37,5 @@ module.exports = {
     fileindex: 0,   //    can be re-generated without re-querying the stateArray
     totalfiles: 0,
     percentdisplayed: ''
-  }//,
-  // imgContainer: null,  // The parent of the three image elements
-  // logoContainer: null  // The app home, containing the logo
+  }
 };
