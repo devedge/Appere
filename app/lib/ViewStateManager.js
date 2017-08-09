@@ -65,8 +65,8 @@ class ViewHandler {
           });
 
           // Preload the next images
-          loadNext(shared.userConfig.get('WRAP')); //, fsm.getCurrentIndex());
-          loadPrev(shared.userConfig.get('WRAP')); //, fsm.getCurrentIndex());
+          loadNext(shared.userConfig.get('WRAP'));
+          loadPrev(shared.userConfig.get('WRAP'));
         });
       } else {
         // quick error message, file isn't a supported image or doesn't exist

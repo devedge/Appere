@@ -4,7 +4,6 @@
  */
 const keycode = require('keycode');
 
-// TODO implement zoom logic here
 // TODO 'space' escapes zoom?
 
 /**
@@ -65,7 +64,6 @@ function getAction(event, isZoomed) {
   }
 
   if (action) {
-    console.log('Current action: ' + action);
     event.preventDefault();
     return action;
   }

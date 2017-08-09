@@ -117,19 +117,6 @@ class FSManager {
     return this.READY;
   }
 
-  /**
-   * Gets the next image in the array, using the passed-in index
-   * @method getNext
-   * @param  {Boolean}  wrap         Wraparound to the start?
-   * @param  {Int}      currentIndex Current file index, from getCurrentIndex()
-   * @param  {Function} callback     A callback containing:
-   *
-   *    (boolean:<generator ready>, string:<new filename>, int:<new index>)
-   *
-   *    If the generator is not ready, the callback will be:
-   *
-   *    (false, null, 0)
-   */
 
   /**
    * Gets the next image in the array, from 'currentIndex'
@@ -203,19 +190,7 @@ class FSManager {
     }*/
   }
 
-  /**
-   * Gets the previous image in the array, using the passed-in index
-   * @method getPrev
-   * @param  {Boolean}  wrap         Wraparound to the end?
-   * @param  {Int}      currentIndex Current file index, from getCurrentIndex()
-   * @param  {Function} callback     A callback containing:
-   *
-   *    (boolean:<generator ready>, string:<new filename>, int:<new index>)
-   *
-   *    If the generator is not ready, the callback will be:
-   *
-   *    (false, null, 0)
-   */
+
   /**
    * Gets the previous image in the array, from 'currentIndex'
    * @method getPrev
@@ -231,7 +206,7 @@ class FSManager {
         if (wrap) {
           currentIndex = this.IMAGE_LIST.length - 1;
         } else {
-          return; // no wrap, so do nothing
+          return;          // no wrap, so do nothing
         }
       } else {
         currentIndex -= 1; // otherwise, decrement the index
@@ -281,6 +256,7 @@ class FSManager {
     }*/
   }
 
+
   /**
    * Trashes the file at the 'currentIndex' provided.
    * This function removes it from the image list and uses the 'trash'
@@ -301,6 +277,7 @@ class FSManager {
       callback();
     });
   }
+
 
   /**
    * The absolute filepath to check. This function checks if the

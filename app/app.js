@@ -11,28 +11,11 @@ const {ipcRenderer} = require('electron');
 const shared = require('electron').remote.getGlobal('shared');
 
 // Local module imports
-// const ViewHandler = require('./lib/ViewHandler.js');
 const ViewHandler = require('./lib/ViewStateManager.js');
 const keyAction = require('./lib/KeypressHandler.js');
-// const cssManager = require('./lib/CSSManager.js');
-
-// Flag to handle repeat drag-and-drops
-// let DRAG_FLAG = false;
 
 // Create new ViewHandler object
 let view = new ViewHandler();
-
-// Initialize the ViewHandler with elements from the page.
-// The first three elements are updated as the user cycles through
-// images
-// view.init(
-//   document.getElementById('image-element-1'),
-//   document.getElementById('image-element-2'),
-//   document.getElementById('image-element-3'),
-//   document.getElementById('image-container'),
-//   document.getElementById('logo')
-// );
-
 
 // Immediately try to load the image from the command line args,
 // if it is provided
