@@ -32,7 +32,7 @@
 // TODO: Blurred-background view (will also animate resize)
 // TODONE: global user settings
 // TODONE: Reload gifs
-// TODO: 'm' --> minimize
+// TODONE: 'm' --> minimize
 // TODO: 'shift c' --> center
 // TODO: add code to determine current monitor
 // TODO: animations as pictures slide
@@ -78,20 +78,18 @@ const electron = require('electron'); // Import electron
 const {app, ipcMain, BrowserWindow} = electron; // Extract modules from electron
 const bwInit = require('./util/InitialConfig.js');
 
-// User settings configuration
-const Config = require('electron-config');
-const config = new Config();
-
 // Global module variables
 let calcDim = null;
 let win = null;
 
+// User settings configuration
+const Config = require('electron-config');
+const config = new Config();
 // Try to load user configuration by checking for a configuration
 // value, and if it doesn't exist, initialize it
 if (!config.store.set) { //!
   config.store = bwInit;
 }
-
 // Set the command line arguments & user config into a global object
 global.shared = {
   args: process.argv,
@@ -171,7 +169,8 @@ function createWindow() {
     minWidth: config.get('BROWSER_WIN.minWidth'),
     minHeight: config.get('BROWSER_WIN.minHeight'),
     backgroundColor: config.get('BROWSER_WIN.backgroundColor'),
-    icon: path.join(__dirname, 'img/icons/512x512.png'),//config.get('BROWSER_WIN.iconPath')
+    icon: path.join(__dirname, 'img/icons/512x512.png'),
+    //config.get('BROWSER_WIN.iconPath')
     center: config.get('BROWSER_WIN.center'),
     title: config.get('BROWSER_WIN.titleName'),
     show: false, //config.get('BROWSER_WIN.show'),

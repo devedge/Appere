@@ -74,6 +74,7 @@ class ViewHandler {
       }
     } catch (e) {
       // display generic error
+      console.log(e);
     }
   }
 
